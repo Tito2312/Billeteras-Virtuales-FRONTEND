@@ -1,19 +1,20 @@
-// Dashboard.js - Pantalla principal con cuadrícula de billeteras (sin carrusel)
+// Dashboard.js - Con carrusel profesional de billeteras
 
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
-import WalletCard from './WalletCard';
+import WalletCarousel from './WalletCarousel';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Datos de las billeteras
+  // Datos de las billeteras (puedes agregar más para probar el carrusel)
   const userWallets = [
     { id: 1, name: 'Principal', type: 'Gastos diarios', balance: 25430.50 },
     { id: 2, name: 'Ahorros', type: 'Ahorro', balance: 8920.00 },
     { id: 3, name: 'Inversión', type: 'Inversión', balance: 15600.75 },
-    { id: 4, name: 'Viajes', type: 'Ahorro', balance: 3500.00 }
+    { id: 4, name: 'Viajes', type: 'Ahorro', balance: 3500.00 },
+    { id: 5, name: 'Emergencias', type: 'Ahorro', balance: 12000.00 }
   ];
 
   // Transacciones recientes
@@ -107,22 +108,13 @@ const Dashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Mis Billeteras - Cuadrícula responsiva (sin carrusel) */}
+        {/* Mis Billeteras con CARRUSEL PROFESIONAL */}
         <div className="wallets-section">
           <div className="section-header">
             <h2>Mis Billeteras</h2>
             <button className="add-wallet-btn" onClick={() => handleAction('Agregar Billetera')}>+ Nueva</button>
           </div>
-          <div className="wallets-grid">
-            {userWallets.map(wallet => (
-              <WalletCard
-                key={wallet.id}
-                name={wallet.name}
-                type={wallet.type}
-                balance={wallet.balance}
-              />
-            ))}
-          </div>
+          <WalletCarousel wallets={userWallets} />
         </div>
 
         {/* Gráfico de evolución */}

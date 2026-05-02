@@ -185,11 +185,9 @@
   border-color: #7c3aed;
 }
 
-/* Grid de billeteras - responsivo */
-.wallets-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+/* Sección de billeteras - usando carrusel */
+.wallets-section {
+  margin-bottom: 32px;
 }
 
 /* ============================================ */
