@@ -1,4 +1,4 @@
-/* WalletCarousel.css - Estilos para carrusel por páginas */
+/* WalletCarousel.css - Estilos para el carrusel de billeteras */
 
 .carousel-wrapper {
   width: 100%;
@@ -45,7 +45,7 @@
   transition: color 0.3s ease;
 }
 
-/* Grid de tarjetas - IMPORTANTE: tamaño fijo, sin overflow raro */
+/* Grid de tarjetas */
 .carousel-grid {
   flex: 1;
   display: grid;
@@ -54,16 +54,9 @@
   min-width: 0;
 }
 
-/* Cada tarjeta ocupa todo su espacio sin recortarse */
 .carousel-grid-item {
   width: 100%;
   min-width: 0;
-}
-
-/* Placeholder vacío (transparente) */
-.carousel-grid-item.empty {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 /* Dots indicadores */
@@ -96,36 +89,18 @@
   transform: scale(1.2);
 }
 
-/* ============================================ */
-/* RESPONSIVE */
-/* ============================================ */
-
-/* Tablet: 2 tarjetas por página */
+/* Responsive */
 @media (max-width: 1024px) {
   .carousel-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
-  
-  .carousel-nav-btn {
-    width: 40px;
-    height: 40px;
-  }
-  
-  .nav-icon {
-    font-size: 18px;
-  }
 }
 
-/* Móvil: 1 tarjeta por página */
 @media (max-width: 640px) {
   .carousel-grid {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-  
-  .carousel-container {
-    gap: 12px;
   }
   
   .carousel-nav-btn {
@@ -135,19 +110,5 @@
   
   .nav-icon {
     font-size: 16px;
-  }
-  
-  .carousel-dots {
-    gap: 8px;
-    margin-top: 20px;
-  }
-  
-  .carousel-dot {
-    width: 6px;
-    height: 6px;
-  }
-  
-  .carousel-dot.active {
-    width: 20px;
   }
 }

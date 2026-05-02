@@ -1,19 +1,22 @@
 // App.js - Componente principal de la aplicación
-// Controla la navegación entre login, registro, recuperación de contraseña y dashboard
+// Controla la navegación entre login, registro, dashboard y billeteras
 
 import React, { useState, useEffect } from 'react';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
-import Dashboard from './components/dashboard/Dashboard';  // Importamos el Dashboard completo (no el temporal)
+import Dashboard from './components/dashboard/Dashboard';
+import Wallets from './components/wallets/Wallets';
+import Sidebar from './components/dashboard/Sidebar';  // ← IMPORTACIÓN MOVIDA ARRIBA
 import { getCurrentUser, logout } from './services/authService';
 import './App.css';
 
 function App() {
   // Estados para manejar la vista actual y el usuario
-  const [view, setView] = useState('login'); // 'login', 'register', 'forgotPassword', 'dashboard'
+  const [view, setView] = useState('login'); // 'login', 'register', 'forgotPassword', 'dashboard', 'wallets'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Verificar si hay una sesión guardada al cargar la app
   useEffect(() => {
@@ -21,6 +24,7 @@ function App() {
     if (currentUser) {
       setUser(currentUser);
       setView('dashboard');
+      setActiveTab('dashboard');
     }
     setLoading(false);
   }, []);
@@ -29,6 +33,7 @@ function App() {
   const handleLoginSuccess = (loggedInUser) => {
     setUser(loggedInUser);
     setView('dashboard');
+    setActiveTab('dashboard');
   };
 
   // Manejar registro exitoso (cambia a login)
@@ -41,6 +46,18 @@ function App() {
     logout();
     setUser(null);
     setView('login');
+    setActiveTab('dashboard');
+  };
+
+  // Manejar cambio de pestaña en el sidebar
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'dashboard') {
+      setView('dashboard');
+    } else if (tab === 'wallets') {
+      setView('wallets');
+    }
+    // Aquí puedes agregar más condiciones para otras pestañas
   };
 
   // Mostrar pantalla de carga mientras verificamos sesión
@@ -76,15 +93,30 @@ function App() {
           onBackToLogin={() => setView('login')}
         />
       );
-    case 'dashboard':
+    case 'wallets':
       return (
-        <Dashboard
-          user={user}
-          onLogout={handleLogout}
-        />
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Wallets user={user} />
+          </div>
+        </div>
       );
+    case 'dashboard':
     default:
-      return <Login onLoginSuccess={handleLoginSuccess} />;
+      return (
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Dashboard 
+              user={user} 
+              onLogout={handleLogout}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+            />
+          </div>
+        </div>
+      );
   }
 }
 

@@ -1,5 +1,5 @@
 // Sidebar.js - Menú lateral de navegación
-// Este componente muestra las opciones de navegación principal
+// Permite navegar entre Dashboard y Billeteras
 
 import React from 'react';
 import './Sidebar.css';

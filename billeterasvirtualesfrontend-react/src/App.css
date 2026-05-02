@@ -1,3 +1,6 @@
+/* App.css - Estilos globales de la aplicación */
+/* Estos estilos aplican a toda la app */
+
 * {
   margin: 0;
   padding: 0;
@@ -10,6 +13,7 @@ body {
   min-height: 100vh;
 }
 
+/* Pantalla de carga */
 .loading-container {
   min-height: 100vh;
   display: flex;
@@ -32,4 +36,26 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Layout con sidebar */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: #f5f3ff;
+}
+
+.app-main-content {
+  flex: 1;
+  margin-left: 260px;
+  overflow-x: hidden;
+  width: calc(100% - 260px);
+}
+
+/* Responsive del layout */
+@media (max-width: 768px) {
+  .app-main-content {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
 }

@@ -1,17 +1,12 @@
-/* Dashboard.css - Estilos principales del dashboard */
-/* Versión limpia, sin carrusel, con cuadrícula responsiva */
+/* Dashboard.css - Estilos específicos del dashboard */
+/* Este archivo solo afecta al Dashboard, no a otras páginas */
 
-.dashboard-layout {
-  display: flex;
-  min-height: 100vh;
-  background: #f5f3ff;
-}
-
+/* Contenedor principal del dashboard */
 .dashboard-main-content {
-  flex: 1;
-  margin-left: 260px;
   padding: 24px 32px;
-  overflow-x: hidden;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* ============================================ */
@@ -85,7 +80,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-bottom: 32px;
 }
@@ -147,7 +142,7 @@
 }
 
 /* ============================================ */
-/* SECCIÓN DE BILLETERAS (CUADRÍCULA) */
+/* SECCIÓN DE BILLETERAS */
 /* ============================================ */
 
 .wallets-section {
@@ -183,11 +178,6 @@
   background: #7c3aed;
   color: white;
   border-color: #7c3aed;
-}
-
-/* Sección de billeteras - usando carrusel */
-.wallets-section {
-  margin-bottom: 32px;
 }
 
 /* ============================================ */
@@ -362,43 +352,24 @@
 
 @media (max-width: 1024px) {
   .dashboard-main-content {
-    margin-left: 260px;
     padding: 20px;
   }
   
-  .wallets-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  .stats-grid {
+    gap: 16px;
   }
 }
 
 @media (max-width: 768px) {
   .dashboard-main-content {
-    margin-left: 70px;
     padding: 16px;
   }
   
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   
-  .wallets-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .chart-bars {
-    height: 200px;
-  }
-  
-  .chart-bar {
-    max-width: 35px;
-  }
-  
-  .transaction-item {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 480px) {
   .dashboard-header {
     flex-direction: column;
     text-align: center;
@@ -410,11 +381,45 @@
   }
   
   .chart-bars {
+    height: 200px;
+  }
+  
+  .chart-bar {
+    max-width: 35px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .transaction-item {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-main-content {
+    padding: 12px;
+  }
+  
+  .chart-bars {
     height: 160px;
     gap: 6px;
   }
   
   .chart-label {
     font-size: 9px;
+  }
+  
+  .stat-value {
+    font-size: 22px;
+  }
+  
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
   }
 }
