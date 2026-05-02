@@ -1,0 +1,117 @@
+/* WalletCard.css - Estilos para las tarjetas de billeteras */
+
+.wallet-card {
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  border-radius: 20px;
+  padding: 20px;
+  color: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.wallet-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(109, 40, 217, 0.3);
+}
+
+/* Variante morada clara para la segunda tarjeta */
+.wallet-card-light {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+}
+
+/* Variante más oscura */
+.wallet-card-dark {
+  background: linear-gradient(135deg, #5b21b6 0%, #3b0764 100%);
+}
+
+.wallet-card-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.wallet-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.wallet-info {
+  flex: 1;
+}
+
+.wallet-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.wallet-type {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.wallet-balance {
+  margin-bottom: 20px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.balance-label {
+  display: block;
+  font-size: 12px;
+  opacity: 0.8;
+  margin-bottom: 5px;
+}
+
+.balance-value {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.wallet-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.wallet-btn {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.wallet-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+.wallet-btn.recargar {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.wallet-btn.recargar:hover {
+  background: rgba(34, 197, 94, 0.5);
+}
+
+.wallet-btn.transferir {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+.wallet-btn.transferir:hover {
+  background: rgba(59, 130, 246, 0.5);
+}

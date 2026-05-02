@@ -1,8 +1,11 @@
+// App.js - Componente principal de la aplicación
+// Controla la navegación entre login, registro, recuperación de contraseña y dashboard
+
 import React, { useState, useEffect } from 'react';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
-import Dashboard from './components/dashboard/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';  // Importamos el Dashboard completo (no el temporal)
 import { getCurrentUser, logout } from './services/authService';
 import './App.css';
 
