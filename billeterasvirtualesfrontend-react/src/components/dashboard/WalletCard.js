@@ -1,29 +1,19 @@
-// WalletCard.js - Tarjeta individual para mostrar cada billetera
-// Es reutilizable, podemos usarla para cada billetera que tenga el usuario
+// WalletCard.js - Tarjeta de billetera versión profesional y estable
 
 import React from 'react';
 import './WalletCard.css';
 
-const WalletCard = ({ name, type, balance, color = 'purple' }) => {
-  // Ícono según el tipo de billetera
-  const getIcon = () => {
-    switch (type) {
-      case 'Ahorro':
-        return '🏦';
-      case 'Gastos diarios':
-        return '☕';
-      case 'Compras':
-        return '🛍️';
-      case 'Transporte':
-        return '🚗';
-      case 'Inversión':
-        return '📈';
-      default:
-        return '💳';
-    }
+const WalletCard = ({ name, type, balance }) => {
+  // Obtener iniciales para el ícono minimalista
+  const getInitials = () => {
+    if (name === 'Principal') return 'PP';
+    if (name === 'Ahorros') return 'AH';
+    if (name === 'Inversión') return 'IN';
+    if (name === 'Viajes') return 'VJ';
+    return name.substring(0, 2).toUpperCase();
   };
 
-  // Formatear número a moneda
+  // Formatear moneda
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -33,22 +23,49 @@ const WalletCard = ({ name, type, balance, color = 'purple' }) => {
     }).format(value);
   };
 
+  // Formatear tipo de billetera
+  const formatType = (type) => {
+    const types = {
+      'Ahorro': 'Cuenta de ahorro',
+      'Gastos diarios': 'Gastos diarios',
+      'Compras': 'Compras online',
+      'Transporte': 'Movilidad',
+      'Inversión': 'Portafolio inversión'
+    };
+    return types[type] || type;
+  };
+
+  const handleAction = (action) => {
+    alert(`🔔 ${action} - ${name}\n\nPróximamente se conectará con el backend`);
+  };
+
   return (
-    <div className={`wallet-card wallet-card-${color}`}>
+    <div className="wallet-card">
       <div className="wallet-card-header">
-        <div className="wallet-icon">{getIcon()}</div>
+        <div className="wallet-icon-minimal">
+          <span>{getInitials()}</span>
+        </div>
         <div className="wallet-info">
           <h4 className="wallet-name">{name}</h4>
-          <p className="wallet-type">{type}</p>
+          <p className="wallet-type">{formatType(type)}</p>
         </div>
       </div>
+      
       <div className="wallet-balance">
-        <span className="balance-label">Balance disponible</span>
+        <span className="balance-label">BALANCE DISPONIBLE</span>
         <span className="balance-value">{formatCurrency(balance)}</span>
       </div>
+      
       <div className="wallet-actions">
-        <button className="wallet-btn recargar">➕ Recargar</button>
-        <button className="wallet-btn transferir">↗️ Transferir</button>
+        <button className="wallet-btn recargar" onClick={() => handleAction('Recargar')}>
+          Recargar
+        </button>
+        <button className="wallet-btn transferir" onClick={() => handleAction('Transferir')}>
+          Transferir
+        </button>
+        <button className="wallet-btn retirar" onClick={() => handleAction('Retirar')}>
+          Retirar
+        </button>
       </div>
     </div>
   );

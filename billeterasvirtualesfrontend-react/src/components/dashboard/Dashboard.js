@@ -1,7 +1,6 @@
-// Dashboard.js - Pantalla principal después del login
-// Muestra: balance total, billeteras, gráfico, transacciones recientes
+// Dashboard.js - Pantalla principal con cuadrícula de billeteras (sin carrusel)
 
-import React, { useState } from 'react';  // SOLO UNA VEZ, al inicio del archivo
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import WalletCard from './WalletCard';
 import './Dashboard.css';
@@ -9,23 +8,23 @@ import './Dashboard.css';
 const Dashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  // Datos de ejemplo para las billeteras del usuario
-  // Estos datos deberían venir de una base de datos en el futuro
+  // Datos de las billeteras
   const userWallets = [
-    { id: 1, name: 'Principal', type: 'Gastos diarios', balance: 25430.50, color: 'purple' },
-    { id: 2, name: 'Ahorros', type: 'Ahorro', balance: 8920.00, color: 'light' },
-    { id: 3, name: 'Inversión', type: 'Inversión', balance: 15600.75, color: 'dark' }
+    { id: 1, name: 'Principal', type: 'Gastos diarios', balance: 25430.50 },
+    { id: 2, name: 'Ahorros', type: 'Ahorro', balance: 8920.00 },
+    { id: 3, name: 'Inversión', type: 'Inversión', balance: 15600.75 },
+    { id: 4, name: 'Viajes', type: 'Ahorro', balance: 3500.00 }
   ];
 
-  // Datos de ejemplo para transacciones recientes
+  // Transacciones recientes
   const recentTransactions = [
-    { id: 1, type: 'recarga', description: 'Recarga desde tarjeta **** 4532', date: '8 abr, 10:30', amount: 500, status: 'Completada', isPositive: true },
-    { id: 2, type: 'transferencia', description: 'Transferencia interna', date: '7 abr, 15:45', amount: 1200, status: 'Completada', isPositive: false },
-    { id: 3, type: 'recarga', description: 'Recarga desde tarjeta **** 1234', date: '6 abr, 09:15', amount: 300, status: 'Completada', isPositive: true },
+    { id: 1, type: 'recarga', description: 'Recarga desde tarjeta **** 4532', date: '8 abr, 10:30', amount: 500000, status: 'Completada', isPositive: true },
+    { id: 2, type: 'transferencia', description: 'Transferencia a Juan Pérez', date: '7 abr, 15:45', amount: 120000, status: 'Completada', isPositive: false },
+    { id: 3, type: 'recarga', description: 'Recarga desde tarjeta **** 1234', date: '6 abr, 09:15', amount: 300000, status: 'Completada', isPositive: true },
     { id: 4, type: 'pago', description: 'Pago suscripción Netflix', date: '5 abr, 18:30', amount: 49900, status: 'Completada', isPositive: false }
   ];
 
-  // Datos para el gráfico de evolución (balance por día)
+  // Datos del gráfico
   const chartData = [
     { day: '1 Abr', value: 48000 },
     { day: '2 Abr', value: 49500 },
@@ -38,31 +37,24 @@ const Dashboard = ({ user, onLogout }) => {
   ];
 
   const maxValue = Math.max(...chartData.map(d => d.value));
-  
-  // Calcular balance total sumando todas las billeteras
   const totalBalance = userWallets.reduce((sum, wallet) => sum + wallet.balance, 0);
-  
-  // Calcular porcentaje de cambio (simulado)
   const changePercentage = 12.5;
 
-  // Formatear moneda
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(value);
   };
 
-  // Formatear número con puntos
   const formatNumber = (value) => {
     return new Intl.NumberFormat('es-CO').format(value);
   };
 
-  // Manejar acciones de los botones (solo UI por ahora)
   const handleAction = (action) => {
-    alert(`🔔 Función "${action}" - Próximamente se conectará con el backend`);
+    alert(`🔔 Función "${action}"\n\nPróximamente se conectará con el backend`);
   };
 
   return (
@@ -70,11 +62,14 @@ const Dashboard = ({ user, onLogout }) => {
       <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
       
       <div className="dashboard-main-content">
-        {/* Header superior */}
+        {/* Header */}
         <header className="dashboard-header">
           <div className="header-welcome">
-            <h1>Bienvenid@, {user.nombre?.split(' ')[0] || user.nombre}</h1>
-            <p>Nivel {user.nivel} • {formatNumber(user.puntos)} puntos</p>
+            <h1>Bienvenido, {user.nombre?.split(' ')[0] || user.nombre}</h1>
+            <div className="user-badge">
+              <span className="badge-level">{user.nivel}</span>
+              <span className="badge-points">{formatNumber(user.puntos)} puntos</span>
+            </div>
           </div>
           <div className="header-actions">
             <button className="icon-btn" onClick={() => handleAction('Notificaciones')}>🔔</button>
@@ -112,65 +107,48 @@ const Dashboard = ({ user, onLogout }) => {
           </div>
         </div>
 
-        {/* Botones de acción rápidos */}
-        <div className="action-buttons">
-          <button className="action-btn recargar" onClick={() => handleAction('Recargar')}>
-            ⬇️ Recargar
-          </button>
-          <button className="action-btn transferir" onClick={() => handleAction('Transferir')}>
-            📂 Transferir
-          </button>
-          <button className="action-btn retirar" onClick={() => handleAction('Retirar')}>
-            ⏳ Retirar
-          </button>
+        {/* Mis Billeteras - Cuadrícula responsiva (sin carrusel) */}
+        <div className="wallets-section">
+          <div className="section-header">
+            <h2>Mis Billeteras</h2>
+            <button className="add-wallet-btn" onClick={() => handleAction('Agregar Billetera')}>+ Nueva</button>
+          </div>
+          <div className="wallets-grid">
+            {userWallets.map(wallet => (
+              <WalletCard
+                key={wallet.id}
+                name={wallet.name}
+                type={wallet.type}
+                balance={wallet.balance}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Sección: Mis Billeteras y Gráfico */}
-        <div className="two-columns">
-          {/* Columna izquierda: Mis Billeteras */}
-          <div className="wallets-section">
-            <div className="section-header">
-              <h2>Mis Billeteras</h2>
-              <button className="add-wallet-btn" onClick={() => handleAction('Agregar Billetera')}>+ Nueva</button>
-            </div>
-            <div className="wallets-grid">
-              {userWallets.map(wallet => (
-                <WalletCard
-                  key={wallet.id}
-                  name={wallet.name}
-                  type={wallet.type}
-                  balance={wallet.balance}
-                  color={wallet.color}
-                />
+        {/* Gráfico de evolución */}
+        <div className="chart-section">
+          <div className="section-header">
+            <h2>Evolución del Balance</h2>
+            <span className="trend positive">▲ Tendencia positiva</span>
+          </div>
+          <div className="chart-container">
+            <div className="chart-bars">
+              {chartData.map((item, index) => (
+                <div key={index} className="chart-bar-wrapper">
+                  <div 
+                    className="chart-bar"
+                    style={{ height: `${(item.value / maxValue) * 100}%` }}
+                  >
+                    <span className="chart-tooltip">{formatCurrency(item.value)}</span>
+                  </div>
+                  <span className="chart-label">{item.day}</span>
+                </div>
               ))}
             </div>
           </div>
-
-          {/* Columna derecha: Evolución del Balance (Gráfico) */}
-          <div className="chart-section">
-            <div className="section-header">
-              <h2>Evolución del Balance</h2>
-              <span className="trend positive">📈 Tendencia positiva</span>
-            </div>
-            <div className="chart-container">
-              <div className="chart-bars">
-                {chartData.map((item, index) => (
-                  <div key={index} className="chart-bar-wrapper">
-                    <div 
-                      className="chart-bar"
-                      style={{ height: `${(item.value / maxValue) * 100}%` }}
-                    >
-                      <span className="chart-tooltip">{formatCurrency(item.value)}</span>
-                    </div>
-                    <span className="chart-label">{item.day}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Sección: Transacciones Recientes */}
+        {/* Transacciones Recientes */}
         <div className="transactions-section">
           <div className="section-header">
             <h2>Transacciones Recientes</h2>
