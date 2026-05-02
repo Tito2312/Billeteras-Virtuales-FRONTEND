@@ -1,4 +1,4 @@
-// EditWalletModal.js - Modal para editar billetera existente
+// EditWalletModal.js - Modal para editar billetera con opción "Otro"
 
 import React, { useState, useEffect } from 'react';
 import './Modals.css';
@@ -7,6 +7,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
   const [formData, setFormData] = useState({
     name: '',
     type: '',
+    customType: '',
     balance: '',
     description: ''
   });
@@ -15,14 +16,17 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
   
   useEffect(() => {
     if (wallet) {
+      // Verificar si el tipo actual está en la lista predefinida
+      const isPredefined = walletTypes.some(t => t.value === wallet.type);
       setFormData({
         name: wallet.name,
-        type: wallet.type,
+        type: isPredefined ? wallet.type : 'Otro',
+        customType: isPredefined ? '' : wallet.type,
         balance: wallet.balance,
         description: wallet.description || ''
       });
     }
-  }, [wallet]);
+  }, [wallet, walletTypes]);
   
   if (!isOpen || !wallet) return null;
   
@@ -36,6 +40,9 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
     if (formData.name.length < 3) newErrors.name = 'Mínimo 3 caracteres';
+    if (formData.type === 'Otro' && !formData.customType.trim()) {
+      newErrors.customType = 'Especifica el tipo de billetera';
+    }
     if (formData.balance && isNaN(formData.balance)) newErrors.balance = 'Ingrese un número válido';
     return newErrors;
   };
@@ -48,9 +55,11 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
       return;
     }
     
+    const finalType = formData.type === 'Otro' ? formData.customType : formData.type;
+    
     onEdit({
       name: formData.name,
-      type: formData.type,
+      type: finalType,
       balance: formData.balance,
       description: formData.description
     });
@@ -85,8 +94,24 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
                   {type.icon} {type.label}
                 </option>
               ))}
+              <option value="Otro">✨ Otro (especificar)</option>
             </select>
           </div>
+          
+          {formData.type === 'Otro' && (
+            <div className="form-group custom-type-group">
+              <label>Especificar tipo *</label>
+              <input
+                type="text"
+                name="customType"
+                value={formData.customType}
+                onChange={handleChange}
+                placeholder="Ej: Criptomonedas, Fondos, etc."
+                className={errors.customType ? 'error' : ''}
+              />
+              {errors.customType && <span className="error-text">{errors.customType}</span>}
+            </div>
+          )}
           
           <div className="form-group">
             <label>Balance</label>

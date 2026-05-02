@@ -1,4 +1,4 @@
-// CreateWalletModal.js - Modal para crear nueva billetera
+// CreateWalletModal.js - Modal para crear nueva billetera con opción "Otro"
 
 import React, { useState } from 'react';
 import './Modals.css';
@@ -7,6 +7,7 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
   const [formData, setFormData] = useState({
     name: '',
     type: 'Gastos diarios',
+    customType: '',
     balance: '',
     description: ''
   });
@@ -25,6 +26,9 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
     if (formData.name.length < 3) newErrors.name = 'Mínimo 3 caracteres';
+    if (formData.type === 'Otro' && !formData.customType.trim()) {
+      newErrors.customType = 'Especifica el tipo de billetera';
+    }
     if (formData.balance && isNaN(formData.balance)) newErrors.balance = 'Ingrese un número válido';
     return newErrors;
   };
@@ -37,14 +41,17 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
       return;
     }
     
+    // Determinar el tipo final (si es "Otro", usar el valor personalizado)
+    const finalType = formData.type === 'Otro' ? formData.customType : formData.type;
+    
     onCreate({
       name: formData.name,
-      type: formData.type,
+      type: finalType,
       balance: formData.balance || 0,
       description: formData.description
     });
     
-    setFormData({ name: '', type: 'Gastos diarios', balance: '', description: '' });
+    setFormData({ name: '', type: 'Gastos diarios', customType: '', balance: '', description: '' });
     onClose();
   };
   
@@ -78,8 +85,25 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
                   {type.icon} {type.label}
                 </option>
               ))}
+              <option value="Otro">✨ Otro (especificar)</option>
             </select>
           </div>
+          
+          {/* Campo personalizado que aparece solo cuando selecciona "Otro" */}
+          {formData.type === 'Otro' && (
+            <div className="form-group custom-type-group">
+              <label>Especificar tipo *</label>
+              <input
+                type="text"
+                name="customType"
+                value={formData.customType}
+                onChange={handleChange}
+                placeholder="Ej: Criptomonedas, Fondos, etc."
+                className={errors.customType ? 'error' : ''}
+              />
+              {errors.customType && <span className="error-text">{errors.customType}</span>}
+            </div>
+          )}
           
           <div className="form-group">
             <label>Balance inicial</label>
