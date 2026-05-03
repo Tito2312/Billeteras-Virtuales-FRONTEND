@@ -1,59 +1,65 @@
 // authService.js
-// Este archivo simula la conexión con una base de datos.
-// Más adelante puedes reemplazar localStorage por llamadas a una API real.
+// Conexión con API backend para autenticación
 
-const USERS_KEY = 'finwallet_users';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 const CURRENT_USER_KEY = 'finwallet_current_user';
 
-// Obtener todos los usuarios registrados
-const getUsers = () => {
-  const users = localStorage.getItem(USERS_KEY);
-  return users ? JSON.parse(users) : [];
-};
-
-// Guardar lista de usuarios
-const saveUsers = (users) => {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-};
-
 // Registrar un nuevo usuario
-export const register = (userData) => {
-  const users = getUsers();
-  
-  // Verificar si el email ya existe
-  const existingUser = users.find(u => u.email === userData.email);
-  if (existingUser) {
-    return { success: false, message: 'El correo electrónico ya está registrado' };
+export const register = async (userData) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        nombre: userData.nombre,
+        email: userData.email,
+        password: userData.password,
+        telefono: userData.telefono,
+        documento: userData.documento
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return { success: true, user: data, message: 'Usuario registrado exitosamente' };
+  } catch (error) {
+    console.error('Error en registro:', error);
+    return { success: false, message: error.message || 'Error al registrar usuario' };
   }
-  
-  // Crear nuevo usuario con ID único
-  const newUser = {
-    id: Date.now().toString(),
-    ...userData,
-    puntos: 0,
-    nivel: 'Bronce',
-    createdAt: new Date().toISOString()
-  };
-  
-  users.push(newUser);
-  saveUsers(users);
-  
-  return { success: true, message: 'Usuario registrado exitosamente' };
 };
 
 // Iniciar sesión
-export const login = (email, password) => {
-  const users = getUsers();
-  const user = users.find(u => u.email === email && u.password === password);
-  
-  if (user) {
-    // No guardamos la contraseña en la sesión actual por seguridad
-    const { password, ...userWithoutPassword } = user;
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));
-    return { success: true, user: userWithoutPassword };
+export const login = async (email, password) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Guardar usuario en localStorage (sin contraseña)
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(data));
+    
+    return { success: true, user: data };
+  } catch (error) {
+    console.error('Error en login:', error);
+    return { success: false, message: error.message || 'Error al iniciar sesión' };
   }
-  
-  return { success: false, message: 'Correo o contraseña incorrectos' };
 };
 
 // Cerrar sesión
@@ -68,21 +74,30 @@ export const getCurrentUser = () => {
   return user ? JSON.parse(user) : null;
 };
 
-// Restablecer contraseña (simula envío de correo)
-export const resetPassword = (email) => {
-  const users = getUsers();
-  const user = users.find(u => u.email === email);
-  
-  if (user) {
-    // En un proyecto real, aquí enviarías un correo con un enlace.
-    // Como es simulación, solo devolvemos un mensaje.
+// Restablecer contraseña
+export const resetPassword = async (email) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+    
     return { 
       success: true, 
       message: `Se ha enviado un enlace de restablecimiento a ${email}` 
     };
+  } catch (error) {
+    console.error('Error en reset password:', error);
+    return { success: false, message: error.message || 'Error al restablecer contraseña' };
   }
-  
-  return { success: false, message: 'No existe una cuenta con ese correo electrónico' };
 };
 
 // Verificar si hay sesión activa (para rutas protegidas)

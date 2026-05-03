@@ -87,8 +87,8 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       documento: formData.documento
     };
 
-    setTimeout(() => {
-      const result = register(userData);
+    try {
+      const result = await register(userData);
       
       if (result.success) {
         setSuccess(result.message);
@@ -108,8 +108,11 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       } else {
         setError(result.message);
       }
+    } catch (error) {
+      setError(error.message || 'Error al registrar usuario');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (

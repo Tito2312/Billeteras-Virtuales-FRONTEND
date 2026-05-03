@@ -22,9 +22,8 @@ const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword })
       return;
     }
 
-    // Simular un pequeño retraso como si fuera una llamada a API
-    setTimeout(() => {
-      const result = login(email, password);
+    try {
+      const result = await login(email, password);
       
       if (result.success) {
         // Si el login es exitoso, llamamos a la función que nos pasaron como prop
@@ -32,8 +31,11 @@ const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword })
       } else {
         setError(result.message);
       }
+    } catch (error) {
+      setError('Error al iniciar sesión. Intenta nuevamente.');
+    } finally {
       setLoading(false);
-    }, 500);
+    }
   };
 
   return (

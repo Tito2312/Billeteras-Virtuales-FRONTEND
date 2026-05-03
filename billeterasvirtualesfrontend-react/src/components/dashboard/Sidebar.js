@@ -7,6 +7,7 @@ import './Sidebar.css';
 const Sidebar = ({ activeTab, onTabChange }) => {
   // Opciones del menú con sus íconos
   const menuItems = [
+    { id: 'user', label: 'Usuario', icon: '�' },
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'wallets', label: 'Billeteras', icon: '💳' },
     { id: 'transactions', label: 'Transacciones', icon: '🔄' },
