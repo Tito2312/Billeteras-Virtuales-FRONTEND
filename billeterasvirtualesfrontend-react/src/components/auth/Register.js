@@ -8,9 +8,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     nombre: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    telefono: '',
-    documento: ''
+    confirmPassword: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -29,7 +27,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
   const validateForm = () => {
     // CAMBIO 1: Ahora validamos que TODOS los campos estén llenos
     // nombre, email, password, confirmPassword, telefono, documento son OBLIGATORIOS
-    if (!formData.nombre || !formData.email || !formData.password || !formData.confirmPassword || !formData.telefono || !formData.documento) {
+    if (!formData.nombre || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Por favor completa TODOS los campos');
       return false;
     }
@@ -51,18 +49,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       return false;
     }
 
-    // CAMBIO 2: Validar que el teléfono tenga al menos 7 dígitos (básico)
-    if (formData.telefono.length < 7) {
-      setError('Ingresa un número de teléfono válido (mínimo 7 dígitos)');
-      return false;
-    }
-
-    // CAMBIO 3: Validar que el documento tenga al menos 5 caracteres
-    if (formData.documento.length < 5) {
-      setError('Ingresa un número de documento válido (mínimo 5 caracteres)');
-      return false;
-    }
-
+    
     return true;
   };
 
@@ -82,9 +69,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     const userData = {
       nombre: formData.nombre,
       email: formData.email,
-      password: formData.password,
-      telefono: formData.telefono,
-      documento: formData.documento
+      password: formData.password
     };
 
     try {
@@ -97,9 +82,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
           nombre: '',
           email: '',
           password: '',
-          confirmPassword: '',
-          telefono: '',
-          documento: ''
+          confirmPassword: ''
         });
         // Después de 2 segundos, cambiar al login
         setTimeout(() => {
@@ -137,17 +120,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="documento">Documento *</label>  {/* CAMBIO 4: Ya no dice (opcional) */}
-              <input
-                type="text"
-                id="documento"
-                name="documento"
-                value={formData.documento}
-                onChange={handleChange}
-                placeholder="CC 12345678"
-              />
-            </div>
+            
           </div>
 
           <div className="form-group">
@@ -162,17 +135,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="telefono">Teléfono *</label>  {/* CAMBIO 5: Ya no dice (opcional) */}
-            <input
-              type="tel"
-              id="telefono"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-              placeholder="300 123 4567"
-            />
-          </div>
+          
 
           <div className="form-row">
             <div className="form-group">

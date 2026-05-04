@@ -59,9 +59,23 @@
 
 .user-role {
   color: #888;
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
   font-style: italic;
+}
+
+.user-points {
+  color: #667eea;
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.user-balance {
+  color: #28a745;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .user-actions {

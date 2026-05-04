@@ -1,19 +1,31 @@
 // userService.js - Servicio para consumir APIs de usuario
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+import { authenticatedFetch } from './apiService';
 
 // Obtener perfil del usuario por ID
 export const getPerfil = async (userId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/perfil/${userId}`);
+    console.log(`Haciendo petición a: /api/perfil/${userId}`);
+    
+    // PRUEBA: Primero intentamos sin autenticación para ver si el endpoint existe
+    const testResponse = await fetch(`http://localhost:8080/api/perfil/${userId}`);
+    console.log('Test sin auth:', testResponse.status, testResponse.statusText);
+    
+    // Ahora intentamos con autenticación
+    const response = await authenticatedFetch(`/api/perfil/${userId}`);
+    
+    console.log('Respuesta HTTP con auth:', response.status, response.statusText);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Error response body:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
     
     const data = await response.json();
+    console.log('Datos JSON recibidos:', data);
     return data;
   } catch (error) {
-    console.error('Error al obtener el perfil:', error);
+    console.error('Error completo en getPerfil:', error);
     throw error;
   }
 };
@@ -21,11 +33,8 @@ export const getPerfil = async (userId) => {
 // Actualizar perfil del usuario
 export const updatePerfil = async (userId, userData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/perfil/${userId}`, {
+    const response = await authenticatedFetch(`/api/perfil/${userId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(userData)
     });
     
@@ -44,11 +53,8 @@ export const updatePerfil = async (userId, userData) => {
 // Cambiar contraseña
 export const changePassword = async (userId, passwordData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/perfil/${userId}/password`, {
+    const response = await authenticatedFetch(`/api/perfil/${userId}/password`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(passwordData)
     });
     

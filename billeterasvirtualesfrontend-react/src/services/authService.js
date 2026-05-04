@@ -7,7 +7,7 @@ const CURRENT_USER_KEY = 'finwallet_current_user';
 // Registrar un nuevo usuario
 export const register = async (userData) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/register`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export const register = async (userData) => {
 // Iniciar sesión
 export const login = async (email, password) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/login`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,10 +52,17 @@ export const login = async (email, password) => {
     
     const data = await response.json();
     
-    // Guardar usuario en localStorage (sin contraseña)
-    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(data));
+    // Guardar token y usuario en localStorage
+    const userData = {
+      id: data.id,
+      token: data.token,
+      nombre: data.nombre,
+      email: data.email,
+      nivel: data.nivel
+    };
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userData));
     
-    return { success: true, user: data };
+    return { success: true, user: userData };
   } catch (error) {
     console.error('Error en login:', error);
     return { success: false, message: error.message || 'Error al iniciar sesión' };
@@ -77,7 +84,7 @@ export const getCurrentUser = () => {
 // Restablecer contraseña
 export const resetPassword = async (email) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/reset-password`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

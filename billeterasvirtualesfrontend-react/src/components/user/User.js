@@ -13,16 +13,22 @@ const User = ({ user, onLogout }) => {
   // Cargar datos del perfil desde la API
   useEffect(() => {
     const cargarPerfil = async () => {
+      console.log('Usuario actual:', user);
+      
       if (!user || !user.id) {
+        console.log('No hay usuario o ID');
         setLoading(false);
         return;
-      }
+      } 
 
       try {
+        console.log('Cargando perfil para ID:', user.id);
         const data = await getPerfil(user.id);
+        console.log('Datos recibidos:', data);
         setPerfilData(data);
       } catch (err) {
-        setError('Error al cargar el perfil del usuario');
+        console.error('Error completo:', err);
+        setError(`Error al cargar el perfil: ${err.message}`);
         console.error(err);
       } finally {
         setLoading(false);
@@ -69,14 +75,16 @@ const User = ({ user, onLogout }) => {
       <div className="user-profile">
         <div className="user-avatar">
           <div className="avatar-circle">
-            {userData.name ? userData.name.charAt(0).toUpperCase() : 'U'}
+            {userData.nombre ? userData.nombre.charAt(0).toUpperCase() : 'U'}
           </div>
         </div>
         
         <div className="user-info">
-          <h3>{userData.name || 'Usuario'}</h3>
+          <h3>{userData.nombre || 'Usuario'}</h3>
           <p className="user-email">{userData.email || 'usuario@ejemplo.com'}</p>
-          <p className="user-role">Rol: {userData.role || 'Usuario'}</p>
+          <p className="user-role">Nivel: {userData.nivel || 'Bronce'}</p>
+          <p className="user-points">Puntos: {userData.puntosTotales || 0}</p>
+          <p className="user-balance">Saldo: ${userData.saldo ? userData.saldo.toFixed(2) : '0.00'}</p>
         </div>
       </div>
       
