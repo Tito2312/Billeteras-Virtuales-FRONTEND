@@ -1,4 +1,5 @@
 // ReversalModal.js - Modal para revertir transacciones
+// Versión simplificada como en la imagen
 
 import React, { useState } from 'react';
 import './Modals.css';
@@ -8,19 +9,23 @@ const ReversalModal = ({ isOpen, onClose, onConfirm, transaction, transactions }
   
   if (!isOpen) return null;
   
-  const selectedTransaction = transactions?.find(t => t.id === selectedTransactionId) || transaction;
+  const reversibleTransactions = transactions || [];
+  const hasSpecificTransaction = !!transaction;
+  const selectedTransaction = hasSpecificTransaction 
+    ? transaction 
+    : reversibleTransactions.find(t => t.id === selectedTransactionId);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
     }).format(value);
   };
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!selectedTransaction) {
+  const handleSubmit = () => {
+    if (!selectedTransaction && !hasSpecificTransaction) {
       alert('Selecciona una transacción para revertir');
       return;
     }
@@ -35,69 +40,82 @@ const ReversalModal = ({ isOpen, onClose, onConfirm, transaction, transactions }
   
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Reversión de Transacción</h2>
+      <div className="modal-content modal-reversal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header modal-reversal-header">
+          <div className="reversal-icon-wrapper">
+            <span className="reversal-icon">↩️</span>
+          </div>
+          <h2>Política de Reversión</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         
-        <form onSubmit={handleSubmit}>
-          {transactions && transactions.length > 0 && !transaction && (
-            <div className="form-group">
-              <label>Selecciona transacción a revertir</label>
-              <select 
-                value={selectedTransactionId} 
-                onChange={(e) => setSelectedTransactionId(parseInt(e.target.value))}
-              >
-                <option value="">Selecciona...</option>
-                {transactions.map(t => (
-                  <option key={t.id} value={t.id}>
-                    {t.date} - {t.description} - {formatCurrency(t.amount)}
-                  </option>
+        <div className="modal-body">
+          {/* Política */}
+          <div className="reversal-policy-card">
+            <p>
+              Puedes revertir transacciones completadas dentro de las 24 horas siguientes. 
+              La reversión es instantánea y gratuita. Los puntos ganados serán descontados.
+            </p>
+          </div>
+          
+          {/* Lista de reversibles */}
+          <div className="reversible-list-modal">
+            <h3>Transacciones Reversibles</h3>
+            {reversibleTransactions.length > 0 || hasSpecificTransaction ? (
+              <div className="reversible-items">
+                {(hasSpecificTransaction ? [transaction] : reversibleTransactions).map(t => (
+                  <div 
+                    key={t.id} 
+                    className={`reversible-item-modal ${selectedTransactionId === t.id || hasSpecificTransaction ? 'selected' : ''}`}
+                    onClick={() => !hasSpecificTransaction && setSelectedTransactionId(t.id)}
+                  >
+                    <div className="reversible-info-modal">
+                      <div className="reversible-icon-modal">
+                        {t.type === 'recarga' ? '📥' : t.type === 'transferencia' ? '🔄' : '📤'}
+                      </div>
+                      <div className="reversible-details">
+                        <p className="reversible-desc-modal">{t.description}</p>
+                        <span className="reversible-date-modal">{t.date}</span>
+                      </div>
+                    </div>
+                    <div className="reversible-amount-modal">
+                      <span className="amount-value">{formatCurrency(t.amount)}</span>
+                      <span className="points-value">+{t.points} pts</span>
+                    </div>
+                  </div>
                 ))}
-              </select>
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="empty-reversible-modal">
+                <p>No hay transacciones reversibles en este momento</p>
+                <span>Solo puedes revertir transacciones de las últimas 24 horas</span>
+              </div>
+            )}
+          </div>
           
-          {selectedTransaction && (
-            <div className="reversal-info-card">
-              <div className="reversal-info-row">
-                <span className="info-label">Fecha:</span>
-                <span className="info-value">{selectedTransaction.date}</span>
-              </div>
-              <div className="reversal-info-row">
-                <span className="info-label">Descripción:</span>
-                <span className="info-value">{selectedTransaction.description}</span>
-              </div>
-              <div className="reversal-info-row">
-                <span className="info-label">Monto:</span>
-                <span className="info-value highlight">{formatCurrency(selectedTransaction.amount)}</span>
-              </div>
-              <div className="reversal-info-row">
-                <span className="info-label">Puntos a descontar:</span>
-                <span className="info-value warning">{selectedTransaction.points} puntos</span>
-              </div>
-            </div>
-          )}
-          
-          <div className="reversal-policy-note">
-            <p>⚠️ Al revertir esta transacción:</p>
+          {/* Consecuencias */}
+          <div className="reversal-consequences">
             <ul>
               <li>El saldo de la billetera se restaurará</li>
               <li>Los puntos generados serán descontados</li>
               <li>La transacción quedará marcada como "Reversada"</li>
             </ul>
           </div>
-          
-          <div className="modal-buttons">
-            <button type="button" className="btn-cancel" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn-reverse-modal">
-              Confirmar Reversión
-            </button>
-          </div>
-        </form>
+        </div>
+        
+        <div className="modal-buttons reversal-buttons">
+          <button type="button" className="btn-cancel" onClick={onClose}>
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            className="btn-reverse-modal"
+            onClick={handleSubmit}
+            disabled={!selectedTransaction && !hasSpecificTransaction}
+          >
+            Confirmar Reversión
+          </button>
+        </div>
       </div>
     </div>
   );

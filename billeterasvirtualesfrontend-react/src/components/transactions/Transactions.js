@@ -1,5 +1,4 @@
 // Transactions.js - Página de gestión de transacciones
-// Incluye historial con filtros, modales para acciones y sección de reversión
 
 import React, { useState } from 'react';
 import RechargeModal from './RechargeModal';
@@ -18,7 +17,6 @@ const Transactions = ({ user }) => {
   
   // Estado para filtros
   const [filterType, setFilterType] = useState('todos');
-  const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [searchTerm, setSearchTerm] = useState('');
   
   // Datos de ejemplo para el historial de transacciones
@@ -31,17 +29,10 @@ const Transactions = ({ user }) => {
     { id: 6, date: '05 abr 2026, 14:20', type: 'transferencia', typeLabel: 'Transferencia', description: 'Pago de electricidad', origin: 'Gastos Mensuales', amount: 450, status: 'Completada', points: 45, reversible: false }
   ];
   
-  // Transacciones reversibles (últimas 24 horas)
+  // Transacciones reversibles
   const reversibleTransactions = transactions.filter(t => t.reversible && t.status === 'Completada');
   
-  // Datos para estadísticas de reversión
-  const reversalStats = {
-    available: reversibleTransactions.length,
-    monthlyReversals: 2,
-    successRate: 100
-  };
-  
-  // Billeteras del usuario (para los modales)
+  // Billeteras del usuario
   const userWallets = [
     { id: 1, name: 'Principal', balance: 25430.50 },
     { id: 2, name: 'Ahorros', balance: 8920.00 },
@@ -55,7 +46,6 @@ const Transactions = ({ user }) => {
     { id: 3, name: 'Cuenta bancaria **** 3456', lastDigits: '3456' }
   ];
   
-  // Formatear moneda
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -73,7 +63,6 @@ const Transactions = ({ user }) => {
     return true;
   });
   
-  // Obtener icono según tipo
   const getTypeIcon = (type) => {
     switch(type) {
       case 'recarga': return '📥';
@@ -83,35 +72,35 @@ const Transactions = ({ user }) => {
     }
   };
   
-  // Obtener clase para estado
   const getStatusClass = (status) => {
     if (status === 'Completada') return 'status-completed';
     if (status === 'Fallida') return 'status-failed';
     return 'status-pending';
   };
   
-  // Manejar acción de reversión
-  const handleReversal = (transaction) => {
+  const handleReversalClick = () => {
+    setSelectedTransaction(null);
+    setShowReversalModal(true);
+  };
+  
+  const handleReversalFromHistory = (transaction) => {
     setSelectedTransaction(transaction);
     setShowReversalModal(true);
   };
   
-  // Simular acciones (solo alerta)
   const handleAction = (action, data) => {
-    alert(`📝 Simulación: ${action}\n\nDatos: ${JSON.stringify(data, null, 2)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+    alert(`📝 Simulación: ${action}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
   };
   
   return (
     <div className="transactions-page">
       {/* Header */}
       <div className="transactions-header">
-        <div>
-          <h1>Transacciones</h1>
-          <p>Gestiona tus movimientos de dinero</p>
-        </div>
+        <h1>Transacciones</h1>
+        <p>Gestiona tus movimientos de dinero</p>
       </div>
       
-      {/* Botones de acción rápida */}
+      {/* Botones de acción */}
       <div className="action-buttons-grid">
         <button className="action-card" onClick={() => setShowRechargeModal(true)}>
           <span className="action-icon">📥</span>
@@ -125,81 +114,19 @@ const Transactions = ({ user }) => {
           <span className="action-icon">🔄</span>
           <span className="action-label">Transferir</span>
         </button>
-        <button className="action-card" onClick={() => setShowReversalModal(true)}>
+        <button className="action-card" onClick={handleReversalClick}>
           <span className="action-icon">↩️</span>
           <span className="action-label">Reversión</span>
         </button>
       </div>
       
-      {/* Sección de Reversión */}
-      <div className="reversal-section">
-        <div className="section-header">
-          <h2>Política de Reversión</h2>
-        </div>
-        <p className="reversal-policy">
-          Puedes revertir transacciones completadas dentro de las 24 horas siguientes. 
-          La reversión es instantánea y gratuita. Los puntos ganados serán descontados.
-        </p>
-        
-        <div className="reversal-stats">
-          <div className="reversal-stat-card">
-            <span className="stat-value">{reversalStats.available}</span>
-            <span className="stat-label">Reversiones Disponibles</span>
-            <span className="stat-sub">Ultimas 24 horas</span>
-          </div>
-          <div className="reversal-stat-card">
-            <span className="stat-value">{reversalStats.monthlyReversals}</span>
-            <span className="stat-label">Reversiones Este Mes</span>
-            <span className="stat-sub">Procesadas exitosamente</span>
-          </div>
-          <div className="reversal-stat-card">
-            <span className="stat-value">{reversalStats.successRate}%</span>
-            <span className="stat-label">Tasa de Éxito</span>
-            <span className="stat-sub">Todas completadas</span>
-          </div>
-        </div>
-        
-        {/* Transacciones reversibles */}
-        <div className="reversible-transactions">
-          <h3>Transacciones Reversibles</h3>
-          {reversibleTransactions.length > 0 ? (
-            <div className="reversible-list">
-              {reversibleTransactions.map(t => (
-                <div key={t.id} className="reversible-item">
-                  <div className="reversible-info">
-                    <span className="reversible-icon">{getTypeIcon(t.type)}</span>
-                    <div>
-                      <p className="reversible-desc">{t.description}</p>
-                      <span className="reversible-date">{t.date}</span>
-                    </div>
-                  </div>
-                  <div className="reversible-amount">
-                    <span>{formatCurrency(t.amount)}</span>
-                    <button className="btn-reverse" onClick={() => handleReversal(t)}>
-                      Revertir
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-reversible">
-              <p>No hay transacciones reversibles en este momento</p>
-              <span>Solo puedes revertir transacciones de las últimas 24 horas</span>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Historial de Transacciones */}
+      {/* Historial */}
       <div className="history-section">
         <div className="section-header">
           <h2>Historial de Transacciones</h2>
-          <div className="history-actions">
-            <button className="btn-export" onClick={() => handleAction('Exportar historial', { format: 'CSV' })}>
-              📎 Exportar
-            </button>
-          </div>
+          <button className="btn-export" onClick={() => handleAction('Exportar historial')}>
+            📎 Exportar
+          </button>
         </div>
         
         {/* Filtros */}
@@ -234,7 +161,7 @@ const Transactions = ({ user }) => {
           )}
         </div>
         
-        {/* Tabla de transacciones */}
+        {/* Tabla */}
         <div className="transactions-table-container">
           <table className="transactions-table">
             <thead>
@@ -252,7 +179,7 @@ const Transactions = ({ user }) => {
             <tbody>
               {filteredTransactions.map(t => (
                 <tr key={t.id}>
-                  <td>{t.date}</td>
+                  <td className="date-cell">{t.date}</td>
                   <td>
                     <span className="type-badge">
                       {getTypeIcon(t.type)} {t.typeLabel}
@@ -260,20 +187,22 @@ const Transactions = ({ user }) => {
                   </td>
                   <td>{t.description}</td>
                   <td>{t.origin}</td>
-                  <td className={t.amount > 0 ? 'amount-positive' : 'amount-negative'}>
-                    {formatCurrency(t.amount)}
-                  </td>
+                  <td className="amount-cell">{formatCurrency(t.amount)}</td>
                   <td>
                     <span className={`status-badge ${getStatusClass(t.status)}`}>
                       {t.status}
                     </span>
                   </td>
-                  <td className={t.points > 0 ? 'points-positive' : 'points-zero'}>
+                  <td className="points-cell">
                     {t.points > 0 ? `+${t.points}` : t.points}
                   </td>
                   <td>
                     {t.reversible && t.status === 'Completada' && (
-                      <button className="btn-reverse-small" onClick={() => handleReversal(t)}>
+                      <button 
+                        className="btn-reverse-small" 
+                        onClick={() => handleReversalFromHistory(t)}
+                        title="Revertir"
+                      >
                         ↩️
                       </button>
                     )}
