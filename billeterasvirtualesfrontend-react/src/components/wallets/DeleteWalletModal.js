@@ -1,4 +1,4 @@
-// DeleteWalletModal.js - Modal de confirmación para eliminar (diseño mejorado)
+// DeleteWalletModal.js - Modal de confirmación (SOLO VISUAL)
 
 import React from 'react';
 import './Modals.css';

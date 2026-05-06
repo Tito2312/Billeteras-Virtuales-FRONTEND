@@ -1,6 +1,5 @@
-// authService.js
 // Este archivo simula la conexión con una base de datos.
-// Más adelante puedes reemplazar localStorage por llamadas a una API real.
+// Más adelante reemplazar localStorage por llamadas a una API real.
 
 const USERS_KEY = 'finwallet_users';
 const CURRENT_USER_KEY = 'finwallet_current_user';
@@ -47,6 +46,7 @@ export const login = (email, password) => {
   const user = users.find(u => u.email === email && u.password === password);
   
   if (user) {
+    
     // No guardamos la contraseña en la sesión actual por seguridad
     const { password, ...userWithoutPassword } = user;
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userWithoutPassword));

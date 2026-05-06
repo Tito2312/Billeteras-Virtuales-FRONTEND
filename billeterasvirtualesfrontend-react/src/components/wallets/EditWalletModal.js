@@ -1,4 +1,4 @@
-// EditWalletModal.js - Modal para editar billetera con opción "Otro"
+// EditWalletModal.js - Modal para editar billetera (SOLO VISUAL)
 
 import React, { useState, useEffect } from 'react';
 import './Modals.css';
@@ -16,7 +16,6 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
   
   useEffect(() => {
     if (wallet) {
-      // Verificar si el tipo actual está en la lista predefinida
       const isPredefined = walletTypes.some(t => t.value === wallet.type);
       setFormData({
         name: wallet.name,

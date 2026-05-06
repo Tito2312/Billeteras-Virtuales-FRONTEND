@@ -1,4 +1,4 @@
-// CreateWalletModal.js - Modal para crear nueva billetera con opción "Otro"
+// CreateWalletModal.js - Modal para crear nueva billetera (SOLO VISUAL)
 
 import React, { useState } from 'react';
 import './Modals.css';
@@ -41,7 +41,6 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
       return;
     }
     
-    // Determinar el tipo final (si es "Otro", usar el valor personalizado)
     const finalType = formData.type === 'Otro' ? formData.customType : formData.type;
     
     onCreate({
@@ -52,7 +51,6 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
     });
     
     setFormData({ name: '', type: 'Gastos diarios', customType: '', balance: '', description: '' });
-    onClose();
   };
   
   return (
@@ -89,7 +87,6 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
             </select>
           </div>
           
-          {/* Campo personalizado que aparece solo cuando selecciona "Otro" */}
           {formData.type === 'Otro' && (
             <div className="form-group custom-type-group">
               <label>Especificar tipo *</label>

@@ -1,5 +1,4 @@
-// Wallets.js - Página de gestión de billeteras
-// Muestra todas las billeteras en grid, con opciones de crear, editar, eliminar
+// Wallets.js - Página de gestión de billeteras (SOLO VISUAL, sin lógica backend)
 
 import React, { useState } from 'react';
 import CreateWalletModal from './CreateWalletModal';
@@ -8,6 +7,7 @@ import DeleteWalletModal from './DeleteWalletModal';
 import './Wallets.css';
 
 const Wallets = ({ user }) => {
+  // Datos de ejemplo (estáticos, no se modifican realmente)
   const [wallets, setWallets] = useState([
     { id: 1, name: 'Principal', type: 'Gastos diarios', balance: 25430.50, description: 'Billetera principal para gastos diarios' },
     { id: 2, name: 'Ahorros', type: 'Ahorro', balance: 8920.00, description: 'Cuenta de ahorros para metas' },
@@ -52,35 +52,25 @@ const Wallets = ({ user }) => {
     return name.substring(0, 2).toUpperCase();
   };
   
-  // Crear nueva billetera
+  // SOLO SIMULACIÓN - No modifica datos realmente
   const handleCreateWallet = (walletData) => {
-    const newWallet = {
-      id: Date.now(),
-      ...walletData,
-      balance: parseFloat(walletData.balance) || 0
-    };
-    setWallets([...wallets, newWallet]);
-    alert(`✅ Billetera "${walletData.name}" creada exitosamente\n\n(Datos guardados temporalmente en frontend)`);
+    // Solo muestra alerta, NO guarda realmente
+    alert(`📝 Simulación: Se enviará al backend para crear la billetera "${walletData.name}"\n\nTipo: ${walletData.type}\nBalance: ${formatCurrency(walletData.balance || 0)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+    setShowCreateModal(false);
   };
   
-  // Editar billetera
+  // SOLO SIMULACIÓN - No modifica datos realmente
   const handleEditWallet = (updatedData) => {
-    setWallets(wallets.map(w => 
-      w.id === selectedWallet.id 
-        ? { ...w, ...updatedData, balance: parseFloat(updatedData.balance) }
-        : w
-    ));
+    alert(`✏️ Simulación: Se enviará al backend para actualizar la billetera "${updatedData.name}"\n\nTipo: ${updatedData.type}\nBalance: ${formatCurrency(updatedData.balance)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
     setShowEditModal(false);
     setSelectedWallet(null);
-    alert(`✅ Billetera actualizada exitosamente`);
   };
   
-  // Eliminar billetera
+  // SOLO SIMULACIÓN - No elimina datos realmente
   const handleDeleteWallet = () => {
-    setWallets(wallets.filter(w => w.id !== selectedWallet.id));
+    alert(`🗑️ Simulación: Se enviará al backend para eliminar la billetera "${selectedWallet?.name}"\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
     setShowDeleteModal(false);
     setSelectedWallet(null);
-    alert(`🗑️ Billetera eliminada exitosamente`);
   };
   
   // Abrir menú de opciones
@@ -176,7 +166,7 @@ const Wallets = ({ user }) => {
         ))}
       </div>
       
-      {/* Modales */}
+      {/* Modales (solo visuales, sin guardado real) */}
       <CreateWalletModal 
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
