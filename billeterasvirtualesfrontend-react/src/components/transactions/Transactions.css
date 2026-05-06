@@ -1,0 +1,449 @@
+/* Transactions.css - Estilos para la página de transacciones */
+
+.transactions-page {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.transactions-header {
+  margin-bottom: 32px;
+}
+
+.transactions-header h1 {
+  font-size: 28px;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.transactions-header p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Botones de acción rápida */
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.action-card {
+  background: white;
+  border: none;
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.action-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(124, 58, 237, 0.15);
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+}
+
+.action-card:hover .action-icon {
+  transform: scale(1.1);
+}
+
+.action-icon {
+  font-size: 32px;
+  transition: transform 0.3s;
+}
+
+.action-label {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Sección de Reversión */
+.reversal-section {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.reversal-policy {
+  background: #fef3c7;
+  padding: 16px;
+  border-radius: 16px;
+  color: #92400e;
+  font-size: 14px;
+  margin-bottom: 24px;
+  border-left: 4px solid #f59e0b;
+}
+
+.reversal-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.reversal-stat-card {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.reversal-stat-card .stat-value {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #7c3aed;
+  margin-bottom: 8px;
+}
+
+.reversal-stat-card .stat-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 4px;
+}
+
+.reversal-stat-card .stat-sub {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.reversible-transactions h3 {
+  font-size: 18px;
+  color: #1e1b4b;
+  margin-bottom: 16px;
+}
+
+.reversible-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reversible-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #faf5ff;
+  border-radius: 16px;
+  transition: all 0.3s;
+}
+
+.reversible-item:hover {
+  background: #f3e8ff;
+}
+
+.reversible-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.reversible-icon {
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reversible-desc {
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 4px;
+}
+
+.reversible-date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.reversible-amount {
+  text-align: right;
+}
+
+.reversible-amount span {
+  display: block;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.btn-reverse {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.btn-reverse:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.empty-reversible {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 16px;
+  color: #6b7280;
+}
+
+.empty-reversible p {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.empty-reversible span {
+  font-size: 12px;
+}
+
+/* Historial */
+.history-section {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.section-header h2 {
+  font-size: 20px;
+  color: #1e1b4b;
+}
+
+.btn-export {
+  background: transparent;
+  border: 1px solid #c4b5fd;
+  padding: 8px 16px;
+  border-radius: 10px;
+  color: #7c3aed;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.btn-export:hover {
+  background: #7c3aed;
+  color: white;
+}
+
+/* Filtros */
+.filters-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filter-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.filter-group select,
+.filter-group input {
+  padding: 8px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+  outline: none;
+  border-color: #7c3aed;
+}
+
+.btn-clear-filters {
+  background: #f1f5f9;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-clear-filters:hover {
+  background: #e2e8f0;
+}
+
+/* Tabla */
+.transactions-table-container {
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.transactions-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.transactions-table tr:hover {
+  background: #faf5ff;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: #f1f5f9;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-failed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.amount-positive {
+  font-weight: 600;
+  color: #10b981;
+}
+
+.amount-negative {
+  font-weight: 600;
+  color: #ef4444;
+}
+
+.points-positive {
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.points-zero {
+  color: #9ca3af;
+}
+
+.btn-reverse-small {
+  background: #fef3c7;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.btn-reverse-small:hover {
+  background: #fde68a;
+  transform: scale(1.05);
+}
+
+.empty-table {
+  text-align: center;
+  padding: 48px;
+  color: #6b7280;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .transactions-page {
+    padding: 20px;
+  }
+  
+  .action-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .reversal-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .action-buttons-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .filters-bar {
+    flex-direction: column;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .filter-group select,
+  .filter-group input {
+    width: 100%;
+  }
+  
+  .transactions-table {
+    font-size: 12px;
+  }
+  
+  .transactions-table th,
+  .transactions-table td {
+    padding: 8px 10px;
+  }
+}

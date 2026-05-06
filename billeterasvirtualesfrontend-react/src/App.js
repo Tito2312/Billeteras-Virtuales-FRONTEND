@@ -1,5 +1,5 @@
 // App.js - Componente principal de la aplicación
-// Controla la navegación entre login, registro, dashboard y billeteras
+// Controla la navegación entre login, registro, dashboard, billeteras y transacciones
 
 import React, { useState, useEffect } from 'react';
 import Login from './components/auth/Login';
@@ -7,13 +7,14 @@ import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
 import Dashboard from './components/dashboard/Dashboard';
 import Wallets from './components/wallets/Wallets';
-import Sidebar from './components/dashboard/Sidebar';  // ← IMPORTACIÓN MOVIDA ARRIBA
+import Transactions from './components/transactions/Transactions';
+import Sidebar from './components/dashboard/Sidebar';
 import { getCurrentUser, logout } from './services/authService';
 import './App.css';
 
 function App() {
   // Estados para manejar la vista actual y el usuario
-  const [view, setView] = useState('login'); // 'login', 'register', 'forgotPassword', 'dashboard', 'wallets'
+  const [view, setView] = useState('login'); // 'login', 'register', 'forgotPassword', 'dashboard', 'wallets', 'transactions'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -56,8 +57,11 @@ function App() {
       setView('dashboard');
     } else if (tab === 'wallets') {
       setView('wallets');
+    } else if (tab === 'transactions') {
+      setView('transactions');
     }
-    // Aquí puedes agregar más condiciones para otras pestañas
+    // Aquí puedes agregar más condiciones para otras pestañas:
+    // scheduled, rewards, analytics, security, notifications
   };
 
   // Mostrar pantalla de carga mientras verificamos sesión
@@ -99,6 +103,15 @@ function App() {
           <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
           <div className="app-main-content">
             <Wallets user={user} />
+          </div>
+        </div>
+      );
+    case 'transactions':
+      return (
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Transactions user={user} />
           </div>
         </div>
       );

@@ -1,5 +1,5 @@
 // Sidebar.js - Menú lateral de navegación
-// Permite navegar entre Dashboard y Billeteras
+// Permite navegar entre Dashboard, Billeteras, Transacciones y más
 
 import React from 'react';
 import './Sidebar.css';
