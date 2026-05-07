@@ -20,67 +20,67 @@ const Scheduled = ({ user }) => {
   // Datos de ejemplo para operaciones programadas
   // Ordenadas por prioridad: Alta (3), Media (2), Baja (1)
   const [scheduledOperations, setScheduledOperations] = useState([
-    { 
-      id: 1, 
-      type: 'transferencia', 
-      typeLabel: 'Transferencia',
-      priority: 'alta', 
-      priorityLabel: 'Alta',
-      priorityLevel: 3,
-      date: '10 de abril de 2026, 10:00',
-      fromWallet: 'Billetera Principal',
-      toWallet: 'Ahorros',
-      amount: 1500,
-      description: 'Ahorro mensual',
-      status: 'Programada',
-      frequency: 'Única'
-    },
-    { 
-      id: 2, 
-      type: 'retiro', 
-      typeLabel: 'Retiro',
-      priority: 'media', 
-      priorityLabel: 'Media',
-      priorityLevel: 2,
-      date: '15 de abril de 2026, 08:00',
-      fromWallet: 'Billetera Principal',
-      toWallet: 'Cuenta Bancaria',
-      amount: 800,
-      description: 'Pago de servicios',
-      status: 'Programada',
-      frequency: 'Mensual'
-    },
-    { 
-      id: 3, 
-      type: 'transferencia', 
-      typeLabel: 'Transferencia',
-      priority: 'baja', 
-      priorityLabel: 'Baja',
-      priorityLevel: 1,
-      date: '20 de abril de 2026, 12:00',
-      fromWallet: 'Inversiones',
-      toWallet: 'Billetera Principal',
-      amount: 2000,
-      description: 'Devolución inversión',
-      status: 'Programada',
-      frequency: 'Única'
-    },
-    { 
-      id: 4, 
-      type: 'recarga', 
-      typeLabel: 'Recarga',
-      priority: 'alta', 
-      priorityLabel: 'Alta',
-      priorityLevel: 3,
-      date: '12 de abril de 2026, 09:00',
-      fromWallet: 'Tarjeta **** 4532',
-      toWallet: 'Billetera Principal',
-      amount: 500,
-      description: 'Recarga automática',
-      status: 'Programada',
-      frequency: 'Semanal'
-    }
-  ]);
+  { 
+    id: 1, 
+    type: 'transferencia', 
+    typeLabel: 'Transferencia',
+    priority: 'alta', 
+    priorityLabel: 'Alta',
+    priorityLevel: 3,
+    date: '10 de abril de 2026, 10:00',
+    fromWallet: 'Billetera Principal',
+    toDestination: 'Usuario: juan.perez@email.com',  // Cambiado: puede ser otro usuario
+    amount: 1500,
+    description: 'Pago mensual',
+    status: 'Programada',
+    frequency: 'Mensual'
+  },
+  { 
+    id: 2, 
+    type: 'retiro', 
+    typeLabel: 'Retiro',
+    priority: 'media', 
+    priorityLabel: 'Media',
+    priorityLevel: 2,
+    date: '15 de abril de 2026, 08:00',
+    fromWallet: 'Billetera Principal',
+    toDestination: 'Cuenta Bancaria **** 3456',
+    amount: 800,
+    description: 'Retiro para gastos',
+    status: 'Programada',
+    frequency: 'Única'
+  },
+  { 
+    id: 3, 
+    type: 'ahorro', 
+    typeLabel: 'Ahorro Automático',
+    priority: 'baja', 
+    priorityLabel: 'Baja',
+    priorityLevel: 1,
+    date: '20 de abril de 2026, 12:00',
+    fromWallet: 'Billetera Principal',
+    toDestination: 'Ahorros',
+    amount: 2000,
+    description: 'Ahorro semanal',
+    status: 'Programada',
+    frequency: 'Semanal'
+  },
+  { 
+    id: 4, 
+    type: 'recarga', 
+    typeLabel: 'Recarga Automática',
+    priority: 'alta', 
+    priorityLabel: 'Alta',
+    priorityLevel: 3,
+    date: '12 de abril de 2026, 09:00',
+    fromWallet: 'Tarjeta **** 4532',
+    toDestination: 'Billetera Principal',
+    amount: 500,
+    description: 'Recarga automática',
+    status: 'Programada',
+    frequency: 'Semanal'
+  }
+]);
   
   // Billeteras del usuario (para modales)
   const userWallets = [
@@ -90,28 +90,29 @@ const Scheduled = ({ user }) => {
     { id: 4, name: 'Viajes', balance: 3500.00 }
   ];
   
-  // Tipos de operación
-  const operationTypes = [
-    { value: 'recarga', label: 'Recarga', icon: '📥' },
-    { value: 'retiro', label: 'Retiro', icon: '📤' },
-    { value: 'transferencia', label: 'Transferencia', icon: '🔄' }
-  ];
-  
-  // Prioridades
-  const priorities = [
-    { value: 'alta', label: 'Alta', level: 3, color: '#ef4444' },
-    { value: 'media', label: 'Media', level: 2, color: '#f59e0b' },
-    { value: 'baja', label: 'Baja', level: 1, color: '#10b981' }
-  ];
-  
-  // Frecuencias
-  const frequencies = [
-    { value: 'unica', label: 'Única' },
-    { value: 'diaria', label: 'Diaria' },
-    { value: 'semanal', label: 'Semanal' },
-    { value: 'quincenal', label: 'Quincenal' },
-    { value: 'mensual', label: 'Mensual' }
-  ];
+  /// Tipos de operación
+const operationTypes = [
+  { value: 'transferencia', label: 'Transferencia', icon: '🔄' },
+  { value: 'recarga', label: 'Recarga automática', icon: '📥' },
+  { value: 'retiro', label: 'Retiro programado', icon: '📤' },
+  { value: 'ahorro', label: 'Ahorro automático', icon: '🏦' }
+];
+
+// Prioridades
+const priorities = [
+  { value: 'alta', label: 'Alta', level: 3, color: '#ef4444' },
+  { value: 'media', label: 'Media', level: 2, color: '#f59e0b' },
+  { value: 'baja', label: 'Baja', level: 1, color: '#10b981' }
+];
+
+// Frecuencias
+const frequencies = [
+  { value: 'unica', label: 'Única' },
+  { value: 'diaria', label: 'Diaria' },
+  { value: 'semanal', label: 'Semanal' },
+  { value: 'quincenal', label: 'Quincenal' },
+  { value: 'mensual', label: 'Mensual' }
+];
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {

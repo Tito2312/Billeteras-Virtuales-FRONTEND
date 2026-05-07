@@ -1,331 +1,210 @@
-/* Modals.css - Estilos para modales de operaciones programadas */
+/* ============================================ */
+/* ESTILOS PARA SELECCIÓN DE DESTINO (TARJETAS) */
+/* ============================================ */
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
+.destination-section {
+  margin-bottom: 24px;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.modal-content {
-  background: white;
-  border-radius: 24px;
-  width: 90%;
-  max-width: 550px;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(30px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 24px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.modal-header h2 {
-  font-size: 20px;
+.section-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
   color: #1e1b4b;
+  margin-bottom: 12px;
 }
 
-.modal-close {
-  width: 32px;
-  height: 32px;
-  background: #f1f5f9;
-  border: none;
-  border-radius: 10px;
-  font-size: 24px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.modal-close:hover {
-  background: #e2e8f0;
-}
-
-.modal-content form {
-  padding: 24px;
-}
-
-.form-group {
+.destination-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
-.form-group label {
+.destination-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.destination-card:hover {
+  background: #f3e8ff;
+  border-color: #c4b5fd;
+  transform: translateY(-2px);
+}
+
+.destination-card.selected {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #7c3aed;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.destination-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.destination-info {
+  flex: 1;
+}
+
+.destination-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 4px;
+}
+
+.destination-info p {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.destination-radio {
+  flex-shrink: 0;
+}
+
+.custom-radio {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #c4b5fd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.custom-radio.checked {
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+.custom-radio.checked span {
+  color: white;
+  font-size: 12px;
+}
+
+/* Campo de destino */
+.destination-field {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.destination-field label {
   display: block;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   color: #1e1b4b;
   margin-bottom: 8px;
 }
 
-.form-group input,
-.form-group select {
+/* Inputs con icono */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 16px;
+  color: #7c3aed;
+}
+
+.input-with-icon input,
+.input-with-icon select {
   width: 100%;
-  padding: 12px 16px;
+  padding: 12px 12px 12px 42px;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 14px;
   transition: all 0.2s;
+  background: white;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.input-with-icon input:focus,
+.input-with-icon select:focus {
   outline: none;
   border-color: #7c3aed;
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
-.form-group input.error,
-.form-group select.error {
-  border-color: #ef4444;
-}
-
-.error-text {
-  display: block;
-  font-size: 12px;
-  color: #ef4444;
-  margin-top: 6px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.modal-buttons {
+/* Métodos de pago */
+.payment-methods {
   display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 24px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.btn-cancel {
-  padding: 10px 20px;
-  background: #f1f5f9;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-cancel:hover {
-  background: #e2e8f0;
-}
-
-.btn-confirm, .btn-edit-modal {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-confirm:hover, .btn-edit-modal:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
-}
-
-/* Modal de peligro (cancelar) */
-.modal-danger .modal-header {
-  border-bottom-color: #fee2e2;
-}
-
-.modal-danger-header {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  justify-content: center;
-  gap: 12px;
-}
-
-.danger-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  background: #ef4444;
-  border-radius: 50%;
+.payment-method {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.danger-icon {
-  font-size: 24px;
-  color: white;
-}
-
-.modal-danger-header h2 {
-  color: #991b1b;
-}
-
-.modal-body {
-  padding: 24px;
-}
-
-.delete-warning-card {
-  background: #fef3c7;
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.warning-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: #f59e0b;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.warning-message {
-  font-size: 14px;
-  color: #92400e;
-  line-height: 1.5;
-}
-
-.warning-message strong {
-  display: block;
-  margin-top: 8px;
-}
-
-.operation-info-card {
+  gap: 12px;
+  padding: 12px 16px;
   background: #f8fafc;
-  border-radius: 16px;
-  padding: 16px;
-}
-
-.operation-priority-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 16px;
-}
-
-.operation-priority-badge.priority-high {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.operation-priority-badge.priority-medium {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.operation-priority-badge.priority-low {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
-  font-size: 14px;
-  color: #64748b;
-}
-
-.info-value {
-  font-size: 14px;
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.info-value.highlight {
-  color: #7c3aed;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.modal-danger-buttons {
-  padding: 20px 24px;
-  background: #fef2f2;
-  border-radius: 0 0 24px 24px;
-  margin-top: 0;
-}
-
-.btn-delete {
-  padding: 10px 24px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 10px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
   cursor: pointer;
-  font-weight: 500;
   transition: all 0.2s;
 }
 
-.btn-delete:hover {
-  background: #dc2626;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+.payment-method:hover {
+  background: #f3e8ff;
+  border-color: #c4b5fd;
+}
+
+.payment-method.selected {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #7c3aed;
+}
+
+.payment-icon {
+  font-size: 20px;
+}
+
+/* Modal más ancho para mejor visualización */
+.modal-scheduled {
+  max-width: 650px;
 }
 
 /* Responsive */
 @media (max-width: 640px) {
-  .modal-content {
-    width: 95%;
-  }
-  
-  .form-row {
+  .destination-cards {
     grid-template-columns: 1fr;
-    gap: 0;
+    gap: 12px;
   }
   
-  .modal-buttons {
-    flex-direction: column;
+  .modal-scheduled {
+    max-width: 95%;
   }
   
-  .modal-buttons button {
-    width: 100%;
+  .destination-card {
+    padding: 12px;
   }
   
-  .info-row {
-    flex-direction: column;
-    gap: 4px;
+  .destination-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .destination-info h4 {
+    font-size: 14px;
   }
 }
