@@ -27,7 +27,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
 
   // Validar el formulario
   const validateForm = () => {
-    // CAMBIO 1: Ahora validamos que TODOS los campos estén llenos
+    // validar que TODOS los campos estén llenos
     // nombre, email, password, confirmPassword, telefono, documento son OBLIGATORIOS
     if (!formData.nombre || !formData.email || !formData.password || !formData.confirmPassword || !formData.telefono || !formData.documento) {
       setError('Por favor completa TODOS los campos');
@@ -51,13 +51,13 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       return false;
     }
 
-    // CAMBIO 2: Validar que el teléfono tenga al menos 7 dígitos (básico)
+    // Validar que el teléfono tenga al menos 7 dígitos (básico)
     if (formData.telefono.length < 7) {
       setError('Ingresa un número de teléfono válido (mínimo 7 dígitos)');
       return false;
     }
 
-    // CAMBIO 3: Validar que el documento tenga al menos 5 caracteres
+    // Validar que el documento tenga al menos 5 caracteres
     if (formData.documento.length < 5) {
       setError('Ingresa un número de documento válido (mínimo 5 caracteres)');
       return false;
@@ -135,7 +135,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="documento">Documento *</label>  {/* CAMBIO 4: Ya no dice (opcional) */}
+              <label htmlFor="documento">Documento *</label> 
               <input
                 type="text"
                 id="documento"
@@ -160,7 +160,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="telefono">Teléfono *</label>  {/* CAMBIO 5: Ya no dice (opcional) */}
+            <label htmlFor="telefono">Teléfono *</label> 
             <input
               type="tel"
               id="telefono"

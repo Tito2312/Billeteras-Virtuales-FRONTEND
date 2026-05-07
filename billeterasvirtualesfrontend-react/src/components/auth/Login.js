@@ -11,7 +11,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword })
 
   // Manejar el envío del formulario
   const handleSubmit = async (e) => {
-    e.preventDefault();  // Evita que la página se recargue
+    e.preventDefault(); 
     setError('');
     setLoading(true);
 

@@ -1,4 +1,4 @@
-// Wallets.js - Página de gestión de billeteras (SOLO VISUAL, sin lógica backend)
+// Wallets.js - Página de gestión de billeteras 
 
 import React, { useState } from 'react';
 import CreateWalletModal from './CreateWalletModal';
@@ -7,7 +7,7 @@ import DeleteWalletModal from './DeleteWalletModal';
 import './Wallets.css';
 
 const Wallets = ({ user }) => {
-  // Datos de ejemplo (estáticos, no se modifican realmente)
+  // Datos de ejemplo (estáticos, no se modifican)
   const [wallets, setWallets] = useState([
     { id: 1, name: 'Principal', type: 'Gastos diarios', balance: 25430.50, description: 'Billetera principal para gastos diarios' },
     { id: 2, name: 'Ahorros', type: 'Ahorro', balance: 8920.00, description: 'Cuenta de ahorros para metas' },
@@ -52,21 +52,21 @@ const Wallets = ({ user }) => {
     return name.substring(0, 2).toUpperCase();
   };
   
-  // SOLO SIMULACIÓN - No modifica datos realmente
+  // SOLO SIMULACIÓN 
   const handleCreateWallet = (walletData) => {
-    // Solo muestra alerta, NO guarda realmente
+    // Solo muestra alerta
     alert(`📝 Simulación: Se enviará al backend para crear la billetera "${walletData.name}"\n\nTipo: ${walletData.type}\nBalance: ${formatCurrency(walletData.balance || 0)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
     setShowCreateModal(false);
   };
   
-  // SOLO SIMULACIÓN - No modifica datos realmente
+  // SOLO SIMULACIÓN
   const handleEditWallet = (updatedData) => {
     alert(`✏️ Simulación: Se enviará al backend para actualizar la billetera "${updatedData.name}"\n\nTipo: ${updatedData.type}\nBalance: ${formatCurrency(updatedData.balance)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
     setShowEditModal(false);
     setSelectedWallet(null);
   };
   
-  // SOLO SIMULACIÓN - No elimina datos realmente
+  // SOLO SIMULACIÓN 
   const handleDeleteWallet = () => {
     alert(`🗑️ Simulación: Se enviará al backend para eliminar la billetera "${selectedWallet?.name}"\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
     setShowDeleteModal(false);

@@ -14,11 +14,11 @@ const WalletCarousel = ({ wallets }) => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
-        setCardsPerPage(1);  // Móvil: 1 tarjeta
+        setCardsPerPage(1);  
       } else if (window.innerWidth < 1024) {
-        setCardsPerPage(2);  // Tablet: 2 tarjetas
+        setCardsPerPage(2); 
       } else {
-        setCardsPerPage(3);  // Escritorio: 3 tarjetas
+        setCardsPerPage(3);  
       }
     };
     
@@ -77,7 +77,7 @@ const WalletCarousel = ({ wallets }) => {
           <span className="nav-icon">←</span>
         </button>
         
-        {/* Contenedor de tarjetas - Grid fijo */}
+        {/* Contenedor de tarjetas */}
         <div className="carousel-grid">
           {currentWallets.map((wallet) => (
             <div key={wallet.id} className="carousel-grid-item">
@@ -107,7 +107,7 @@ const WalletCarousel = ({ wallets }) => {
         </button>
       </div>
       
-      {/* Dots indicadores de página */}
+      {/* indicadores de página */}
       {hasMultiplePages && (
         <div className="carousel-dots">
           {Array.from({ length: totalPages }).map((_, idx) => (
