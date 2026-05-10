@@ -1,5 +1,4 @@
 // Dashboard.js - Pantalla principal con carrusel de billeteras
-// El carrusel muestra las billeteras con navegación por páginas
 
 import React, { useState } from 'react';
 import WalletCarousel from './WalletCarousel';

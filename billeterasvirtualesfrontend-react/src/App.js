@@ -9,7 +9,7 @@ import Dashboard from './components/dashboard/Dashboard';
 import Wallets from './components/wallets/Wallets';
 import Transactions from './components/transactions/Transactions';
 import Sidebar from './components/dashboard/Sidebar';
-import { getCurrentUser, logout } from './services/authService';
+import { getCurrentUser, logout } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
 import './App.css';
 
