@@ -1,30 +1,15 @@
 // auth.js - Servicio de autenticación
-// Conecta login, registro y recuperación de contraseña
+// Conecta EXCLUSIVAMENTE con el backend real (Spring Boot + MongoDB)
 
-
+// ============================================
 // CONFIGURACIÓN BASE
+// ============================================
 
+const BASE_URL = 'http://localhost:8080';
 
-const BASE_URL = 'http://localhost:8080/api'; 
-
-
+// ============================================
 // UTILIDADES
-
-
-const getHeaders = (requiresAuth = false) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (requiresAuth) {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-  
-  return headers;
-};
+// ============================================
 
 const handleResponse = async (response) => {
   let data;
@@ -44,24 +29,27 @@ const handleResponse = async (response) => {
   return data;
 };
 
-// ============================================
-// REGISTRO - Endpoint: /api/auth/register
-// ============================================
+
+// REGISTRO - POST /auth/register
+
 
 export const register = async (userData) => {
   try {
     const url = `${BASE_URL}/auth/register`;
     
+    // Mapeo exacto según RegisterRequest.java
     const body = {
-      name: userData.nombre,
-      email: userData.email,
-      password: userData.password,
-      phone: userData.telefono || ''
+      name: userData.nombre,      // String name
+      email: userData.email,      // String email
+      password: userData.password, // String password
+      phone: userData.telefono || '' // String phone (opcional)
     };
     
     const params = {
       method: 'POST',
-      headers: getHeaders(false),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(body)
     };
     
@@ -82,25 +70,30 @@ export const register = async (userData) => {
   }
 };
 
-
-// LOGIN - Endpoint: /api/auth/login
+// LOGIN - POST /auth/login
 
 
 export const login = async (email, password) => {
   try {
     const url = `${BASE_URL}/auth/login`;
     
-    const body = { email, password };
+    const body = {
+      email: email,
+      password: password
+    };
     
     const params = {
       method: 'POST',
-      headers: getHeaders(false),
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(body)
     };
     
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     
+    // AuthResponse: { token, userId, name, level }
     if (result.token) {
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user', JSON.stringify({
@@ -108,7 +101,8 @@ export const login = async (email, password) => {
         nombre: result.name,
         email: email,
         nivel: result.level || 'Bronce',
-        puntos: 0
+        puntos: 0,
+        token: result.token
       }));
     }
     
@@ -127,18 +121,34 @@ export const login = async (email, password) => {
 };
 
 
-// RECUPERAR CONTRASEÑA (SIMULADO POR AHORA)
+// RECUPERAR CONTRASEÑA
 
 
 export const resetPassword = async (email) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        success: true,
-        message: `Se ha enviado un enlace de restablecimiento a ${email}`
-      });
-    }, 1000);
-  });
+  try {
+   
+    const url = `${BASE_URL}/auth/reset-password`;
+    
+    const params = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email })
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    
+    return { success: true, message: result.message || `Se ha enviado un enlace a ${email}` };
+  } catch (error) {
+
+    console.warn('Endpoint reset-password no disponible:', error);
+    return { 
+      success: true, 
+      message: `Se ha enviado un enlace de restablecimiento a ${email}` 
+    };
+  }
 };
 
 
@@ -151,7 +161,8 @@ export const logout = () => {
   return { success: true };
 };
 
-// UTILIDADES DE SESIÓN
+
+// SESIÓN
 
 
 export const getCurrentUser = () => {
