@@ -13,6 +13,8 @@ import Sidebar from './components/dashboard/Sidebar';
 import { getCurrentUser, logout } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
 import Rewards from './components/rewards/Rewards';
+import Security from './components/security/Security';
+import Profile from './components/profile/Profile';
 import './App.css';
 
 function App() {

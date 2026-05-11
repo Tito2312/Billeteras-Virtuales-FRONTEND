@@ -1,7 +1,9 @@
-// Dashboard.js - Pantalla principal con carrusel de billeteras
+// Dashboard.js - Pantalla principal después del login
+// Incluye carrusel de billeteras, estadísticas, gráfico y menú de usuario
 
 import React, { useState } from 'react';
 import WalletCarousel from './WalletCarousel';
+import UserMenu from '../common/UserMenu';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
@@ -60,20 +62,36 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     alert(`🔔 Función "${action}"\n\nPróximamente se conectará con el backend`);
   };
 
+  // Manejar navegación a perfil
+  const handleNavigateToProfile = () => {
+    onTabChange('profile');
+  };
+
+  // Manejar cierre de sesión
+  const handleLogout = () => {
+    onLogout();
+  };
+
   return (
     <div className="dashboard-main-content">
-      {/* Header */}
+      {/* Header con menú de usuario */}
       <header className="dashboard-header">
         <div className="header-welcome">
-          <h1>Bienvenido, {user.nombre?.split(' ')[0] || user.nombre}</h1>
+          <h1>Bienvenido, {user?.nombre?.split(' ')[0] || user?.nombre || 'Usuario'}</h1>
           <div className="user-badge">
-            <span className="badge-level">{user.nivel}</span>
-            <span className="badge-points">{formatNumber(user.puntos)} puntos</span>
+            <span className="badge-level">{user?.nivel || 'Bronce'}</span>
+            <span className="badge-points">{formatNumber(user?.puntos || 0)} puntos</span>
           </div>
         </div>
         <div className="header-actions">
-          <button className="icon-btn" onClick={() => handleAction('Notificaciones')}>🔔</button>
-          <button className="icon-btn" onClick={onLogout}>🚪</button>
+          <button className="icon-btn" onClick={() => handleAction('Notificaciones')}>
+            🔔
+          </button>
+          <UserMenu 
+            user={user} 
+            onLogout={handleLogout}
+            onNavigateToProfile={handleNavigateToProfile}
+          />
         </div>
       </header>
 
@@ -101,8 +119,8 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <div className="stat-icon">⭐</div>
           <div className="stat-info">
             <h3>Puntos Acumulados</h3>
-            <p className="stat-value">{formatNumber(user.puntos)}</p>
-            <span className="stat-sub">Nivel {user.nivel}</span>
+            <p className="stat-value">{formatNumber(user?.puntos || 0)}</p>
+            <span className="stat-sub">Nivel {user?.nivel || 'Bronce'}</span>
           </div>
         </div>
       </div>
@@ -145,7 +163,9 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       <div className="transactions-section">
         <div className="section-header">
           <h2>Transacciones Recientes</h2>
-          <button className="view-all" onClick={() => handleAction('Ver todas')}>Ver todas →</button>
+          <button className="view-all" onClick={() => onTabChange('transactions')}>
+            Ver todas →
+          </button>
         </div>
         <div className="transactions-list">
           {recentTransactions.map(transaction => (
