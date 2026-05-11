@@ -1,0 +1,251 @@
+/* Wallets.css - Estilos para la página de gestión de billeteras */
+
+.wallets-page {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.wallets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.wallets-header h1 {
+  font-size: 28px;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.wallets-header p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.btn-create {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.btn-create:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+/* Estadísticas */
+.wallets-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.stat-badge {
+  background: white;
+  padding: 12px 24px;
+  border-radius: 16px;
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.stat-number {
+  font-size: 20px;
+  font-weight: 700;
+  color: #7c3aed;
+}
+
+/* Grid de billeteras */
+.wallets-grid-full {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Tarjeta de billetera */
+.wallet-card-full {
+  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.wallet-card-full:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(109, 40, 217, 0.3);
+}
+
+.wallet-card-header-full {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.wallet-icon-full {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.wallet-info-full {
+  flex: 1;
+}
+
+.wallet-info-full h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.wallet-info-full p {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* Menú de 3 puntitos */
+.wallet-menu {
+  position: relative;
+}
+
+.menu-trigger {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-trigger:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 100;
+  min-width: 140px;
+}
+
+.menu-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1e1b4b;
+  transition: background 0.2s;
+}
+
+.menu-dropdown button:hover {
+  background: #f3e8ff;
+}
+
+.menu-dropdown button.danger {
+  color: #ef4444;
+}
+
+.menu-dropdown button.danger:hover {
+  background: #fee2e2;
+}
+
+/* Balance */
+.wallet-balance-full {
+  margin-bottom: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.balance-label-full {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+  letter-spacing: 0.8px;
+}
+
+.balance-value-full {
+  display: block;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.wallet-description {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .wallets-page {
+    padding: 20px;
+  }
+  
+  .wallets-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .wallets-header h1 {
+    font-size: 24px;
+  }
+  
+  .wallets-grid-full {
+    grid-template-columns: 1fr;
+  }
+  
+  .wallets-stats {
+    flex-direction: column;
+  }
+  
+  .stat-badge {
+    justify-content: space-between;
+  }
+}
