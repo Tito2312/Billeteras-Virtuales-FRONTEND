@@ -12,6 +12,7 @@ import Transactions from './components/transactions/Transactions';
 import Sidebar from './components/dashboard/Sidebar';
 import { getCurrentUser, logout } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
+import Rewards from './components/rewards/Rewards';
 import './App.css';
 
 function App() {
@@ -62,8 +63,9 @@ function App() {
     } else if (tab === 'transactions') {
       setView('transactions');
     }else if (tab === 'scheduled') {
-  setView('scheduled');
-}
+       setView('scheduled');
+    }else if (tab === 'rewards') {
+       setView('rewards');}
     // Aquí puedes agregar más condiciones para otras pestañas:
     // scheduled, rewards, analytics, security, notifications
   };
@@ -140,6 +142,16 @@ function App() {
       <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
       <div className="app-main-content">
         <Scheduled user={user} />
+      </div>
+    </div>
+  );
+
+  case 'rewards':
+  return (
+    <div className="app-layout">
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="app-main-content">
+        <Rewards user={user} />
       </div>
     </div>
   );
