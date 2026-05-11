@@ -10,10 +10,10 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
   { id: 'wallets', label: 'Billeteras', icon: '💳' },
   { id: 'transactions', label: 'Transacciones', icon: '🔄' },
-  { id: 'scheduled', label: 'Operaciones Programadas', icon: '⏰' },  
+  { id: 'scheduled', label: 'Operaciones Programadas', icon: '⏰' },
   { id: 'rewards', label: 'Recompensas', icon: '🎁' },
   { id: 'analytics', label: 'Analítica', icon: '📈' },
-  { id: 'security', label: 'Seguridad', icon: '🔒' },
+  { id: 'security', label: 'Seguridad', icon: '🔒' },   
   { id: 'notifications', label: 'Notificaciones', icon: '🔔' }
 ];
 

@@ -12,6 +12,10 @@ import Transactions from './components/transactions/Transactions';
 import Sidebar from './components/dashboard/Sidebar';
 import { getCurrentUser, logout } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
+import Rewards from './components/rewards/Rewards';
+import Security from './components/security/Security';
+import Profile from './components/profile/Profile';
+import Notifications from './components/notifications/Notifications';
 import './App.css';
 
 function App() {
@@ -57,12 +61,22 @@ function App() {
     setActiveTab(tab);
     if (tab === 'dashboard') {
       setView('dashboard');
-    } else if (tab === 'wallets') {
+    }else if (tab === 'wallets') {
       setView('wallets');
-    } else if (tab === 'transactions') {
+    }else if (tab === 'transactions') {
       setView('transactions');
     }else if (tab === 'scheduled') {
-  setView('scheduled');
+       setView('scheduled');
+    }else if (tab === 'rewards') {
+       setView('rewards');}
+     else if (tab === 'security') {
+       setView('security');
+    }else if (tab === 'profile') {
+       setView('profile');
+    }else if (tab === 'notifications') {
+  setView('notifications');
+       
+       
 }
     // Aquí puedes agregar más condiciones para otras pestañas:
     // scheduled, rewards, analytics, security, notifications
@@ -143,6 +157,50 @@ function App() {
       </div>
     </div>
   );
+
+  case 'rewards':
+  return (
+    <div className="app-layout">
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="app-main-content">
+        <Rewards user={user} />
+      </div>
+    </div>
+  );
+
+  case 'security':
+  return (
+    <div className="app-layout">
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="app-main-content">
+        <Security user={user} />
+      </div>
+    </div>
+  );
+case 'profile':
+  return (
+    <div className="app-layout">
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="app-main-content">
+        <Profile user={user} onUpdateUser={(updatedUser) => {
+          // Actualizar usuario en el estado principal
+          const newUser = { ...user, ...updatedUser };
+          localStorage.setItem('user', JSON.stringify(newUser));
+          setUser(newUser);
+        }} />
+      </div>
+    </div>
+  );
+case 'notifications':
+  return (
+    <div className="app-layout">
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="app-main-content">
+        <Notifications user={user} />
+      </div>
+    </div>
+  );
+
   }
 }
 
