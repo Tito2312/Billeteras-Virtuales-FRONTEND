@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import WalletCarousel from './WalletCarousel';
 import UserMenu from '../common/UserMenu';
+import NotificationBell from '../notifications/NotificationBell';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
@@ -67,6 +68,11 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     onTabChange('profile');
   };
 
+  // Manejar ver todas las notificaciones
+  const handleViewAllNotifications = () => {
+    onTabChange('notifications');
+  };
+
   // Manejar cierre de sesión
   const handleLogout = () => {
     onLogout();
@@ -74,7 +80,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
 
   return (
     <div className="dashboard-main-content">
-      {/* Header con menú de usuario */}
+      {/* Header con menú de usuario y campanita */}
       <header className="dashboard-header">
         <div className="header-welcome">
           <h1>Bienvenido, {user?.nombre?.split(' ')[0] || user?.nombre || 'Usuario'}</h1>
@@ -84,9 +90,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           </div>
         </div>
         <div className="header-actions">
-          <button className="icon-btn" onClick={() => handleAction('Notificaciones')}>
-            🔔
-          </button>
+          <NotificationBell onViewAll={handleViewAllNotifications} />
           <UserMenu 
             user={user} 
             onLogout={handleLogout}
