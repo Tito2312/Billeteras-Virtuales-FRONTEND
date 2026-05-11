@@ -74,43 +74,25 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     setLoading(true);
 
     if (!validateForm()) {
-      setLoading(false);
-      return;
+        setLoading(false);
+        return;
     }
 
-    // Preparamos los datos para registrar
-    const userData = {
-      nombre: formData.nombre,
-      email: formData.email,
-      password: formData.password,
-      telefono: formData.telefono,
-      documento: formData.documento
-    };
+    const result = await register({
+        nombre: formData.nombre,
+        email: formData.email,
+        password: formData.password,
+        telefono: formData.telefono
+    });
 
-    setTimeout(() => {
-      const result = register(userData);
-      
-      if (result.success) {
+    if (result.success) {
         setSuccess(result.message);
-        // Limpiar formulario
-        setFormData({
-          nombre: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          telefono: '',
-          documento: ''
-        });
-        // Después de 2 segundos, cambiar al login
-        setTimeout(() => {
-          onRegisterSuccess();
-        }, 2000);
-      } else {
+        setTimeout(() => onRegisterSuccess(), 2000);
+    } else {
         setError(result.message);
-      }
-      setLoading(false);
-    }, 500);
-  };
+    }
+    setLoading(false);
+};
 
   return (
     <div className="auth-container">

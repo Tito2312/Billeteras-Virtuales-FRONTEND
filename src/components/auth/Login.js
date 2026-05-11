@@ -11,30 +11,25 @@ const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword })
 
   // Manejar el envío del formulario
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Validaciones básicas
     if (!email || !password) {
-      setError('Por favor completa todos los campos');
-      setLoading(false);
-      return;
+        setError('Por favor completa todos los campos');
+        setLoading(false);
+        return;
     }
 
-    // Simular un pequeño retraso como si fuera una llamada a API
-    setTimeout(() => {
-      const result = login(email, password);
-      
-      if (result.success) {
-        // Si el login es exitoso, llamamos a la función que nos pasaron como prop
+    const result = await login(email, password);
+
+    if (result.success) {
         onLoginSuccess(result.user);
-      } else {
+    } else {
         setError(result.message);
-      }
-      setLoading(false);
-    }, 500);
-  };
+    }
+    setLoading(false);
+};
 
   return (
     <div className="auth-container">
