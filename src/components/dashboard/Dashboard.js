@@ -2,9 +2,9 @@
 // Incluye carrusel de billeteras, estadísticas, gráfico y menú de usuario
 
 import React, { useState } from 'react';
-import WalletCarousel from './WalletCarousel';
+import WalletCarousel from './walletCarousel/WalletCarousel';
 import UserMenu from '../common/UserMenu';
-import NotificationBell from '../notifications/NotificationBell';
+import NotificationBell from '../notifications/notificationBell/NotificationBell';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {

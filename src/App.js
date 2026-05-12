@@ -9,13 +9,14 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import Dashboard from './components/dashboard/Dashboard';
 import Wallets from './components/wallets/Wallets';
 import Transactions from './components/transactions/Transactions';
-import Sidebar from './components/dashboard/Sidebar';
+import Sidebar from './components/dashboard/sidebar/Sidebar';
 import { getCurrentUser, logout } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
 import Rewards from './components/rewards/Rewards';
 import Security from './components/security/Security';
 import Profile from './components/profile/Profile';
 import Notifications from './components/notifications/Notifications';
+import Analytics from './components/analytics/Analytics';
 import './App.css';
 
 function App() {
@@ -74,9 +75,9 @@ function App() {
     }else if (tab === 'profile') {
        setView('profile');
     }else if (tab === 'notifications') {
-  setView('notifications');
-       
-       
+  setView('notifications'); 
+  }else if (tab === 'analytics') {
+  setView('analytics');
 }
     // Aquí puedes agregar más condiciones para otras pestañas:
     // scheduled, rewards, analytics, security, notifications
@@ -200,6 +201,17 @@ case 'notifications':
       </div>
     </div>
   );
+
+  case 'analytics':
+  return (
+    <div className="app-layout">
+      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div className="app-main-content">
+        <Analytics user={user} />
+      </div>
+    </div>
+  );
+
 
   }
 }
