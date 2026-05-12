@@ -1,4 +1,4 @@
-// auth.js - Servicio de autenticación y API de usuarios
+// auth.js - Servicio de autenticación, usuarios y billeteras
 // Conecta con el backend real (Spring Boot + MongoDB)
 
 // ============================================
@@ -173,7 +173,7 @@ export const getToken = () => {
 };
 
 // ============================================
-// USUARIOS - GET /api/users
+// USUARIOS
 // ============================================
 
 export const getAllUsers = async () => {
@@ -205,15 +205,21 @@ export const getUserById = async (id) => {
 export const updateUser = async (id, userData) => {
   try {
     const url = `${BASE_URL}/users/${id}`;
+    const token = getAuthToken();
+    
     const params = {
       method: 'PUT',
-      headers: getHeaders(true),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify({
         name: userData.name || userData.nombre,
         email: userData.email,
         phoneNumber: userData.phoneNumber || userData.telefono
       })
     };
+    
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     
@@ -221,9 +227,9 @@ export const updateUser = async (id, userData) => {
     if (currentUser && currentUser.id === id) {
       const updatedUser = {
         ...currentUser,
-        nombre: result.name,
-        email: result.email,
-        telefono: result.phoneNumber
+        nombre: result.name || userData.name || userData.nombre,
+        email: result.email || userData.email,
+        telefono: result.phoneNumber || userData.phoneNumber || userData.telefono
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
@@ -257,6 +263,195 @@ export const deactivateUser = async (id) => {
     return { success: true, data: result };
   } catch (error) {
     console.error('Error al desactivar usuario:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+// ============================================
+// BILLETERAS
+// ============================================
+
+/**
+ * Crear una nueva billetera
+ * POST /api/wallets
+ */
+export const createWallet = async (walletData) => {
+  try {
+    const url = `${BASE_URL}/wallets`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: walletData.name,
+        type: walletData.type,
+        userId: walletData.userId
+      })
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al crear billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Obtener todas las billeteras de un usuario
+ * GET /api/wallets/user/{userId}
+ */
+export const getUserWallets = async (userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/user/${userId}`;
+    const token = getAuthToken();
+    
+    const params = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener billeteras:', error);
+    return { success: false, message: error.message, data: [] };
+  }
+};
+
+/**
+ * Obtener billetera por ID
+ * GET /api/wallets/{id}?userId={userId}
+ */
+export const getWalletById = async (id, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
+    const token = getAuthToken();
+    
+    const params = {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Actualizar billetera
+ * PUT /api/wallets/{id}?userId={userId}
+ */
+export const updateWallet = async (id, userId, walletData) => {
+  try {
+    const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: walletData.name,
+        type: walletData.type,
+        userId: userId
+      })
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al actualizar billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Activar billetera
+ * PATCH /api/wallets/{id}/activate?userId={userId}
+ */
+export const activateWallet = async (id, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${id}/activate?userId=${userId}`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al activar billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Desactivar billetera
+ * PATCH /api/wallets/{id}/deactivate?userId={userId}
+ */
+export const deactivateWallet = async (id, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${id}/deactivate?userId=${userId}`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al desactivar billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Obtener balance de billetera
+ * POST /api/wallets/{id}/balance?userId={userId}
+ */
+export const getWalletBalance = async (id, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${id}/balance?userId=${userId}`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, balance: result };
+  } catch (error) {
+    console.error('Error al obtener balance:', error);
     return { success: false, message: error.message };
   }
 };

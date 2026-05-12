@@ -1,26 +1,25 @@
-// RechargeModal.js - Modal para recargar billetera
+// RechargeModal.js - Modal para recargar billetera (VERSIÓN SIMULADA)
 
 import React, { useState } from 'react';
 import './Modals.css';
 
-const RechargeModal = ({ isOpen, onClose, onConfirm, wallets, paymentMethods }) => {
+const RechargeModal = ({ isOpen, onClose, wallets, initialWallet, onSuccess }) => {
   const [formData, setFormData] = useState({
-    walletId: wallets[0]?.id || '',
+    walletId: initialWallet?.id || wallets[0]?.id || '',
     amount: '',
-    paymentMethodId: paymentMethods[0]?.id || ''
+    paymentMethodId: 'tarjeta_4532'
   });
   
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   
   if (!isOpen) return null;
   
   const selectedWallet = wallets.find(w => w.id === formData.walletId);
-  const selectedMethod = paymentMethods.find(m => m.id === formData.paymentMethodId);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value);
   };
@@ -29,7 +28,6 @@ const RechargeModal = ({ isOpen, onClose, onConfirm, wallets, paymentMethods }) 
     const newErrors = {};
     if (!formData.walletId) newErrors.walletId = 'Selecciona una billetera';
     if (!formData.amount || formData.amount <= 0) newErrors.amount = 'Ingresa un monto válido';
-    if (!formData.paymentMethodId) newErrors.paymentMethodId = 'Selecciona un método de pago';
     return newErrors;
   };
   
@@ -41,14 +39,16 @@ const RechargeModal = ({ isOpen, onClose, onConfirm, wallets, paymentMethods }) 
       return;
     }
     
-    onConfirm({
-      wallet: selectedWallet,
-      amount: parseFloat(formData.amount),
-      paymentMethod: selectedMethod
-    });
+    setLoading(true);
     
-    onClose();
-    setFormData({ walletId: wallets[0]?.id || '', amount: '', paymentMethodId: paymentMethods[0]?.id || '' });
+    // SIMULACIÓN - No conecta con backend
+    setTimeout(() => {
+      alert(`✅ SIMULACIÓN: Recarga exitosa de ${formatCurrency(formData.amount)} a ${selectedWallet?.name}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+      if (onSuccess) onSuccess();
+      onClose();
+      setFormData({ walletId: wallets[0]?.id || '', amount: '', paymentMethodId: 'tarjeta_4532' });
+      setLoading(false);
+    }, 800);
   };
   
   return (
@@ -63,7 +63,6 @@ const RechargeModal = ({ isOpen, onClose, onConfirm, wallets, paymentMethods }) 
           <div className="form-group">
             <label>Selecciona billetera</label>
             <select 
-              name="walletId" 
               value={formData.walletId} 
               onChange={(e) => setFormData({...formData, walletId: e.target.value})}
             >
@@ -80,7 +79,6 @@ const RechargeModal = ({ isOpen, onClose, onConfirm, wallets, paymentMethods }) 
             <label>Monto a recargar</label>
             <input
               type="number"
-              name="amount"
               value={formData.amount}
               onChange={(e) => setFormData({...formData, amount: e.target.value})}
               placeholder="0.00"
@@ -92,23 +90,21 @@ const RechargeModal = ({ isOpen, onClose, onConfirm, wallets, paymentMethods }) 
           <div className="form-group">
             <label>Método de pago</label>
             <select 
-              name="paymentMethodId" 
               value={formData.paymentMethodId} 
               onChange={(e) => setFormData({...formData, paymentMethodId: e.target.value})}
             >
-              {paymentMethods.map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
+              <option value="tarjeta_4532">💳 Tarjeta de crédito **** 4532</option>
+              <option value="tarjeta_1234">💳 Tarjeta de crédito **** 1234</option>
+              <option value="cuenta_3456">🏦 Cuenta bancaria **** 3456</option>
             </select>
-            {errors.paymentMethodId && <span className="error-text">{errors.paymentMethodId}</span>}
           </div>
           
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-confirm">
-              Confirmar Recarga
+            <button type="submit" className="btn-confirm" disabled={loading}>
+              {loading ? 'Procesando...' : 'Confirmar Recarga'}
             </button>
           </div>
         </form>

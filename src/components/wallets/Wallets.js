@@ -1,20 +1,15 @@
-// Wallets.js - Página de gestión de billeteras 
+// Wallets.js - Página de gestión de billeteras (CONECTADO A API)
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getUserWallets, createWallet, updateWallet, getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
 import EditWalletModal from './EditWalletModal';
 import DeleteWalletModal from './DeleteWalletModal';
 import './Wallets.css';
 
 const Wallets = ({ user }) => {
-  // Datos de ejemplo (estáticos, no se modifican)
-  const [wallets, setWallets] = useState([
-    { id: 1, name: 'Principal', type: 'Gastos diarios', balance: 25430.50, description: 'Billetera principal para gastos diarios' },
-    { id: 2, name: 'Ahorros', type: 'Ahorro', balance: 8920.00, description: 'Cuenta de ahorros para metas' },
-    { id: 3, name: 'Inversión', type: 'Inversión', balance: 15600.75, description: 'Portafolio de inversiones' },
-    { id: 4, name: 'Viajes', type: 'Ahorro', balance: 3500.00, description: 'Ahorro para vacaciones' },
-    { id: 5, name: 'Emergencias', type: 'Ahorro', balance: 12000.00, description: 'Fondo de emergencias' }
-  ]);
+  const [wallets, setWallets] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   // Estados para modales
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -22,6 +17,8 @@ const Wallets = ({ user }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState(null);
   const [menuOpenId, setMenuOpenId] = useState(null);
+  
+  const userId = user?.id || getCurrentUser()?.id;
   
   // Tipos de billetera disponibles
   const walletTypes = [
@@ -32,18 +29,35 @@ const Wallets = ({ user }) => {
     { value: 'Compras', label: 'Compras', icon: '🛍️' }
   ];
   
-  // Formatear moneda
+  // Cargar billeteras desde API
+  const loadWallets = useCallback(async () => {
+    setLoading(true);
+    const result = await getUserWallets(userId);
+    if (result.success && result.data) {
+      setWallets(result.data);
+    } else {
+      console.error('Error al cargar billeteras:', result.message);
+    }
+    setLoading(false);
+  }, [userId]);
+  
+  useEffect(() => {
+    if (userId) {
+      loadWallets();
+    }
+  }, [userId, loadWallets]);
+  
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(value);
+    }).format(value || 0);
   };
   
-  // Obtener iniciales
   const getInitials = (name) => {
+    if (!name) return '??';
     if (name === 'Principal') return 'PP';
     if (name === 'Ahorros') return 'AH';
     if (name === 'Inversión') return 'IN';
@@ -52,52 +66,77 @@ const Wallets = ({ user }) => {
     return name.substring(0, 2).toUpperCase();
   };
   
-  // SOLO SIMULACIÓN 
-  const handleCreateWallet = (walletData) => {
-    // Solo muestra alerta
-    alert(`📝 Simulación: Se enviará al backend para crear la billetera "${walletData.name}"\n\nTipo: ${walletData.type}\nBalance: ${formatCurrency(walletData.balance || 0)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+  const handleCreateWallet = async (walletData) => {
+    const result = await createWallet({
+      name: walletData.name,
+      type: walletData.type,
+      userId: userId
+    });
+    
+    if (result.success) {
+      await loadWallets();
+      alert(`✅ Billetera "${walletData.name}" creada exitosamente`);
+    } else {
+      alert(`❌ Error al crear: ${result.message}`);
+    }
     setShowCreateModal(false);
   };
   
-  // SOLO SIMULACIÓN
-  const handleEditWallet = (updatedData) => {
-    alert(`✏️ Simulación: Se enviará al backend para actualizar la billetera "${updatedData.name}"\n\nTipo: ${updatedData.type}\nBalance: ${formatCurrency(updatedData.balance)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+  const handleEditWallet = async (updatedData) => {
+    const result = await updateWallet(selectedWallet.id, userId, {
+      name: updatedData.name,
+      type: updatedData.type
+    });
+    
+    if (result.success) {
+      await loadWallets();
+      alert(`✅ Billetera actualizada exitosamente`);
+    } else {
+      alert(`❌ Error al actualizar: ${result.message}`);
+    }
     setShowEditModal(false);
     setSelectedWallet(null);
   };
   
-  // SOLO SIMULACIÓN 
   const handleDeleteWallet = () => {
-    alert(`🗑️ Simulación: Se enviará al backend para eliminar la billetera "${selectedWallet?.name}"\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+    // Eliminación solo simulada (backend no tiene DELETE)
+    alert(`🗑️ Eliminar billetera "${selectedWallet?.name}"\n\n⚠️ El backend aún no tiene endpoint DELETE.`);
     setShowDeleteModal(false);
     setSelectedWallet(null);
   };
   
-  // Abrir menú de opciones
   const toggleMenu = (walletId) => {
     setMenuOpenId(menuOpenId === walletId ? null : walletId);
   };
   
-  // Abrir modal de edición
   const openEditModal = (wallet) => {
     setSelectedWallet(wallet);
     setShowEditModal(true);
     setMenuOpenId(null);
   };
   
-  // Abrir modal de eliminación
   const openDeleteModal = (wallet) => {
     setSelectedWallet(wallet);
     setShowDeleteModal(true);
     setMenuOpenId(null);
   };
   
-  // Cerrar menú al hacer clic fuera
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = () => setMenuOpenId(null);
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
+  
+  if (loading) {
+    return (
+      <div className="wallets-page">
+        <div className="loading-container-wallets">
+          <div className="loading-spinner-small"></div>
+          <p>Cargando billeteras...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="wallets-page">
@@ -118,7 +157,7 @@ const Wallets = ({ user }) => {
         </div>
         <div className="stat-badge">
           <span className="stat-label">Balance Total</span>
-          <span className="stat-number">{formatCurrency(wallets.reduce((sum, w) => sum + w.balance, 0))}</span>
+          <span className="stat-number">{formatCurrency(wallets.reduce((sum, w) => sum + (w.balance || 0), 0))}</span>
         </div>
       </div>
       
@@ -159,14 +198,27 @@ const Wallets = ({ user }) => {
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
             </div>
-            {wallet.description && (
-              <p className="wallet-description">{wallet.description}</p>
-            )}
+            <div className="wallet-actions-full">
+              <button className="wallet-btn recargar" onClick={() => alert(`Recargar ${wallet.name} - Próximamente`)}>
+                Recargar
+              </button>
+              <button className="wallet-btn transferir" onClick={() => alert(`Transferir desde ${wallet.name} - Próximamente`)}>
+                Transferir
+              </button>
+              <button className="wallet-btn retirar" onClick={() => alert(`Retirar desde ${wallet.name} - Próximamente`)}>
+                Retirar
+              </button>
+            </div>
+            <p className="wallet-status">
+              Estado: <span className={wallet.active ? 'status-active' : 'status-inactive'}>
+                {wallet.active ? 'Activa' : 'Inactiva'}
+              </span>
+            </p>
           </div>
         ))}
       </div>
       
-      {/* Modales (solo visuales, sin guardado real) */}
+      {/* Modales */}
       <CreateWalletModal 
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
