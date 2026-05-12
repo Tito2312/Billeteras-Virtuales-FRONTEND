@@ -2,7 +2,7 @@
 // Según documento: puntos por transacciones, niveles y beneficios
 
 import React, { useState } from 'react';
-import RewardsModal from './RewardsModal';
+import RewardsModal from './rewardsModal/RewardsModal';
 import './Rewards.css';
 
 const Rewards = ({ user }) => {

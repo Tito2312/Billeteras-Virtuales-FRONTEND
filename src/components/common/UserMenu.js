@@ -1,24 +1,21 @@
-// UserMenu.js - Menú desplegable del usuario (avatar)
-// Opciones: Mi Perfil, Cerrar Sesión
+// UserMenu.js - Menú desplegable del usuario
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './UserMenu.css';
 
-const UserMenu = ({ user, onLogout, onNavigateToProfile }) => {
+const UserMenu = ({ user, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
-  // Obtener iniciales del usuario
   const getInitials = () => {
-    if (!user || !user.nombre) return 'U';
+    if (!user?.nombre) return 'U';
     const names = user.nombre.split(' ');
-    if (names.length >= 2) {
-      return `${names[0][0]}${names[1][0]}`.toUpperCase();
-    }
+    if (names.length >= 2) return `${names[0][0]}${names[1][0]}`.toUpperCase();
     return names[0][0].toUpperCase();
   };
 
-  // Obtener color según nivel
   const getLevelColor = () => {
     const level = user?.nivel || 'Bronce';
     switch(level) {
@@ -29,7 +26,6 @@ const UserMenu = ({ user, onLogout, onNavigateToProfile }) => {
     }
   };
 
-  // Cerrar menú al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -40,18 +36,15 @@ const UserMenu = ({ user, onLogout, onNavigateToProfile }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
   const handleProfile = () => {
     setIsOpen(false);
-    onNavigateToProfile();
+    navigate('/profile');
   };
 
   const handleLogout = () => {
     setIsOpen(false);
     onLogout();
+    navigate('/login');
   };
 
   const formatNumber = (value) => {
@@ -60,7 +53,7 @@ const UserMenu = ({ user, onLogout, onNavigateToProfile }) => {
 
   return (
     <div className="user-menu" ref={menuRef}>
-      <button className="user-avatar" onClick={toggleMenu}>
+      <button className="user-avatar" onClick={() => setIsOpen(!isOpen)}>
         <span className="avatar-initials">{getInitials()}</span>
         <span className="avatar-level" style={{ backgroundColor: getLevelColor() }}></span>
       </button>
