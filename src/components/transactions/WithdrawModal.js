@@ -1,15 +1,16 @@
-// WithdrawModal.js - Modal para retirar dinero
+// WithdrawModal.js - Modal para retirar dinero (VERSIÓN SIMULADA)
 
 import React, { useState } from 'react';
 import './Modals.css';
 
-const WithdrawModal = ({ isOpen, onClose, onConfirm, wallets }) => {
+const WithdrawModal = ({ isOpen, onClose, wallets, initialWallet, onSuccess }) => {
   const [formData, setFormData] = useState({
-    walletId: wallets[0]?.id || '',
+    walletId: initialWallet?.id || wallets[0]?.id || '',
     amount: '',
-    destinationAccount: 'Cuenta Bancaria ****3456'
+    accountNumber: 'cuenta_3456'
   });
   
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   
   if (!isOpen) return null;
@@ -18,8 +19,7 @@ const WithdrawModal = ({ isOpen, onClose, onConfirm, wallets }) => {
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value);
   };
@@ -40,14 +40,16 @@ const WithdrawModal = ({ isOpen, onClose, onConfirm, wallets }) => {
       return;
     }
     
-    onConfirm({
-      wallet: selectedWallet,
-      amount: parseFloat(formData.amount),
-      destinationAccount: formData.destinationAccount
-    });
+    setLoading(true);
     
-    onClose();
-    setFormData({ walletId: wallets[0]?.id || '', amount: '', destinationAccount: 'Cuenta Bancaria ****3456' });
+    // SIMULACIÓN - No conecta con backend
+    setTimeout(() => {
+      alert(`✅ SIMULACIÓN: Retiro exitoso de ${formatCurrency(formData.amount)} desde ${selectedWallet?.name}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+      if (onSuccess) onSuccess();
+      onClose();
+      setFormData({ walletId: wallets[0]?.id || '', amount: '', accountNumber: 'cuenta_3456' });
+      setLoading(false);
+    }, 800);
   };
   
   return (
@@ -62,7 +64,6 @@ const WithdrawModal = ({ isOpen, onClose, onConfirm, wallets }) => {
           <div className="form-group">
             <label>Desde billetera</label>
             <select 
-              name="walletId" 
               value={formData.walletId} 
               onChange={(e) => setFormData({...formData, walletId: e.target.value})}
             >
@@ -79,7 +80,6 @@ const WithdrawModal = ({ isOpen, onClose, onConfirm, wallets }) => {
             <label>Monto a retirar</label>
             <input
               type="number"
-              name="amount"
               value={formData.amount}
               onChange={(e) => setFormData({...formData, amount: e.target.value})}
               placeholder="0.00"
@@ -90,20 +90,21 @@ const WithdrawModal = ({ isOpen, onClose, onConfirm, wallets }) => {
           
           <div className="form-group">
             <label>Cuenta de destino</label>
-            <input
-              type="text"
-              name="destinationAccount"
-              value={formData.destinationAccount}
-              onChange={(e) => setFormData({...formData, destinationAccount: e.target.value})}
-            />
+            <select 
+              value={formData.accountNumber} 
+              onChange={(e) => setFormData({...formData, accountNumber: e.target.value})}
+            >
+              <option value="cuenta_3456">🏦 Cuenta bancaria **** 3456</option>
+              <option value="cuenta_7890">🏦 Cuenta bancaria **** 7890</option>
+            </select>
           </div>
           
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" className="btn-confirm">
-              Confirmar Retiro
+            <button type="submit" className="btn-confirm" disabled={loading}>
+              {loading ? 'Procesando...' : 'Confirmar Retiro'}
             </button>
           </div>
         </form>

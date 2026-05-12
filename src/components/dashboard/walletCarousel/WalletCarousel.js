@@ -3,7 +3,7 @@
 // Al hacer clic, cambia a la página siguiente/anterior
 
 import React, { useState, useEffect } from 'react';
-import WalletCard from './WalletCard';
+import WalletCard from '../walletCard/WalletCard';
 import './WalletCarousel.css';
 
 const WalletCarousel = ({ wallets }) => {

@@ -1,26 +1,31 @@
-
 // App.js - Componente principal de la aplicación
 // Controla la navegación entre login, registro, dashboard, billeteras y transacciones
+// CON SOPORTE PARA RUTAS URL (React Router)
 
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
 import Dashboard from './components/dashboard/Dashboard';
 import Wallets from './components/wallets/Wallets';
 import Transactions from './components/transactions/Transactions';
-import Sidebar from './components/dashboard/Sidebar';
+import Sidebar from './components/dashboard/sidebar/Sidebar';
 import { getCurrentUser, logout } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
 import Rewards from './components/rewards/Rewards';
 import Security from './components/security/Security';
 import Profile from './components/profile/Profile';
 import Notifications from './components/notifications/Notifications';
+import Analytics from './components/analytics/Analytics';
 import './App.css';
 
-function App() {
+// Componente interno que maneja la navegación por URL
+const AppContent = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   // Estados para manejar la vista actual y el usuario
-  const [view, setView] = useState('login'); // 'login', 'register', 'forgotPassword', 'dashboard', 'wallets', 'transactions'
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -30,56 +35,72 @@ function App() {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      setView('dashboard');
-      setActiveTab('dashboard');
+      // Sincronizar vista según la URL actual
+      const path = location.pathname;
+      if (path === '/wallets') {
+        setActiveTab('wallets');
+      } else if (path === '/transactions') {
+        setActiveTab('transactions');
+      } else if (path === '/scheduled') {
+        setActiveTab('scheduled');
+      } else if (path === '/rewards') {
+        setActiveTab('rewards');
+      } else if (path === '/security') {
+        setActiveTab('security');
+      } else if (path === '/profile') {
+        setActiveTab('profile');
+      } else if (path === '/notifications') {
+        setActiveTab('notifications');
+      } else if (path === '/analytics') {
+        setActiveTab('analytics');
+      } else {
+        setActiveTab('dashboard');
+      }
     }
     setLoading(false);
-  }, []);
+  }, [location.pathname]);
 
   // Manejar login exitoso
   const handleLoginSuccess = (loggedInUser) => {
     setUser(loggedInUser);
-    setView('dashboard');
-    setActiveTab('dashboard');
+    navigate('/'); // Ir al dashboard
   };
 
   // Manejar registro exitoso (cambia a login)
   const handleRegisterSuccess = () => {
-    setView('login');
+    navigate('/login');
   };
 
   // Manejar cierre de sesión
   const handleLogout = () => {
     logout();
     setUser(null);
-    setView('login');
-    setActiveTab('dashboard');
+    navigate('/login');
   };
 
   // Manejar cambio de pestaña en el sidebar
   const handleTabChange = (tab) => {
     setActiveTab(tab);
+    // Navegar a la ruta correspondiente
     if (tab === 'dashboard') {
-      setView('dashboard');
-    }else if (tab === 'wallets') {
-      setView('wallets');
-    }else if (tab === 'transactions') {
-      setView('transactions');
-    }else if (tab === 'scheduled') {
-       setView('scheduled');
-    }else if (tab === 'rewards') {
-       setView('rewards');}
-     else if (tab === 'security') {
-       setView('security');
-    }else if (tab === 'profile') {
-       setView('profile');
-    }else if (tab === 'notifications') {
-  setView('notifications');
-       
-       
-}
-    // Aquí puedes agregar más condiciones para otras pestañas:
-    // scheduled, rewards, analytics, security, notifications
+      navigate('/');
+    } else if (tab === 'wallets') {
+      navigate('/wallets');
+    } else if (tab === 'transactions') {
+      navigate('/transactions');
+    } else if (tab === 'scheduled') {
+      navigate('/scheduled');
+    } else if (tab === 'rewards') {
+      navigate('/rewards');
+    } else if (tab === 'security') {
+      navigate('/security');
+    } else if (tab === 'profile') {
+      navigate('/profile');
+    } else if (tab === 'notifications') {
+      navigate('/notifications');
+    } else if (tab === 'analytics') {
+      navigate('/analytics');
+    }
   };
 
   // Mostrar pantalla de carga mientras verificamos sesión
@@ -92,50 +113,41 @@ function App() {
     );
   }
 
-  // Renderizar según la vista actual
-  switch (view) {
-    case 'login':
-      return (
-        <Login
+  // Si no hay usuario, mostrar pantalla de login
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login" element={
+          <Login
+            onLoginSuccess={handleLoginSuccess}
+            onSwitchToRegister={() => navigate('/register')}
+            onSwitchToForgotPassword={() => navigate('/forgot-password')}
+          />
+        } />
+        <Route path="/register" element={
+          <Register
+            onRegisterSuccess={handleRegisterSuccess}
+            onSwitchToLogin={() => navigate('/login')}
+          />
+        } />
+        <Route path="/forgot-password" element={
+          <ForgotPassword
+            onBackToLogin={() => navigate('/login')}
+          />
+        } />
+        <Route path="*" element={<Login
           onLoginSuccess={handleLoginSuccess}
-          onSwitchToRegister={() => setView('register')}
-          onSwitchToForgotPassword={() => setView('forgotPassword')}
-        />
-      );
-    case 'register':
-      return (
-        <Register
-          onRegisterSuccess={handleRegisterSuccess}
-          onSwitchToLogin={() => setView('login')}
-        />
-      );
-    case 'forgotPassword':
-      return (
-        <ForgotPassword
-          onBackToLogin={() => setView('login')}
-        />
-      );
-    case 'wallets':
-      return (
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Wallets user={user} />
-          </div>
-        </div>
-      );
-    case 'transactions':
-      return (
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Transactions user={user} />
-          </div>
-        </div>
-      );
-    case 'dashboard':
-    default:
-      return (
+          onSwitchToRegister={() => navigate('/register')}
+          onSwitchToForgotPassword={() => navigate('/forgot-password')}
+        />} />
+      </Routes>
+    );
+  }
+
+  // Si hay usuario, mostrar layout con sidebar
+  return (
+    <Routes>
+      <Route path="/" element={
         <div className="app-layout">
           <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
           <div className="app-main-content">
@@ -147,61 +159,98 @@ function App() {
             />
           </div>
         </div>
-      );
-      case 'scheduled':
-  return (
-    <div className="app-layout">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-      <div className="app-main-content">
-        <Scheduled user={user} />
-      </div>
-    </div>
+      } />
+      <Route path="/wallets" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Wallets user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/transactions" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Transactions user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/scheduled" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Scheduled user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/rewards" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Rewards user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/security" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Security user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/profile" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Profile user={user} onUpdateUser={(updatedUser) => {
+              const newUser = { ...user, ...updatedUser };
+              localStorage.setItem('user', JSON.stringify(newUser));
+              setUser(newUser);
+            }} />
+          </div>
+        </div>
+      } />
+      <Route path="/notifications" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Notifications user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/analytics" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Analytics user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="*" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <Dashboard 
+              user={user} 
+              onLogout={handleLogout}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+            />
+          </div>
+        </div>
+      } />
+    </Routes>
   );
+};
 
-  case 'rewards':
+function App() {
   return (
-    <div className="app-layout">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-      <div className="app-main-content">
-        <Rewards user={user} />
-      </div>
-    </div>
+    <Router>
+      <AppContent />
+    </Router>
   );
-
-  case 'security':
-  return (
-    <div className="app-layout">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-      <div className="app-main-content">
-        <Security user={user} />
-      </div>
-    </div>
-  );
-case 'profile':
-  return (
-    <div className="app-layout">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-      <div className="app-main-content">
-        <Profile user={user} onUpdateUser={(updatedUser) => {
-          // Actualizar usuario en el estado principal
-          const newUser = { ...user, ...updatedUser };
-          localStorage.setItem('user', JSON.stringify(newUser));
-          setUser(newUser);
-        }} />
-      </div>
-    </div>
-  );
-case 'notifications':
-  return (
-    <div className="app-layout">
-      <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-      <div className="app-main-content">
-        <Notifications user={user} />
-      </div>
-    </div>
-  );
-
-  }
 }
 
 export default App;
