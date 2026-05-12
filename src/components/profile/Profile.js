@@ -1,39 +1,106 @@
 // Profile.js - Perfil de usuario (ver y editar datos)
-// Basado en los endpoints: GET /api/users/{id}, PUT /api/users/{id}
+// Conectado a la API real: GET /api/users/{id}, PUT /api/users/{id}
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getUserById, updateUser, getCurrentUser } from '../../API/auth';
 import './Profile.css';
 
 const Profile = ({ user, onUpdateUser }) => {
-  // Estado para modo edición
+  // Estado para modo edición y carga
   const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   
-  // Datos del usuario (simulados, después vendrán del backend)
+  // Datos del usuario (vienen de la API)
   const [userData, setUserData] = useState({
-    id: user?.id || '1',
-    nombre: user?.nombre || 'María González',
-    email: user?.email || 'maria.gonzalez@email.com',
-    telefono: '300 123 4567',
-    documento: 'CC 12345678',
-    nivel: user?.nivel || 'Oro',
-    puntos: user?.puntos || 12450,
-    fechaRegistro: '15 de enero de 2025',
-    ultimoAcceso: '10 de abril de 2026, 10:30'
+    id: '',
+    nombre: '',
+    email: '',
+    telefono: '',
+    documento: '',
+    nivel: '',
+    puntos: 0,
+    fechaRegistro: '',
+    ultimoAcceso: ''
   });
   
-  const [formData, setFormData] = useState({ ...userData });
+  const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   
   const formatNumber = (value) => {
-    return new Intl.NumberFormat('es-CO').format(value);
+    return new Intl.NumberFormat('es-CO').format(value || 0);
   };
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No disponible';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+  
+  // Cargar datos del usuario desde la API
+  useEffect(() => {
+    const loadUserData = async () => {
+      setIsLoading(true);
+      const userId = user?.id || getCurrentUser()?.id;
+      
+      if (!userId) {
+        console.error('No se encontró ID de usuario');
+        setIsLoading(false);
+        return;
+      }
+      
+      const result = await getUserById(userId);
+      
+      if (result.success && result.data) {
+        const apiUser = result.data;
+        setUserData({
+          id: apiUser.id,
+          nombre: apiUser.name || '',
+          email: apiUser.email || '',
+          telefono: apiUser.phoneNumber || '',
+          documento: apiUser.documento || 'No registrado',
+          nivel: apiUser.level || 'Bronce',
+          puntos: apiUser.points || 0,
+          fechaRegistro: formatDate(apiUser.registrationDate),
+          ultimoAcceso: new Date().toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        });
+        setFormData({
+          nombre: apiUser.name || '',
+          email: apiUser.email || '',
+          telefono: apiUser.phoneNumber || '',
+          documento: apiUser.documento || ''
+        });
+      } else {
+        console.error('Error al cargar usuario:', result.message);
+      }
+      setIsLoading(false);
+    };
+    
+    loadUserData();
+  }, [user]);
   
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es obligatorio';
-    if (!formData.email.trim()) newErrors.email = 'El email es obligatorio';
-    if (!formData.telefono.trim()) newErrors.telefono = 'El teléfono es obligatorio';
-    if (!formData.documento.trim()) newErrors.documento = 'El documento es obligatorio';
+    if (!formData.nombre?.trim()) newErrors.nombre = 'El nombre es obligatorio';
+    if (!formData.email?.trim()) newErrors.email = 'El email es obligatorio';
+    if (!formData.telefono?.trim()) newErrors.telefono = 'El teléfono es obligatorio';
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Ingresa un email válido';
+    }
     return newErrors;
   };
   
@@ -42,27 +109,64 @@ const Profile = ({ user, onUpdateUser }) => {
   };
   
   const handleCancel = () => {
-    setFormData({ ...userData });
+    setFormData({
+      nombre: userData.nombre,
+      email: userData.email,
+      telefono: userData.telefono,
+      documento: userData.documento
+    });
     setIsEditing(false);
     setErrors({});
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
     
-    setUserData({ ...formData });
-    setIsEditing(false);
+    setIsSaving(true);
+    const userId = user?.id || getCurrentUser()?.id;
     
-    // Simular actualización (después conectará con API)
-    if (onUpdateUser) {
-      onUpdateUser(formData);
+    const result = await updateUser(userId, {
+      name: formData.nombre,
+      email: formData.email,
+      phoneNumber: formData.telefono
+    });
+    
+    if (result.success) {
+      // Actualizar datos locales
+      setUserData(prev => ({
+        ...prev,
+        nombre: formData.nombre,
+        email: formData.email,
+        telefono: formData.telefono
+      }));
+      setIsEditing(false);
+      
+      // Actualizar usuario en localStorage
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        const updatedUser = {
+          ...currentUser,
+          nombre: formData.nombre,
+          email: formData.email,
+          telefono: formData.telefono
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
+      
+      // Notificar al padre
+      if (onUpdateUser) {
+        onUpdateUser(result.data);
+      }
+      
+      alert('✅ Perfil actualizado exitosamente');
+    } else {
+      alert('❌ Error al actualizar: ' + result.message);
     }
-    
-    alert('✅ Perfil actualizado exitosamente\n\n⚠️ Próximamente se conectará con el backend.');
+    setIsSaving(false);
   };
   
   const handleChange = (e) => {
@@ -80,6 +184,17 @@ const Profile = ({ user, onUpdateUser }) => {
     }
   };
   
+  if (isLoading) {
+    return (
+      <div className="profile-page">
+        <div className="loading-container-profile">
+          <div className="loading-spinner-small"></div>
+          <p>Cargando perfil...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="profile-page">
       <div className="profile-header">
@@ -92,7 +207,7 @@ const Profile = ({ user, onUpdateUser }) => {
         <div className="profile-sidebar">
           <div className="profile-avatar">
             <div className="avatar-large">
-              <span>{userData.nombre.charAt(0)}{userData.nombre.split(' ')[1]?.charAt(0) || ''}</span>
+              <span>{userData.nombre?.charAt(0) || 'U'}{userData.nombre?.split(' ')[1]?.charAt(0) || ''}</span>
             </div>
             <div className="profile-level" style={{ backgroundColor: getLevelColor() }}>
               {userData.nivel}
@@ -133,14 +248,14 @@ const Profile = ({ user, onUpdateUser }) => {
                   <input
                     type="text"
                     name="nombre"
-                    value={formData.nombre}
+                    value={formData.nombre || ''}
                     onChange={handleChange}
                     className={errors.nombre ? 'error' : ''}
                   />
                   {errors.nombre && <span className="error-text">{errors.nombre}</span>}
                 </>
               ) : (
-                <div className="field-value">{userData.nombre}</div>
+                <div className="field-value">{userData.nombre || 'No registrado'}</div>
               )}
             </div>
             
@@ -151,14 +266,14 @@ const Profile = ({ user, onUpdateUser }) => {
                   <input
                     type="email"
                     name="email"
-                    value={formData.email}
+                    value={formData.email || ''}
                     onChange={handleChange}
                     className={errors.email ? 'error' : ''}
                   />
                   {errors.email && <span className="error-text">{errors.email}</span>}
                 </>
               ) : (
-                <div className="field-value">{userData.email}</div>
+                <div className="field-value">{userData.email || 'No registrado'}</div>
               )}
             </div>
             
@@ -170,33 +285,32 @@ const Profile = ({ user, onUpdateUser }) => {
                     <input
                       type="tel"
                       name="telefono"
-                      value={formData.telefono}
+                      value={formData.telefono || ''}
                       onChange={handleChange}
                       className={errors.telefono ? 'error' : ''}
                     />
                     {errors.telefono && <span className="error-text">{errors.telefono}</span>}
                   </>
                 ) : (
-                  <div className="field-value">{userData.telefono}</div>
+                  <div className="field-value">{userData.telefono || 'No registrado'}</div>
                 )}
               </div>
               
               <div className="form-group">
-                <label>Documento *</label>
+                <label>Documento</label>
                 {isEditing ? (
-                  <>
-                    <input
-                      type="text"
-                      name="documento"
-                      value={formData.documento}
-                      onChange={handleChange}
-                      className={errors.documento ? 'error' : ''}
-                    />
-                    {errors.documento && <span className="error-text">{errors.documento}</span>}
-                  </>
+                  <input
+                    type="text"
+                    name="documento"
+                    value={formData.documento || ''}
+                    onChange={handleChange}
+                    disabled
+                    className="disabled-field"
+                  />
                 ) : (
-                  <div className="field-value">{userData.documento}</div>
+                  <div className="field-value">{userData.documento || 'No registrado'}</div>
                 )}
+                <small className="field-hint">El documento no puede ser modificado</small>
               </div>
             </div>
             
@@ -216,11 +330,11 @@ const Profile = ({ user, onUpdateUser }) => {
             
             {isEditing && (
               <div className="form-buttons">
-                <button className="btn-cancel" onClick={handleCancel}>
+                <button className="btn-cancel" onClick={handleCancel} disabled={isSaving}>
                   Cancelar
                 </button>
-                <button className="btn-save" onClick={handleSave}>
-                  Guardar Cambios
+                <button className="btn-save" onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
               </div>
             )}
