@@ -1,4 +1,4 @@
-// Dashboard.js - Pantalla principal (con nombres de usuarios)
+// Dashboard.js - Pantalla principal (con modales de transacciones)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,40 +7,43 @@ import UserMenu from '../common/UserMenu';
 import NotificationBell from '../notifications/notificationBell/NotificationBell';
 import { getUserWallets } from '../../API/wallets';
 import { getUserTransactions } from '../../API/transactions';
-import { getUserById } from '../../API/users';
 import { getCurrentUser } from '../../API/auth';
+import RechargeModal from '../transactions/RechargeModal';
+import WithdrawModal from '../transactions/WithdrawModal';
+import TransferModal from '../transactions/TransferModal';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const navigate = useNavigate();
   const [userWallets, setUserWallets] = useState([]);
   const [transactions, setTransactions] = useState([]);
-  const [usersCache, setUsersCache] = useState({});
   const [loading, setLoading] = useState(true);
   const [totalBalance, setTotalBalance] = useState(0);
   const [chartData, setChartData] = useState([]);
   
+  // Estados para modales
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState(null);
+  
   const userId = user?.id || getCurrentUser()?.id;
   
-  // Función para obtener nombre de usuario por ID (con cache)
-  const getUserName = useCallback(async (id) => {
-    if (!id) return 'Usuario';
-    
-    // Verificar cache
-    if (usersCache[id]) return usersCache[id];
-    
-    try {
-      const result = await getUserById(id);
-      if (result.success && result.data) {
-        const name = result.data.name || result.data.nombre || id.substring(0, 8);
-        setUsersCache(prev => ({ ...prev, [id]: name }));
-        return name;
+  // Función para obtener la descripción de la transacción
+  const getTransactionDescription = (t) => {
+    if (t.type === 'RECHARGE') {
+      return `Recarga a ${t.targetWallet || 'billetera'}`;
+    } else if (t.type === 'WITHDRAWAL') {
+      return `Retiro de ${t.sourceWallet || 'billetera'}`;
+    } else if (t.type === 'TRANSFER') {
+      if (t.userId === userId) {
+        return `Transferencia a ${t.targetWallet || 'usuario'}`;
+      } else {
+        return `Recibiste transferencia de ${t.sourceWallet || 'usuario'}`;
       }
-    } catch (error) {
-      console.error('Error obteniendo usuario:', error);
     }
-    return id.substring(0, 8);
-  }, [usersCache]);
+    return 'Transacción';
+  };
   
   // Calcular la evolución del balance por día
   const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
@@ -167,67 +170,51 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     loadData();
   }, [userId, calculateBalanceEvolution]);
   
-  // Procesar transacciones recientes con nombres
-  const [recentTransactions, setRecentTransactions] = useState([]);
+  // Transacciones recientes
+  const recentTransactions = transactions
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
+    .map(t => ({
+      id: t.id,
+      type: t.type === 'RECHARGE' ? 'recarga' : t.type === 'WITHDRAWAL' ? 'retiro' : 'transferencia',
+      description: getTransactionDescription(t),
+      date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
+      amount: t.amount,
+      status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : 'Reversada',
+      isPositive: t.type === 'RECHARGE' || (t.type === 'TRANSFER' && t.receiverUserId === userId)
+    }));
   
-  useEffect(() => {
-    const processTransactions = async () => {
-      const sorted = [...transactions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      const recent = sorted.slice(0, 5);
-      
-      const processed = [];
-      for (const t of recent) {
-        let description = '';
-        let isPositive = false;
-        
-        if (t.type === 'RECHARGE') {
-          description = `Recarga realizada`;
-          isPositive = true;
-        } else if (t.type === 'WITHDRAWAL') {
-          description = `Retiro realizado`;
-          isPositive = false;
-        } else if (t.type === 'TRANSFER') {
-          if (t.userId === userId) {
-            // Transferencia enviada por mí
-            if (t.receiverUserId) {
-              const receiverName = await getUserName(t.receiverUserId);
-              description = t.reversed ? `Transferencia revertida a ${receiverName}` : `Transferencia enviada a ${receiverName}`;
-            } else {
-              description = t.reversed ? 'Transferencia revertida' : 'Transferencia enviada';
-            }
-            isPositive = false;
-          } else if (t.receiverUserId === userId) {
-            // Transferencia recibida por mí
-            const senderName = await getUserName(t.userId);
-            description = t.reversed ? `Transferencia revertida de ${senderName}` : `Transferencia recibida de ${senderName}`;
-            isPositive = true;
-          }
-        }
-        
-        // Si la transacción está revertida, agregar indicador
-        if (t.reversed && t.type !== 'TRANSFER') {
-          description = `${description} (Revertida)`;
-        }
-        
-        processed.push({
-          id: t.id,
-          type: t.type === 'RECHARGE' ? 'recarga' : t.type === 'WITHDRAWAL' ? 'retiro' : 'transferencia',
-          description: description,
-          date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
-          amount: t.amount,
-          status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : 'Reversada',
-          isPositive: isPositive,
-          reversed: t.reversed
-        });
-      }
-      
-      setRecentTransactions(processed);
-    };
-    
-    if (transactions.length > 0) {
-      processTransactions();
+  // Handlers para abrir modales desde las billeteras
+  const handleRecharge = (wallet) => {
+    setSelectedWallet(wallet);
+    setShowRechargeModal(true);
+  };
+  
+  const handleTransfer = (wallet) => {
+    setSelectedWallet(wallet);
+    setShowTransferModal(true);
+  };
+  
+  const handleWithdraw = (wallet) => {
+    setSelectedWallet(wallet);
+    setShowWithdrawModal(true);
+  };
+  
+  const handleTransactionSuccess = async () => {
+    // Recargar datos después de una transacción
+    const walletsResult = await getUserWallets(userId);
+    if (walletsResult.success && walletsResult.data) {
+      setUserWallets(walletsResult.data);
+      const total = walletsResult.data.reduce((sum, w) => sum + (w.balance || 0), 0);
+      setTotalBalance(total);
+      calculateBalanceEvolution(transactions, walletsResult.data);
     }
-  }, [transactions, userId, getUserName]);
+    
+    const transResult = await getUserTransactions(userId);
+    if (transResult.success && transResult.data) {
+      setTransactions(transResult.data);
+    }
+  };
   
   const maxValue = Math.max(...chartData.map(d => d.value), totalBalance, 1000);
   
@@ -307,7 +294,12 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <h2>Mis Billeteras</h2>
           <button className="add-wallet-btn" onClick={() => onTabChange('wallets')}>+ Administrar</button>
         </div>
-        <WalletCarousel wallets={userWallets} />
+        <WalletCarousel 
+          wallets={userWallets} 
+          onRecharge={handleRecharge}
+          onTransfer={handleTransfer}
+          onWithdraw={handleWithdraw}
+        />
       </div>
 
       <div className="chart-section">
@@ -347,7 +339,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         <div className="transactions-list">
           {recentTransactions.length > 0 ? (
             recentTransactions.map(transaction => (
-              <div key={transaction.id} className={`transaction-item ${transaction.reversed ? 'reversed' : ''}`}>
+              <div key={transaction.id} className="transaction-item">
                 <div className="transaction-icon">
                   {transaction.type === 'recarga' ? '📥' : transaction.type === 'transferencia' ? '🔄' : '📤'}
                 </div>
@@ -371,6 +363,40 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           )}
         </div>
       </div>
+      
+      {/* Modales de transacciones */}
+      <RechargeModal
+        isOpen={showRechargeModal}
+        onClose={() => {
+          setShowRechargeModal(false);
+          setSelectedWallet(null);
+        }}
+        wallets={userWallets}
+        selectedWallet={selectedWallet}
+        onSuccess={handleTransactionSuccess}
+      />
+      
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => {
+          setShowWithdrawModal(false);
+          setSelectedWallet(null);
+        }}
+        wallets={userWallets}
+        selectedWallet={selectedWallet}
+        onSuccess={handleTransactionSuccess}
+      />
+      
+      <TransferModal
+        isOpen={showTransferModal}
+        onClose={() => {
+          setShowTransferModal(false);
+          setSelectedWallet(null);
+        }}
+        wallets={userWallets}
+        selectedWallet={selectedWallet}
+        onSuccess={handleTransactionSuccess}
+      />
     </div>
   );
 };

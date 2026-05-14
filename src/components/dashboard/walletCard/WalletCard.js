@@ -1,14 +1,13 @@
-// WalletCard.js - Tarjeta de billetera para el Dashboard (recibe props directas)
+// WalletCard.js - Tarjeta de billetera para el Dashboard
 
 import React from 'react';
 import './WalletCard.css';
 
-const WalletCard = ({ name, type, balance, color = 'purple' }) => {
+const WalletCard = ({ name, type, balance, color = 'purple', walletId, onRecharge, onTransfer, onWithdraw }) => {
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value || 0);
@@ -22,6 +21,18 @@ const WalletCard = ({ name, type, balance, color = 'purple' }) => {
     if (name === 'Viajes') return 'VJ';
     if (name === 'Emergencias') return 'EM';
     return name.substring(0, 2).toUpperCase();
+  };
+
+  const handleRecharge = () => {
+    if (onRecharge) onRecharge();
+  };
+
+  const handleTransfer = () => {
+    if (onTransfer) onTransfer();
+  };
+
+  const handleWithdraw = () => {
+    if (onWithdraw) onWithdraw();
   };
 
   return (
@@ -40,9 +51,15 @@ const WalletCard = ({ name, type, balance, color = 'purple' }) => {
         <span className="balance-value">{formatCurrency(balance)}</span>
       </div>
       <div className="wallet-actions">
-        <button className="wallet-btn recargar">Recargar</button>
-        <button className="wallet-btn transferir">Transferir</button>
-        <button className="wallet-btn retirar">Retirar</button>
+        <button className="wallet-btn recargar" onClick={handleRecharge}>
+          Recargar
+        </button>
+        <button className="wallet-btn transferir" onClick={handleTransfer}>
+          Transferir
+        </button>
+        <button className="wallet-btn retirar" onClick={handleWithdraw}>
+          Retirar
+        </button>
       </div>
     </div>
   );
