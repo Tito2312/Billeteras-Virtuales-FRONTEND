@@ -23,19 +23,24 @@ const Transactions = ({ user }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const userId = user?.id || getCurrentUser()?.id;
   
   const loadTransactions = useCallback(async () => {
     if (!userId) return;
     
-    console.log('Cargando transacciones para userId:', userId);
     const result = await getUserTransactions(userId);
-    console.log('Transacciones recibidas:', result);
     
     if (result.success && result.data) {
-      setTransactions(result.data);
-    } else {
-      console.error('Error al cargar transacciones:', result.message);
+      // Ordenar por fecha descendente (más recientes primero)
+      const sorted = [...result.data].sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
+      setTransactions(sorted);
     }
   }, [userId]);
   
@@ -67,19 +72,27 @@ const Transactions = ({ user }) => {
     }).format(value || 0);
   };
   
+  // Formatear fecha solo con el valor del backend, sin fallback
   const formatDate = (dateString) => {
-    if (!dateString) return '-';
+    if (!dateString) {
+      return '-';
+    }
+    
     try {
       const date = new Date(dateString);
-      return date.toLocaleString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (e) {
-      return dateString;
+      if (isNaN(date.getTime())) {
+        return '-';
+      }
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year}, ${hours}:${minutes}`;
+    } catch (error) {
+      return '-';
     }
   };
   
@@ -117,10 +130,9 @@ const Transactions = ({ user }) => {
     }
   };
   
-  // Verificar si una transacción se puede revertir
   const canReverse = (transaction) => {
-    // Solo transferencias completadas y no revertidas
     return transaction.type === 'TRANSFER' && 
+           transaction.userId === userId &&
            transaction.status === 'COMPLETED' && 
            !transaction.reversed;
   };
@@ -131,10 +143,20 @@ const Transactions = ({ user }) => {
     return true;
   });
   
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
+  
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+  
   const handleTransactionSuccess = async () => {
-    console.log('Transacción exitosa, recargando datos...');
     await loadTransactions();
     await loadWallets();
+    setCurrentPage(1);
   };
   
   const openReversalModal = (transaction) => {
@@ -212,6 +234,7 @@ const Transactions = ({ user }) => {
             <button className="btn-clear-filters" onClick={() => {
               setFilterType('ALL');
               setSearchTerm('');
+              setCurrentPage(1);
             }}>
               Limpiar filtros
             </button>
@@ -233,8 +256,8 @@ const Transactions = ({ user }) => {
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map(t => (
+              {paginatedTransactions.length > 0 ? (
+                paginatedTransactions.map(t => (
                   <tr key={t.id}>
                     <td className="date-cell">{formatDate(t.createdAt)}</td>
                     <td>
@@ -242,8 +265,8 @@ const Transactions = ({ user }) => {
                         {getTypeIcon(t.type)} {getTypeLabel(t.type)}
                       </span>
                     </td>
-                    <td>{t.sourceWallet || '-'}</td>
-                    <td>{t.targetWallet || (t.receiverUserId ? `Usuario: ${t.receiverUserId.substring(0, 8)}...` : '-')}</td>
+                    <td>{t.sourceWallet ? t.sourceWallet.substring(0, 12) + '...' : '-'}</td>
+                    <td>{t.targetWallet ? t.targetWallet.substring(0, 12) + '...' : (t.receiverUserId ? `Usuario: ${t.receiverUserId.substring(0, 8)}...` : '-')}</td>
                     <td className="amount-cell">{formatCurrency(t.amount)}</td>
                     <td>
                       <span className={`status-badge ${getStatusClass(t.status)}`}>
@@ -254,7 +277,6 @@ const Transactions = ({ user }) => {
                       {t.points > 0 ? `+${t.points}` : t.points}
                     </td>
                     <td>
-                      {/* Solo mostrar botón de reversión en TRANSFERENCIAS completadas y no revertidas */}
                       {canReverse(t) && (
                         <button 
                           className="btn-reverse-small"
@@ -277,6 +299,63 @@ const Transactions = ({ user }) => {
             </tbody>
           </table>
         </div>
+        
+        {totalPages > 1 && (
+          <div className="pagination">
+            <button 
+              className="pagination-arrow"
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              ‹
+            </button>
+            
+            <div className="pagination-pages">
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                return (
+                  <button
+                    key={pageNum}
+                    className={`pagination-page ${currentPage === pageNum ? 'active' : ''}`}
+                    onClick={() => goToPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              
+              {totalPages > 5 && currentPage < totalPages - 2 && (
+                <>
+                  <span className="pagination-dots">...</span>
+                  <button
+                    className="pagination-page"
+                    onClick={() => goToPage(totalPages)}
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+            </div>
+            
+            <button 
+              className="pagination-arrow"
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              ›
+            </button>
+          </div>
+        )}
       </div>
       
       <RechargeModal
@@ -311,6 +390,7 @@ const Transactions = ({ user }) => {
         transactionPoints={selectedTransaction?.points}
         sourceWallet={selectedTransaction?.sourceWallet}
         targetWallet={selectedTransaction?.targetWallet}
+        transactionDate={selectedTransaction?.createdAt}
         onSuccess={handleTransactionSuccess}
       />
     </div>

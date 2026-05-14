@@ -156,6 +156,7 @@
 .transactions-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
 .transactions-table th {
@@ -181,6 +182,8 @@
 
 .date-cell {
   white-space: nowrap;
+  font-family: monospace;
+  font-size: 12px;
 }
 
 .amount-cell {
@@ -189,9 +192,13 @@
   white-space: nowrap;
 }
 
-.points-cell {
+.points-positive {
   font-weight: 600;
-  color: #7c3aed;
+  color: #f59e0b;
+}
+
+.points-zero {
+  color: #9ca3af;
 }
 
 .type-badge {
@@ -222,6 +229,11 @@
   color: #dc2626;
 }
 
+.status-reversed {
+  background: #fef3c7;
+  color: #d97706;
+}
+
 .btn-reverse-small {
   background: #f3e8ff;
   border: 1px solid #e9d5ff;
@@ -244,20 +256,134 @@
   color: #6b7280;
 }
 
+/* Loading */
+.loading-container-transactions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #6b7280;
+}
+
+.loading-spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ============================================ */
+/* PAGINACIÓN MEJORADA */
+/* ============================================ */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pagination-arrow {
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #1e1b4b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-arrow:hover:not(:disabled) {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border-color: #7c3aed;
+  transform: scale(1.05);
+}
+
+.pagination-arrow:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.pagination-page {
+  min-width: 40px;
+  height: 40px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+.pagination-page:hover {
+  background: #f3e8ff;
+  border-color: #c4b5fd;
+  color: #7c3aed;
+}
+
+.pagination-page.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border-color: #7c3aed;
+}
+
+.pagination-dots {
+  color: #94a3b8;
+  font-size: 16px;
+  padding: 0 4px;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .transactions-page {
-    padding: 20px;
+    padding: 24px;
   }
   
   .action-buttons-grid {
-    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
   }
 }
 
 @media (max-width: 768px) {
+  .transactions-page {
+    padding: 16px;
+  }
+  
   .action-buttons-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
   
   .filters-bar {
@@ -278,21 +404,45 @@
     text-align: center;
   }
   
-  .transactions-table {
-    font-size: 12px;
+  .pagination {
+    flex-wrap: wrap;
   }
   
-  .transactions-table th,
-  .transactions-table td {
-    padding: 8px;
+  .pagination-pages {
+    order: 3;
+    width: 100%;
+    justify-content: center;
   }
-
-  /* Agregar al final de Transactions.css */
-
-.empty-table {
-  text-align: center;
-  padding: 48px;
-  color: #6b7280;
-  background: #f8fafc;
+  
+  .pagination-arrow:first-child {
+    order: 1;
+  }
+  
+  .pagination-arrow:last-child {
+    order: 2;
+  }
 }
+
+@media (max-width: 640px) {
+  .pagination-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+  
+  .pagination-page {
+    min-width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+  
+  .action-buttons-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination-pages {
+    display: none;
+  }
 }
