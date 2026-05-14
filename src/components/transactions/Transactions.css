@@ -286,4 +286,13 @@
   .transactions-table td {
     padding: 8px;
   }
+
+  /* Agregar al final de Transactions.css */
+
+.empty-table {
+  text-align: center;
+  padding: 48px;
+  color: #6b7280;
+  background: #f8fafc;
+}
 }

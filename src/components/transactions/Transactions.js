@@ -1,8 +1,8 @@
 // Transactions.js - Página de gestión de transacciones
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getUserTransactions } from '../../API/transactions';
-import { getCurrentUser } from '../../API/auth';  // ← CORREGIDO
+import { getCurrentUser } from '../../API/auth';
 import { getUserWallets } from '../../API/wallets';
 import RechargeModal from './RechargeModal';
 import WithdrawModal from './WithdrawModal';
@@ -11,7 +11,6 @@ import ReversalModal from './ReversalModal';
 import './Transactions.css';
 
 const Transactions = ({ user }) => {
-  // Estados para modales - TODOS INICIALIZADOS EN false
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -20,35 +19,45 @@ const Transactions = ({ user }) => {
   const [transactions, setTransactions] = useState([]);
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filterType, setFilterType] = useState('todos');
+  const [filterType, setFilterType] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   
   const userId = user?.id || getCurrentUser()?.id;
   
-  // Cargar datos
+  const loadTransactions = useCallback(async () => {
+    if (!userId) return;
+    
+    console.log('Cargando transacciones para userId:', userId);
+    const result = await getUserTransactions(userId);
+    console.log('Transacciones recibidas:', result);
+    
+    if (result.success && result.data) {
+      setTransactions(result.data);
+    } else {
+      console.error('Error al cargar transacciones:', result.message);
+    }
+  }, [userId]);
+  
+  const loadWallets = useCallback(async () => {
+    if (!userId) return;
+    
+    const result = await getUserWallets(userId);
+    if (result.success && result.data) {
+      setWallets(result.data);
+    }
+  }, [userId]);
+  
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      
-      // Cargar transacciones
-      const transResult = await getUserTransactions(userId);
-      if (transResult.success && transResult.data) {
-        setTransactions(transResult.data);
-      }
-      
-      // Cargar billeteras
-      const walletsResult = await getUserWallets(userId);
-      if (walletsResult.success && walletsResult.data) {
-        setWallets(walletsResult.data);
-      }
-      
+      await loadTransactions();
+      await loadWallets();
       setLoading(false);
     };
     
-    if (userId) {
-      loadData();
-    }
-  }, [userId]);
+    loadData();
+  }, [loadTransactions, loadWallets]);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
@@ -56,6 +65,22 @@ const Transactions = ({ user }) => {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value || 0);
+  };
+  
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return dateString;
+    }
   };
   
   const getTypeIcon = (type) => {
@@ -92,26 +117,29 @@ const Transactions = ({ user }) => {
     }
   };
   
-  // Filtrar transacciones
+  // Verificar si una transacción se puede revertir
+  const canReverse = (transaction) => {
+    // Solo transferencias completadas y no revertidas
+    return transaction.type === 'TRANSFER' && 
+           transaction.status === 'COMPLETED' && 
+           !transaction.reversed;
+  };
+  
   const filteredTransactions = transactions.filter(t => {
-    if (filterType !== 'todos' && t.type !== filterType) return false;
+    if (filterType !== 'ALL' && t.type !== filterType) return false;
     if (searchTerm && !t.id?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
   
-  const handleTransactionSuccess = () => {
-    // Recargar datos después de una transacción
-    const loadData = async () => {
-      const transResult = await getUserTransactions(userId);
-      if (transResult.success && transResult.data) {
-        setTransactions(transResult.data);
-      }
-      const walletsResult = await getUserWallets(userId);
-      if (walletsResult.success && walletsResult.data) {
-        setWallets(walletsResult.data);
-      }
-    };
-    loadData();
+  const handleTransactionSuccess = async () => {
+    console.log('Transacción exitosa, recargando datos...');
+    await loadTransactions();
+    await loadWallets();
+  };
+  
+  const openReversalModal = (transaction) => {
+    setSelectedTransaction(transaction);
+    setShowReversalModal(true);
   };
   
   if (loading) {
@@ -132,7 +160,6 @@ const Transactions = ({ user }) => {
         <p>Gestiona tus movimientos de dinero</p>
       </div>
       
-      {/* Botones de acción */}
       <div className="action-buttons-grid">
         <button className="action-card" onClick={() => setShowRechargeModal(true)}>
           <span className="action-icon">📥</span>
@@ -152,7 +179,6 @@ const Transactions = ({ user }) => {
         </button>
       </div>
       
-      {/* Historial de transacciones */}
       <div className="history-section">
         <div className="section-header">
           <h2>Historial de Transacciones</h2>
@@ -161,12 +187,11 @@ const Transactions = ({ user }) => {
           </button>
         </div>
         
-        {/* Filtros */}
         <div className="filters-bar">
           <div className="filter-group">
             <label>Tipo:</label>
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-              <option value="todos">Todos</option>
+              <option value="ALL">Todos</option>
               <option value="RECHARGE">Recargas</option>
               <option value="WITHDRAWAL">Retiros</option>
               <option value="TRANSFER">Transferencias</option>
@@ -183,9 +208,9 @@ const Transactions = ({ user }) => {
             />
           </div>
           
-          {(filterType !== 'todos' || searchTerm) && (
+          {(filterType !== 'ALL' || searchTerm) && (
             <button className="btn-clear-filters" onClick={() => {
-              setFilterType('todos');
+              setFilterType('ALL');
               setSearchTerm('');
             }}>
               Limpiar filtros
@@ -193,7 +218,6 @@ const Transactions = ({ user }) => {
           )}
         </div>
         
-        {/* Tabla */}
         <div className="transactions-table-container">
           <table className="transactions-table">
             <thead>
@@ -205,42 +229,56 @@ const Transactions = ({ user }) => {
                 <th>Monto</th>
                 <th>Estado</th>
                 <th>Puntos</th>
+                <th>Acción</th>
               </tr>
             </thead>
             <tbody>
-              {filteredTransactions.map(t => (
-                <tr key={t.id}>
-                  <td>{t.createdAt ? new Date(t.createdAt).toLocaleString('es-ES') : '-'}</td>
-                  <td>
-                    <span className="type-badge">
-                      {getTypeIcon(t.type)} {getTypeLabel(t.type)}
-                    </span>
-                  </td>
-                  <td>{t.sourceWallet || '-'}</td>
-                  <td>{t.targetWallet || (t.receiverUserId ? `Usuario: ${t.receiverUserId.substring(0, 8)}...` : '-')}</td>
-                  <td className="amount-cell">{formatCurrency(t.amount)}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(t.status)}`}>
-                      {getStatusLabel(t.status)}
-                    </span>
-                  </td>
-                  <td className={t.points > 0 ? 'points-positive' : 'points-zero'}>
-                    {t.points > 0 ? `+${t.points}` : t.points}
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map(t => (
+                  <tr key={t.id}>
+                    <td className="date-cell">{formatDate(t.createdAt)}</td>
+                    <td>
+                      <span className="type-badge">
+                        {getTypeIcon(t.type)} {getTypeLabel(t.type)}
+                      </span>
+                    </td>
+                    <td>{t.sourceWallet || '-'}</td>
+                    <td>{t.targetWallet || (t.receiverUserId ? `Usuario: ${t.receiverUserId.substring(0, 8)}...` : '-')}</td>
+                    <td className="amount-cell">{formatCurrency(t.amount)}</td>
+                    <td>
+                      <span className={`status-badge ${getStatusClass(t.status)}`}>
+                        {getStatusLabel(t.status)}
+                      </span>
+                    </td>
+                    <td className={t.points > 0 ? 'points-positive' : 'points-zero'}>
+                      {t.points > 0 ? `+${t.points}` : t.points}
+                    </td>
+                    <td>
+                      {/* Solo mostrar botón de reversión en TRANSFERENCIAS completadas y no revertidas */}
+                      {canReverse(t) && (
+                        <button 
+                          className="btn-reverse-small"
+                          onClick={() => openReversalModal(t)}
+                          title="Revertir transferencia"
+                        >
+                          ↩️
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="empty-table">
+                    No hay transacciones que coincidan con los filtros
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
-          
-          {filteredTransactions.length === 0 && (
-            <div className="empty-table">
-              <p>No hay transacciones que coincidan con los filtros</p>
-            </div>
-          )}
         </div>
       </div>
       
-      {/* Modales */}
       <RechargeModal
         isOpen={showRechargeModal}
         onClose={() => setShowRechargeModal(false)}
@@ -264,7 +302,15 @@ const Transactions = ({ user }) => {
       
       <ReversalModal
         isOpen={showReversalModal}
-        onClose={() => setShowReversalModal(false)}
+        onClose={() => {
+          setShowReversalModal(false);
+          setSelectedTransaction(null);
+        }}
+        transactionId={selectedTransaction?.id}
+        transactionAmount={selectedTransaction?.amount}
+        transactionPoints={selectedTransaction?.points}
+        sourceWallet={selectedTransaction?.sourceWallet}
+        targetWallet={selectedTransaction?.targetWallet}
         onSuccess={handleTransactionSuccess}
       />
     </div>

@@ -1,12 +1,13 @@
-// Dashboard.js - Pantalla principal (con gráfico basado en transacciones reales)
+// Dashboard.js - Pantalla principal (con nombres de usuarios)
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WalletCarousel from './walletCarousel/WalletCarousel';
 import UserMenu from '../common/UserMenu';
 import NotificationBell from '../notifications/notificationBell/NotificationBell';
 import { getUserWallets } from '../../API/wallets';
 import { getUserTransactions } from '../../API/transactions';
+import { getUserById } from '../../API/users';
 import { getCurrentUser } from '../../API/auth';
 import './Dashboard.css';
 
@@ -14,11 +15,118 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const navigate = useNavigate();
   const [userWallets, setUserWallets] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [usersCache, setUsersCache] = useState({});
   const [loading, setLoading] = useState(true);
   const [totalBalance, setTotalBalance] = useState(0);
   const [chartData, setChartData] = useState([]);
   
   const userId = user?.id || getCurrentUser()?.id;
+  
+  // Función para obtener nombre de usuario por ID (con cache)
+  const getUserName = useCallback(async (id) => {
+    if (!id) return 'Usuario';
+    
+    // Verificar cache
+    if (usersCache[id]) return usersCache[id];
+    
+    try {
+      const result = await getUserById(id);
+      if (result.success && result.data) {
+        const name = result.data.name || result.data.nombre || id.substring(0, 8);
+        setUsersCache(prev => ({ ...prev, [id]: name }));
+        return name;
+      }
+    } catch (error) {
+      console.error('Error obteniendo usuario:', error);
+    }
+    return id.substring(0, 8);
+  }, [usersCache]);
+  
+  // Calcular la evolución del balance por día
+  const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
+    const currentBalance = walletsList.reduce((sum, w) => sum + (w.balance || 0), 0);
+    const last7Days = getLast7Days();
+    
+    if (!transactionsList || transactionsList.length === 0) {
+      const evolution = last7Days.map(day => ({
+        day: day.label,
+        value: currentBalance,
+        fullDate: day.date
+      }));
+      setChartData(evolution);
+      return;
+    }
+    
+    const sortedTransactions = [...transactionsList].sort((a, b) => 
+      new Date(a.createdAt) - new Date(b.createdAt)
+    );
+    
+    const balanceMap = new Map();
+    
+    last7Days.forEach(day => {
+      balanceMap.set(day.date, 0);
+    });
+    
+    for (const day of last7Days) {
+      let dayBalance = 0;
+      const dayEnd = new Date(day.date + 'T23:59:59');
+      
+      for (const trans of sortedTransactions) {
+        const transDate = new Date(trans.createdAt);
+        
+        if (transDate <= dayEnd) {
+          let amountChange = 0;
+          
+          switch (trans.type) {
+            case 'RECHARGE':
+              amountChange = trans.amount;
+              break;
+            case 'WITHDRAWAL':
+              amountChange = -trans.amount;
+              break;
+            case 'TRANSFER':
+              if (trans.userId === userId) {
+                amountChange = -trans.amount;
+              } else if (trans.receiverUserId === userId) {
+                amountChange = trans.amount;
+              }
+              break;
+            default:
+              amountChange = 0;
+          }
+          
+          dayBalance += amountChange;
+        }
+      }
+      
+      balanceMap.set(day.date, Math.max(dayBalance, 0));
+    }
+    
+    const evolution = last7Days.map(day => ({
+      day: day.label,
+      value: balanceMap.get(day.date),
+      fullDate: day.date
+    }));
+    
+    setChartData(evolution);
+  }, [userId]);
+  
+  const getLast7Days = () => {
+    const days = [];
+    const today = new Date();
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const dateStr = date.toISOString().split('T')[0];
+      const label = `${date.getDate()} ${months[date.getMonth()]}`;
+      days.push({ date: dateStr, label, fullDate: date });
+    }
+    
+    return days;
+  };
   
   // Cargar billeteras y transacciones
   useEffect(() => {
@@ -30,166 +138,97 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       
       setLoading(true);
       
-      // Cargar billeteras
-      const walletsResult = await getUserWallets(userId);
-      let wallets = [];
-      if (walletsResult.success && walletsResult.data) {
-        wallets = walletsResult.data;
-        setUserWallets(wallets);
-        const total = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
-        setTotalBalance(total);
+      try {
+        const walletsResult = await getUserWallets(userId);
+        let wallets = [];
+        if (walletsResult.success && walletsResult.data) {
+          wallets = walletsResult.data;
+          setUserWallets(wallets);
+          const total = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
+          setTotalBalance(total);
+        }
+        
+        const transResult = await getUserTransactions(userId);
+        let trans = [];
+        if (transResult.success && transResult.data) {
+          trans = transResult.data;
+          setTransactions(trans);
+        }
+        
+        calculateBalanceEvolution(trans, wallets);
+        
+      } catch (error) {
+        console.error('Error cargando datos:', error);
       }
-      
-      // Cargar transacciones
-      const transResult = await getUserTransactions(userId);
-      let trans = [];
-      if (transResult.success && transResult.data) {
-        trans = transResult.data;
-        setTransactions(trans);
-      }
-      
-      // Calcular evolución del balance
-      calculateBalanceEvolution(trans, wallets);
       
       setLoading(false);
     };
     
     loadData();
-  }, [userId]);
+  }, [userId, calculateBalanceEvolution]);
   
-  // Calcular la evolución del balance por día
-  const calculateBalanceEvolution = (transactions, wallets) => {
-    // Si no hay transacciones, usar el balance actual
-    const currentBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
-    const last7Days = getLast7Days();
-    
-    if (!transactions || transactions.length === 0) {
-      const evolution = last7Days.map(day => ({
-        day: day.label,
-        value: currentBalance
-      }));
-      setChartData(evolution);
-      return;
-    }
-    
-    // Ordenar transacciones por fecha
-    const sortedTransactions = [...transactions].sort((a, b) => 
-      new Date(a.createdAt) - new Date(b.createdAt)
-    );
-    
-    // Calcular balance acumulado por día
-    const balanceByDay = {};
-    
-    // Inicializar todos los días
-    last7Days.forEach(day => {
-      balanceByDay[day.date] = 0;
-    });
-    
-    // Para cada día, calcular el balance sumando todas las transacciones hasta esa fecha
-    for (const day of last7Days) {
-      let dayBalance = 0;
-      const dayEnd = new Date(day.date + 'T23:59:59');
+  // Procesar transacciones recientes con nombres
+  const [recentTransactions, setRecentTransactions] = useState([]);
+  
+  useEffect(() => {
+    const processTransactions = async () => {
+      const sorted = [...transactions].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const recent = sorted.slice(0, 5);
       
-      for (const trans of sortedTransactions) {
-        const transDate = new Date(trans.createdAt);
+      const processed = [];
+      for (const t of recent) {
+        let description = '';
+        let isPositive = false;
         
-        if (transDate <= dayEnd) {
-          // Determinar si la transacción afecta al usuario
-          let affectsUser = false;
-          let amountToAdd = 0;
-          
-          // Transacción de recarga - aumenta el balance
-          if (trans.type === 'RECHARGE') {
-            affectsUser = true;
-            amountToAdd = trans.amount;
-          }
-          // Transacción de retiro - disminuye el balance
-          else if (trans.type === 'WITHDRAWAL') {
-            affectsUser = true;
-            amountToAdd = -trans.amount;
-          }
-          // Transferencia - puede ser enviada o recibida
-          else if (trans.type === 'TRANSFER') {
-            if (trans.userId === userId) {
-              // El usuario envió dinero
-              affectsUser = true;
-              amountToAdd = -trans.amount;
-            } else if (trans.receiverUserId === userId) {
-              // El usuario recibió dinero
-              affectsUser = true;
-              amountToAdd = trans.amount;
+        if (t.type === 'RECHARGE') {
+          description = `Recarga realizada`;
+          isPositive = true;
+        } else if (t.type === 'WITHDRAWAL') {
+          description = `Retiro realizado`;
+          isPositive = false;
+        } else if (t.type === 'TRANSFER') {
+          if (t.userId === userId) {
+            // Transferencia enviada por mí
+            if (t.receiverUserId) {
+              const receiverName = await getUserName(t.receiverUserId);
+              description = t.reversed ? `Transferencia revertida a ${receiverName}` : `Transferencia enviada a ${receiverName}`;
+            } else {
+              description = t.reversed ? 'Transferencia revertida' : 'Transferencia enviada';
             }
-          }
-          
-          if (affectsUser) {
-            dayBalance += amountToAdd;
+            isPositive = false;
+          } else if (t.receiverUserId === userId) {
+            // Transferencia recibida por mí
+            const senderName = await getUserName(t.userId);
+            description = t.reversed ? `Transferencia revertida de ${senderName}` : `Transferencia recibida de ${senderName}`;
+            isPositive = true;
           }
         }
+        
+        // Si la transacción está revertida, agregar indicador
+        if (t.reversed && t.type !== 'TRANSFER') {
+          description = `${description} (Revertida)`;
+        }
+        
+        processed.push({
+          id: t.id,
+          type: t.type === 'RECHARGE' ? 'recarga' : t.type === 'WITHDRAWAL' ? 'retiro' : 'transferencia',
+          description: description,
+          date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
+          amount: t.amount,
+          status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : 'Reversada',
+          isPositive: isPositive,
+          reversed: t.reversed
+        });
       }
       
-      balanceByDay[day.date] = dayBalance;
+      setRecentTransactions(processed);
+    };
+    
+    if (transactions.length > 0) {
+      processTransactions();
     }
-    
-    // Convertir a formato para el gráfico
-    const evolution = last7Days.map(day => ({
-      day: day.label,
-      value: Math.max(balanceByDay[day.date], 0)
-    }));
-    
-    setChartData(evolution);
-  };
+  }, [transactions, userId, getUserName]);
   
-  // Obtener últimos 7 días con formato
-  const getLast7Days = () => {
-    const days = [];
-    const today = new Date();
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
-      const label = `${date.getDate()} ${getMonthName(date.getMonth())}`;
-      days.push({ date: dateStr, label });
-    }
-    
-    return days;
-  };
-  
-  const getMonthName = (month) => {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    return months[month];
-  };
-  
-  // Transacciones recientes (últimas 5)
-  const recentTransactions = transactions
-    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 5)
-    .map(t => ({
-      id: t.id,
-      type: t.type === 'RECHARGE' ? 'recarga' : t.type === 'WITHDRAWAL' ? 'retiro' : 'transferencia',
-      description: getTransactionDescription(t),
-      date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
-      amount: t.amount,
-      status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : 'Reversada',
-      isPositive: t.type === 'RECHARGE' || (t.type === 'TRANSFER' && t.receiverUserId === userId)
-    }));
-  
-  const getTransactionDescription = (t) => {
-    if (t.type === 'RECHARGE') {
-      return `Recarga a ${t.targetWallet || 'billetera'}`;
-    } else if (t.type === 'WITHDRAWAL') {
-      return `Retiro de ${t.sourceWallet || 'billetera'}`;
-    } else if (t.type === 'TRANSFER') {
-      if (t.userId === userId) {
-        return `Transferencia a ${t.targetWallet || 'usuario'}`;
-      } else {
-        return `Recibiste transferencia de ${t.sourceWallet || 'usuario'}`;
-      }
-    }
-    return 'Transacción';
-  };
-  
-  // Encontrar el valor máximo para la escala del gráfico
   const maxValue = Math.max(...chartData.map(d => d.value), totalBalance, 1000);
   
   const formatCurrency = (value) => {
@@ -277,7 +316,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <span className="trend positive">▲ Tendencia positiva</span>
         </div>
         <div className="chart-container">
-          {chartData.length > 0 && chartData.some(d => d.value > 0) ? (
+          {chartData.length > 0 ? (
             <div className="chart-bars">
               {chartData.map((item, index) => (
                 <div key={index} className="chart-bar-wrapper">
@@ -308,7 +347,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         <div className="transactions-list">
           {recentTransactions.length > 0 ? (
             recentTransactions.map(transaction => (
-              <div key={transaction.id} className="transaction-item">
+              <div key={transaction.id} className={`transaction-item ${transaction.reversed ? 'reversed' : ''}`}>
                 <div className="transaction-icon">
                   {transaction.type === 'recarga' ? '📥' : transaction.type === 'transferencia' ? '🔄' : '📤'}
                 </div>

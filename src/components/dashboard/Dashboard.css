@@ -479,4 +479,22 @@
   font-size: 12px;
 }
 
+
+.transaction-item.reversed {
+  background: #fef2f2;
+  border-left: 3px solid #ef4444;
+}
+
+.transaction-item.reversed .transaction-description {
+  color: #991b1b;
+}
+
+.status-reversed {
+  color: #dc2626;
+  background: #fee2e2;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
 }

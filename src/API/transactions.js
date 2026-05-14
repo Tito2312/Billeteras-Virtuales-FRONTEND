@@ -1,5 +1,4 @@
 // transactions.js - Servicio de transacciones
-// Recargar, transferir, retirar, revertir
 
 const BASE_URL = 'http://localhost:8080/api';
 
@@ -7,20 +6,7 @@ const BASE_URL = 'http://localhost:8080/api';
 // UTILIDADES LOCALES
 // ============================================
 
-const getHeaders = (requiresAuth = true) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (requiresAuth) {
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-  }
-  
-  return headers;
-};
+const getAuthToken = () => localStorage.getItem('auth_token');
 
 const handleResponse = async (response) => {
   let data;
@@ -48,7 +34,7 @@ const handleResponse = async (response) => {
 export const rechargeWallet = async (userId, targetWallet, amount) => {
   try {
     const url = `${BASE_URL}/transactions/recharge?userId=${userId}&targetWallet=${targetWallet}&amount=${amount}`;
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     
     const params = {
       method: 'POST',
@@ -57,6 +43,7 @@ export const rechargeWallet = async (userId, targetWallet, amount) => {
       }
     };
     
+    console.log('💰 Recargando:', url);
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -74,7 +61,7 @@ export const rechargeWallet = async (userId, targetWallet, amount) => {
 export const withdrawMoney = async (userId, sourceWallet, amount) => {
   try {
     const url = `${BASE_URL}/transactions/withdrawal?userId=${userId}&sourceWallet=${sourceWallet}&amount=${amount}`;
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     
     const params = {
       method: 'POST',
@@ -83,6 +70,7 @@ export const withdrawMoney = async (userId, sourceWallet, amount) => {
       }
     };
     
+    console.log('💸 Retirando:', url);
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -100,7 +88,7 @@ export const withdrawMoney = async (userId, sourceWallet, amount) => {
 export const transferToOwnWallet = async (userId, sourceWallet, targetWallet, amount) => {
   try {
     const url = `${BASE_URL}/transactions/transfer?userId=${userId}&sourceWallet=${sourceWallet}&targetWallet=${targetWallet}&amount=${amount}`;
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     
     const params = {
       method: 'POST',
@@ -109,6 +97,7 @@ export const transferToOwnWallet = async (userId, sourceWallet, targetWallet, am
       }
     };
     
+    console.log('🔄 Transfiriendo entre mis billeteras:', url);
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -126,7 +115,7 @@ export const transferToOwnWallet = async (userId, sourceWallet, targetWallet, am
 export const transferToUser = async (userId, receiverUserId, sourceWallet, targetWallet, amount) => {
   try {
     const url = `${BASE_URL}/transactions/transfer-to-user?userId=${userId}&receiverUserId=${receiverUserId}&sourceWallet=${sourceWallet}&targetWallet=${targetWallet}&amount=${amount}`;
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     
     const params = {
       method: 'POST',
@@ -135,6 +124,7 @@ export const transferToUser = async (userId, receiverUserId, sourceWallet, targe
       }
     };
     
+    console.log('👤 Transfiriendo a usuario:', url);
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -152,7 +142,7 @@ export const transferToUser = async (userId, receiverUserId, sourceWallet, targe
 export const reverseTransaction = async (userId, transactionId) => {
   try {
     const url = `${BASE_URL}/transactions/reverseTransaction?userId=${userId}&transactionId=${transactionId}`;
-    const token = localStorage.getItem('auth_token');
+    const token = getAuthToken();
     
     const params = {
       method: 'PUT',
@@ -161,6 +151,7 @@ export const reverseTransaction = async (userId, transactionId) => {
       }
     };
     
+    console.log('↩️ Revirtiendo transacción:', url);
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -172,42 +163,67 @@ export const reverseTransaction = async (userId, transactionId) => {
 
 // ============================================
 // OBTENER HISTORIAL DE TRANSACCIONES POR USUARIO
-// GET /api/transactions/user/{userId}
+// GET /api/transactions/user/{userId}?userId={userId}
 // ============================================
 
 export const getUserTransactions = async (userId) => {
   try {
-    const url = `${BASE_URL}/transactions/user/${userId}`;
-    const token = localStorage.getItem('auth_token');
+    const url = `${BASE_URL}/transactions/user/${userId}?userId=${userId}`;
+    const token = getAuthToken();
+    
+    console.log('📋 Obteniendo transacciones desde:', url);
     
     const params = {
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     };
     
     const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
+    console.log('📋 Status:', response.status);
+    
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      console.error('Error al parsear JSON:', e);
+      data = [];
+    }
+    
+    if (!response.ok) {
+      throw {
+        status: response.status,
+        message: data.message || 'Error al obtener transacciones'
+      };
+    }
+    
+    const transactionsArray = Array.isArray(data) ? data : [];
+    console.log('📋 Transacciones obtenidas:', transactionsArray.length);
+    
+    return { success: true, data: transactionsArray };
   } catch (error) {
-    console.error('Error al obtener transacciones:', error);
+    console.error('❌ Error al obtener transacciones:', error);
     return { success: false, message: error.message, data: [] };
   }
 };
 
 // ============================================
 // OBTENER HISTORIAL DE TRANSACCIONES POR BILLETERA
-// GET /api/transactions/wallet/{walletId}
+// GET /api/transactions/wallet/{walletId}?walletId={walletId}
 // ============================================
 
 export const getWalletTransactions = async (walletId) => {
   try {
-    const url = `${BASE_URL}/transactions/wallet/${walletId}`;
-    const token = localStorage.getItem('auth_token');
+    const url = `${BASE_URL}/transactions/wallet/${walletId}?walletId=${walletId}`;
+    const token = getAuthToken();
     
     const params = {
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       }
     };
     
