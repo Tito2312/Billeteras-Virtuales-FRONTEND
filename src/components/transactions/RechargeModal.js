@@ -1,13 +1,14 @@
-// RechargeModal.js - Modal para recargar billetera (VERSIÓN SIMULADA)
+// RechargeModal.js - Modal para recargar billetera
 
 import React, { useState } from 'react';
+import { rechargeWallet } from '../../API/transactions';
+import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
 
-const RechargeModal = ({ isOpen, onClose, wallets, initialWallet, onSuccess }) => {
+const RechargeModal = ({ isOpen, onClose, wallets, onSuccess }) => {
   const [formData, setFormData] = useState({
-    walletId: initialWallet?.id || wallets[0]?.id || '',
+    walletId: wallets[0]?.id || '',
     amount: '',
-    paymentMethodId: 'tarjeta_4532'
   });
   
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ const RechargeModal = ({ isOpen, onClose, wallets, initialWallet, onSuccess }) =
     return newErrors;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
@@ -40,15 +41,23 @@ const RechargeModal = ({ isOpen, onClose, wallets, initialWallet, onSuccess }) =
     }
     
     setLoading(true);
+    const userId = getCurrentUser()?.id;
     
-    // SIMULACIÓN - No conecta con backend
-    setTimeout(() => {
-      alert(`✅ SIMULACIÓN: Recarga exitosa de ${formatCurrency(formData.amount)} a ${selectedWallet?.name}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+    const result = await rechargeWallet(
+      userId,
+      formData.walletId,
+      parseFloat(formData.amount)
+    );
+    
+    if (result.success) {
+      alert(`✅ Recarga exitosa: ${formatCurrency(formData.amount)}`);
       if (onSuccess) onSuccess();
       onClose();
-      setFormData({ walletId: wallets[0]?.id || '', amount: '', paymentMethodId: 'tarjeta_4532' });
-      setLoading(false);
-    }, 800);
+      setFormData({ walletId: wallets[0]?.id || '', amount: '' });
+    } else {
+      alert(`❌ Error al recargar: ${result.message}`);
+    }
+    setLoading(false);
   };
   
   return (
@@ -85,18 +94,6 @@ const RechargeModal = ({ isOpen, onClose, wallets, initialWallet, onSuccess }) =
               step="0.01"
             />
             {errors.amount && <span className="error-text">{errors.amount}</span>}
-          </div>
-          
-          <div className="form-group">
-            <label>Método de pago</label>
-            <select 
-              value={formData.paymentMethodId} 
-              onChange={(e) => setFormData({...formData, paymentMethodId: e.target.value})}
-            >
-              <option value="tarjeta_4532">💳 Tarjeta de crédito **** 4532</option>
-              <option value="tarjeta_1234">💳 Tarjeta de crédito **** 1234</option>
-              <option value="cuenta_3456">🏦 Cuenta bancaria **** 3456</option>
-            </select>
           </div>
           
           <div className="modal-buttons">

@@ -1,7 +1,9 @@
-// Wallets.js - Página de gestión de billeteras (SIN botones Recargar/Transferir/Retirar)
+// Wallets.js - Página de gestión de billeteras (CONECTADO A API)
+// Sin botones de Recargar, Transferir y Retirar
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getUserWallets, createWallet, updateWallet, getCurrentUser } from '../../API/auth';
+import { getUserWallets, createWallet, updateWallet } from '../../API/wallets';
+import { getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
 import EditWalletModal from './EditWalletModal';
 import DeleteWalletModal from './DeleteWalletModal';

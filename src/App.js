@@ -18,6 +18,7 @@ import Security from './components/security/Security';
 import Profile from './components/profile/Profile';
 import Notifications from './components/notifications/Notifications';
 import Analytics from './components/analytics/Analytics';
+import VerifyEmail from './components/auth/VerifyEmail';
 import './App.css';
 
 // Componente interno que maneja la navegación por URL
@@ -135,6 +136,7 @@ const AppContent = () => {
             onBackToLogin={() => navigate('/login')}
           />
         } />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="*" element={<Login
           onLoginSuccess={handleLoginSuccess}
           onSwitchToRegister={() => navigate('/register')}
@@ -225,6 +227,14 @@ const AppContent = () => {
           <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
           <div className="app-main-content">
             <Analytics user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/verify-email" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <VerifyEmail />
           </div>
         </div>
       } />

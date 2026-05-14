@@ -5,7 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import WalletCarousel from './walletCarousel/WalletCarousel';
 import UserMenu from '../common/UserMenu';
 import NotificationBell from '../notifications/notificationBell/NotificationBell';
-import { getUserWallets, getCurrentUser } from '../../API/auth';
+import { getUserWallets } from '../../API/wallets';
+import { getCurrentUser } from '../../API/auth';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
@@ -16,7 +17,6 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   
   const userId = user?.id || getCurrentUser()?.id;
   
-  // Cargar billeteras desde API
   useEffect(() => {
     const loadWallets = async () => {
       if (!userId) {
@@ -37,7 +37,6 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     loadWallets();
   }, [userId]);
   
-  // Transacciones recientes (simuladas - después se conectarán)
   const recentTransactions = [
     { id: 1, type: 'recarga', description: 'Recarga desde tarjeta **** 4532', date: '8 abr, 10:30', amount: 500000, status: 'Completada', isPositive: true },
     { id: 2, type: 'transferencia', description: 'Transferencia a Juan Pérez', date: '7 abr, 15:45', amount: 120000, status: 'Completada', isPositive: false },

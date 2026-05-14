@@ -1,6 +1,9 @@
 // Transactions.js - Página de gestión de transacciones
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getUserTransactions } from '../../API/transactions';
+import { getCurrentUser } from '../../API/auth';  // ← CORREGIDO
+import { getUserWallets } from '../../API/wallets';
 import RechargeModal from './RechargeModal';
 import WithdrawModal from './WithdrawModal';
 import TransferModal from './TransferModal';
@@ -8,93 +11,122 @@ import ReversalModal from './ReversalModal';
 import './Transactions.css';
 
 const Transactions = ({ user }) => {
-  // Estados para modales
+  // Estados para modales - TODOS INICIALIZADOS EN false
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showReversalModal, setShowReversalModal] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
   
-  // Estado para filtros
+  const [transactions, setTransactions] = useState([]);
+  const [wallets, setWallets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('todos');
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Datos de ejemplo para el historial de transacciones
-  const transactions = [
-    { id: 1, date: '08 abr 2026, 10:30', type: 'recarga', typeLabel: 'Recarga', description: 'Recarga desde tarjeta **** 4532', origin: 'Billetera Principal', amount: 500, status: 'Completada', points: 50, reversible: false },
-    { id: 2, date: '07 abr 2026, 15:45', type: 'transferencia', typeLabel: 'Transferencia', description: 'Transferencia interna', origin: 'Billetera Principal', amount: 1200, status: 'Completada', points: 120, reversible: true },
-    { id: 3, date: '07 abr 2026, 09:20', type: 'retiro', typeLabel: 'Retiro', description: 'Retiro a cuenta bancaria', origin: 'Billetera Principal', amount: 300, status: 'Completada', points: 0, reversible: false },
-    { id: 4, date: '06 abr 2026, 18:10', type: 'transferencia', typeLabel: 'Transferencia', description: 'Pago de servicio', origin: 'Billetera Principal', amount: 850, status: 'Completada', points: 85, reversible: false },
-    { id: 5, date: '06 abr 2026, 12:30', type: 'recarga', typeLabel: 'Recarga', description: 'Recarga rechazada - fondos insuficientes', origin: 'Billetera Principal', amount: 2000, status: 'Fallida', points: 0, reversible: false },
-    { id: 6, date: '05 abr 2026, 14:20', type: 'transferencia', typeLabel: 'Transferencia', description: 'Pago de electricidad', origin: 'Gastos Mensuales', amount: 450, status: 'Completada', points: 45, reversible: false }
-  ];
+  const userId = user?.id || getCurrentUser()?.id;
   
-  // Transacciones reversibles
-  const reversibleTransactions = transactions.filter(t => t.reversible && t.status === 'Completada');
-  
-  // Billeteras del usuario
-  const userWallets = [
-    { id: 1, name: 'Principal', balance: 25430.50 },
-    { id: 2, name: 'Ahorros', balance: 8920.00 },
-    { id: 3, name: 'Inversión', balance: 15600.75 }
-  ];
-  
-  // Métodos de pago
-  const paymentMethods = [
-    { id: 1, name: 'Tarjeta de crédito **** 4532', lastDigits: '4532' },
-    { id: 2, name: 'Tarjeta de crédito **** 1234', lastDigits: '1234' },
-    { id: 3, name: 'Cuenta bancaria **** 3456', lastDigits: '3456' }
-  ];
+  // Cargar datos
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      
+      // Cargar transacciones
+      const transResult = await getUserTransactions(userId);
+      if (transResult.success && transResult.data) {
+        setTransactions(transResult.data);
+      }
+      
+      // Cargar billeteras
+      const walletsResult = await getUserWallets(userId);
+      if (walletsResult.success && walletsResult.data) {
+        setWallets(walletsResult.data);
+      }
+      
+      setLoading(false);
+    };
+    
+    if (userId) {
+      loadData();
+    }
+  }, [userId]);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(value);
+    }).format(value || 0);
+  };
+  
+  const getTypeIcon = (type) => {
+    switch(type) {
+      case 'RECHARGE': return '📥';
+      case 'WITHDRAWAL': return '📤';
+      case 'TRANSFER': return '🔄';
+      default: return '💰';
+    }
+  };
+  
+  const getTypeLabel = (type) => {
+    switch(type) {
+      case 'RECHARGE': return 'Recarga';
+      case 'WITHDRAWAL': return 'Retiro';
+      case 'TRANSFER': return 'Transferencia';
+      default: return type;
+    }
+  };
+  
+  const getStatusClass = (status) => {
+    if (status === 'COMPLETED') return 'status-completed';
+    if (status === 'FAILED') return 'status-failed';
+    if (status === 'REVERSED') return 'status-reversed';
+    return 'status-pending';
+  };
+  
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'COMPLETED': return 'Completada';
+      case 'FAILED': return 'Fallida';
+      case 'REVERSED': return 'Reversada';
+      default: return status;
+    }
   };
   
   // Filtrar transacciones
   const filteredTransactions = transactions.filter(t => {
     if (filterType !== 'todos' && t.type !== filterType) return false;
-    if (searchTerm && !t.description.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !t.origin.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    if (searchTerm && !t.id?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
   
-  const getTypeIcon = (type) => {
-    switch(type) {
-      case 'recarga': return '📥';
-      case 'retiro': return '📤';
-      case 'transferencia': return '🔄';
-      default: return '💰';
-    }
+  const handleTransactionSuccess = () => {
+    // Recargar datos después de una transacción
+    const loadData = async () => {
+      const transResult = await getUserTransactions(userId);
+      if (transResult.success && transResult.data) {
+        setTransactions(transResult.data);
+      }
+      const walletsResult = await getUserWallets(userId);
+      if (walletsResult.success && walletsResult.data) {
+        setWallets(walletsResult.data);
+      }
+    };
+    loadData();
   };
   
-  const getStatusClass = (status) => {
-    if (status === 'Completada') return 'status-completed';
-    if (status === 'Fallida') return 'status-failed';
-    return 'status-pending';
-  };
-  
-  const handleReversalClick = () => {
-    setSelectedTransaction(null);
-    setShowReversalModal(true);
-  };
-  
-  const handleReversalFromHistory = (transaction) => {
-    setSelectedTransaction(transaction);
-    setShowReversalModal(true);
-  };
-  
-  const handleAction = (action, data) => {
-    alert(`📝 Simulación: ${action}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
-  };
+  if (loading) {
+    return (
+      <div className="transactions-page">
+        <div className="loading-container-transactions">
+          <div className="loading-spinner-small"></div>
+          <p>Cargando transacciones...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="transactions-page">
-      {/* Header */}
       <div className="transactions-header">
         <h1>Transacciones</h1>
         <p>Gestiona tus movimientos de dinero</p>
@@ -114,17 +146,17 @@ const Transactions = ({ user }) => {
           <span className="action-icon">🔄</span>
           <span className="action-label">Transferir</span>
         </button>
-        <button className="action-card" onClick={handleReversalClick}>
+        <button className="action-card" onClick={() => setShowReversalModal(true)}>
           <span className="action-icon">↩️</span>
           <span className="action-label">Reversión</span>
         </button>
       </div>
       
-      {/* Historial */}
+      {/* Historial de transacciones */}
       <div className="history-section">
         <div className="section-header">
           <h2>Historial de Transacciones</h2>
-          <button className="btn-export" onClick={() => handleAction('Exportar historial')}>
+          <button className="btn-export" onClick={() => alert('Exportar - Próximamente')}>
             📎 Exportar
           </button>
         </div>
@@ -135,17 +167,17 @@ const Transactions = ({ user }) => {
             <label>Tipo:</label>
             <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
               <option value="todos">Todos</option>
-              <option value="recarga">Recargas</option>
-              <option value="retiro">Retiros</option>
-              <option value="transferencia">Transferencias</option>
+              <option value="RECHARGE">Recargas</option>
+              <option value="WITHDRAWAL">Retiros</option>
+              <option value="TRANSFER">Transferencias</option>
             </select>
           </div>
           
           <div className="filter-group">
-            <label>Buscar:</label>
+            <label>Buscar por ID:</label>
             <input
               type="text"
-              placeholder="Descripción o origen..."
+              placeholder="ID de transacción..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -168,44 +200,32 @@ const Transactions = ({ user }) => {
               <tr>
                 <th>Fecha</th>
                 <th>Tipo</th>
-                <th>Descripción</th>
-                <th>Origen/Destino</th>
+                <th>Origen</th>
+                <th>Destino</th>
                 <th>Monto</th>
                 <th>Estado</th>
                 <th>Puntos</th>
-                <th></th>
               </tr>
             </thead>
             <tbody>
               {filteredTransactions.map(t => (
                 <tr key={t.id}>
-                  <td className="date-cell">{t.date}</td>
+                  <td>{t.createdAt ? new Date(t.createdAt).toLocaleString('es-ES') : '-'}</td>
                   <td>
                     <span className="type-badge">
-                      {getTypeIcon(t.type)} {t.typeLabel}
+                      {getTypeIcon(t.type)} {getTypeLabel(t.type)}
                     </span>
                   </td>
-                  <td>{t.description}</td>
-                  <td>{t.origin}</td>
+                  <td>{t.sourceWallet || '-'}</td>
+                  <td>{t.targetWallet || (t.receiverUserId ? `Usuario: ${t.receiverUserId.substring(0, 8)}...` : '-')}</td>
                   <td className="amount-cell">{formatCurrency(t.amount)}</td>
                   <td>
                     <span className={`status-badge ${getStatusClass(t.status)}`}>
-                      {t.status}
+                      {getStatusLabel(t.status)}
                     </span>
                   </td>
-                  <td className="points-cell">
+                  <td className={t.points > 0 ? 'points-positive' : 'points-zero'}>
                     {t.points > 0 ? `+${t.points}` : t.points}
-                  </td>
-                  <td>
-                    {t.reversible && t.status === 'Completada' && (
-                      <button 
-                        className="btn-reverse-small" 
-                        onClick={() => handleReversalFromHistory(t)}
-                        title="Revertir"
-                      >
-                        ↩️
-                      </button>
-                    )}
                   </td>
                 </tr>
               ))}
@@ -224,34 +244,28 @@ const Transactions = ({ user }) => {
       <RechargeModal
         isOpen={showRechargeModal}
         onClose={() => setShowRechargeModal(false)}
-        onConfirm={(data) => handleAction('Recargar billetera', data)}
-        wallets={userWallets}
-        paymentMethods={paymentMethods}
+        wallets={wallets}
+        onSuccess={handleTransactionSuccess}
       />
       
       <WithdrawModal
         isOpen={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
-        onConfirm={(data) => handleAction('Retirar dinero', data)}
-        wallets={userWallets}
+        wallets={wallets}
+        onSuccess={handleTransactionSuccess}
       />
       
       <TransferModal
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
-        onConfirm={(data) => handleAction('Transferir dinero', data)}
-        wallets={userWallets}
+        wallets={wallets}
+        onSuccess={handleTransactionSuccess}
       />
       
       <ReversalModal
         isOpen={showReversalModal}
-        onClose={() => {
-          setShowReversalModal(false);
-          setSelectedTransaction(null);
-        }}
-        onConfirm={(data) => handleAction('Reversión de transacción', data)}
-        transaction={selectedTransaction}
-        transactions={reversibleTransactions}
+        onClose={() => setShowReversalModal(false)}
+        onSuccess={handleTransactionSuccess}
       />
     </div>
   );
