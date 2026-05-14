@@ -1,4 +1,4 @@
-// EditWalletModal.js - Modal para editar billetera (SOLO VISUAL)
+// EditWalletModal.js - Modal para editar billetera (SIN balance, SIN descripción)
 
 import React, { useState, useEffect } from 'react';
 import './Modals.css';
@@ -7,9 +7,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
   const [formData, setFormData] = useState({
     name: '',
     type: '',
-    customType: '',
-    balance: '',
-    description: ''
+    customType: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -20,9 +18,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
       setFormData({
         name: wallet.name,
         type: isPredefined ? wallet.type : 'Otro',
-        customType: isPredefined ? '' : wallet.type,
-        balance: wallet.balance,
-        description: wallet.description || ''
+        customType: isPredefined ? '' : wallet.type
       });
     }
   }, [wallet, walletTypes]);
@@ -42,7 +38,6 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
     if (formData.type === 'Otro' && !formData.customType.trim()) {
       newErrors.customType = 'Especifica el tipo de billetera';
     }
-    if (formData.balance && isNaN(formData.balance)) newErrors.balance = 'Ingrese un número válido';
     return newErrors;
   };
   
@@ -58,9 +53,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
     
     onEdit({
       name: formData.name,
-      type: finalType,
-      balance: formData.balance,
-      description: formData.description
+      type: finalType
     });
   };
   
@@ -111,27 +104,6 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
               {errors.customType && <span className="error-text">{errors.customType}</span>}
             </div>
           )}
-          
-          <div className="form-group">
-            <label>Balance</label>
-            <input
-              type="number"
-              name="balance"
-              value={formData.balance}
-              onChange={handleChange}
-              step="0.01"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Descripción</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="3"
-            />
-          </div>
           
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose}>

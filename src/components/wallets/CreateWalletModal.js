@@ -1,4 +1,4 @@
-// CreateWalletModal.js - Modal para crear nueva billetera (SOLO VISUAL)
+// CreateWalletModal.js - Modal para crear nueva billetera (SIN balance inicial, SIN descripción)
 
 import React, { useState } from 'react';
 import './Modals.css';
@@ -7,9 +7,7 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
   const [formData, setFormData] = useState({
     name: '',
     type: 'Gastos diarios',
-    customType: '',
-    balance: '',
-    description: ''
+    customType: ''
   });
   
   const [errors, setErrors] = useState({});
@@ -29,7 +27,6 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
     if (formData.type === 'Otro' && !formData.customType.trim()) {
       newErrors.customType = 'Especifica el tipo de billetera';
     }
-    if (formData.balance && isNaN(formData.balance)) newErrors.balance = 'Ingrese un número válido';
     return newErrors;
   };
   
@@ -45,12 +42,10 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
     
     onCreate({
       name: formData.name,
-      type: finalType,
-      balance: formData.balance || 0,
-      description: formData.description
+      type: finalType
     });
     
-    setFormData({ name: '', type: 'Gastos diarios', customType: '', balance: '', description: '' });
+    setFormData({ name: '', type: 'Gastos diarios', customType: '' });
   };
   
   return (
@@ -101,29 +96,6 @@ const CreateWalletModal = ({ isOpen, onClose, onCreate, walletTypes }) => {
               {errors.customType && <span className="error-text">{errors.customType}</span>}
             </div>
           )}
-          
-          <div className="form-group">
-            <label>Balance inicial</label>
-            <input
-              type="number"
-              name="balance"
-              value={formData.balance}
-              onChange={handleChange}
-              placeholder="0.00"
-              step="0.01"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Descripción (opcional)</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Describe el propósito de esta billetera..."
-              rows="3"
-            />
-          </div>
           
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose}>
