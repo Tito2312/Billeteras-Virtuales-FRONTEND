@@ -11,6 +11,7 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     destinationType: 'own', // 'own' o 'user'
     toWalletId: '',
     toUserId: '',
+    toUserWalletId: '',
     amount: '',
     description: ''
   });
@@ -32,14 +33,19 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
   const validate = () => {
     const newErrors = {};
     if (!formData.fromWalletId) newErrors.fromWalletId = 'Selecciona billetera origen';
+    
     if (formData.destinationType === 'own' && !formData.toWalletId) {
       newErrors.toWalletId = 'Selecciona una billetera destino';
     }
-    if (formData.destinationType === 'user' && !formData.toUserId) {
-      newErrors.toUserId = 'Ingresa el ID de usuario destino';
+    
+    if (formData.destinationType === 'user') {
+      if (!formData.toUserId) newErrors.toUserId = 'Ingresa el ID del usuario destino';
+      if (!formData.toUserWalletId) newErrors.toUserWalletId = 'Ingresa el ID de la billetera destino';
     }
+    
     if (!formData.amount || formData.amount <= 0) newErrors.amount = 'Ingresa un monto válido';
     if (formData.amount > selectedWallet?.balance) newErrors.amount = 'Monto excede el balance disponible';
+    
     return newErrors;
   };
   
@@ -69,7 +75,7 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
         userId,
         formData.toUserId,
         formData.fromWalletId,
-        wallets.find(w => w.id === formData.toWalletId)?.id || '',
+        formData.toUserWalletId,
         parseFloat(formData.amount)
       );
     }
@@ -83,6 +89,7 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
         destinationType: 'own',
         toWalletId: '',
         toUserId: '',
+        toUserWalletId: '',
         amount: '',
         description: ''
       });
@@ -107,6 +114,7 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
               value={formData.fromWalletId} 
               onChange={(e) => setFormData({...formData, fromWalletId: e.target.value})}
             >
+              <option value="">Selecciona una billetera</option>
               {wallets.map(w => (
                 <option key={w.id} value={w.id}>
                   {w.name} - {formatCurrency(w.balance)}
@@ -117,26 +125,48 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
           </div>
           
           <div className="form-group">
-            <label>Tipo de destino</label>
-            <div className="radio-group">
-              <label>
-                <input 
-                  type="radio" 
-                  name="destinationType"
-                  checked={formData.destinationType === 'own'}
-                  onChange={() => setFormData({...formData, destinationType: 'own', toUserId: ''})}
-                /> 
-                Mis billeteras
-              </label>
-              <label>
-                <input 
-                  type="radio" 
-                  name="destinationType"
-                  checked={formData.destinationType === 'user'}
-                  onChange={() => setFormData({...formData, destinationType: 'user', toWalletId: ''})}
-                /> 
-                Otro usuario
-              </label>
+            <label className="section-label">Tipo de destino</label>
+            <div className="destination-cards">
+              <div 
+                className={`destination-card ${formData.destinationType === 'own' ? 'selected' : ''}`}
+                onClick={() => setFormData({
+                  ...formData, 
+                  destinationType: 'own', 
+                  toUserId: '', 
+                  toUserWalletId: ''
+                })}
+              >
+                <div className="destination-icon">💳</div>
+                <div className="destination-info">
+                  <h4>Mis billeteras</h4>
+                  <p>Transferencia entre tus propias billeteras</p>
+                </div>
+                <div className="destination-radio">
+                  <div className={`custom-radio ${formData.destinationType === 'own' ? 'checked' : ''}`}>
+                    {formData.destinationType === 'own' && <span>✓</span>}
+                  </div>
+                </div>
+              </div>
+              
+              <div 
+                className={`destination-card ${formData.destinationType === 'user' ? 'selected' : ''}`}
+                onClick={() => setFormData({
+                  ...formData, 
+                  destinationType: 'user', 
+                  toWalletId: ''
+                })}
+              >
+                <div className="destination-icon">👤</div>
+                <div className="destination-info">
+                  <h4>Otro usuario</h4>
+                  <p>Transferencia a otro usuario de FinWallet</p>
+                </div>
+                <div className="destination-radio">
+                  <div className={`custom-radio ${formData.destinationType === 'user' ? 'checked' : ''}`}>
+                    {formData.destinationType === 'user' && <span>✓</span>}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -147,9 +177,11 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
                 value={formData.toWalletId} 
                 onChange={(e) => setFormData({...formData, toWalletId: e.target.value})}
               >
-                <option value="">Selecciona...</option>
+                <option value="">Selecciona una billetera...</option>
                 {wallets.filter(w => w.id !== formData.fromWalletId).map(w => (
-                  <option key={w.id} value={w.id}>{w.name}</option>
+                  <option key={w.id} value={w.id}>
+                    {w.name} - {formatCurrency(w.balance)}
+                  </option>
                 ))}
               </select>
               {errors.toWalletId && <span className="error-text">{errors.toWalletId}</span>}
@@ -157,39 +189,65 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
           )}
           
           {formData.destinationType === 'user' && (
-            <div className="form-group">
-              <label>ID de usuario destino</label>
-              <input
-                type="text"
-                value={formData.toUserId}
-                onChange={(e) => setFormData({...formData, toUserId: e.target.value})}
-                placeholder="Ej: 6a0518699b62c391703c0bf5"
-              />
-              {errors.toUserId && <span className="error-text">{errors.toUserId}</span>}
-              <small className="field-hint">Ingresa el ID del usuario al que quieres transferir</small>
-            </div>
+            <>
+              <div className="form-group">
+                <label>ID del usuario destino</label>
+                <div className="input-with-icon">
+                  <input
+                    type="text"
+                    value={formData.toUserId}
+                    onChange={(e) => setFormData({...formData, toUserId: e.target.value})}
+                    placeholder="Ej: 6a0518699b62c391703c0bf5"
+                  />
+                </div>
+                {errors.toUserId && <span className="error-text">{errors.toUserId}</span>}
+                <small className="field-hint">
+                  Pídele su ID de usuario a la persona (aparece en su perfil)
+                </small>
+              </div>
+              
+              <div className="form-group">
+                <label>ID de la billetera destino</label>
+                <div className="input-with-icon">
+                  <input
+                    type="text"
+                    value={formData.toUserWalletId}
+                    onChange={(e) => setFormData({...formData, toUserWalletId: e.target.value})}
+                    placeholder="Ej: 6a0518699b62c391703c0bf6"
+                  />
+                </div>
+                {errors.toUserWalletId && <span className="error-text">{errors.toUserWalletId}</span>}
+                <small className="field-hint">
+                  Pídele el ID de su billetera a la persona (aparece en su lista de billeteras)
+                </small>
+              </div>
+            </>
           )}
           
           <div className="form-group">
             <label>Monto a transferir</label>
-            <input
-              type="number"
-              value={formData.amount}
-              onChange={(e) => setFormData({...formData, amount: e.target.value})}
-              placeholder="0.00"
-              step="0.01"
-            />
+            <div className="input-with-icon">
+              <input
+                type="number"
+                value={formData.amount}
+                onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                placeholder="0.00"
+                step="0.01"
+              />
+            </div>
             {errors.amount && <span className="error-text">{errors.amount}</span>}
           </div>
           
           <div className="form-group">
             <label>Concepto (opcional)</label>
-            <input
-              type="text"
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              placeholder="Descripción de la transferencia"
-            />
+            <div className="input-with-icon">
+              <input
+                type="text"
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                placeholder="Descripción de la transferencia"
+              />
+            </div>
           </div>
           
           <div className="modal-buttons">

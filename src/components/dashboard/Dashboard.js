@@ -1,4 +1,4 @@
-// Dashboard.js - Pantalla principal (con billeteras desde API)
+// Dashboard.js - Pantalla principal (con gráfico basado en transacciones reales)
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -6,53 +6,191 @@ import WalletCarousel from './walletCarousel/WalletCarousel';
 import UserMenu from '../common/UserMenu';
 import NotificationBell from '../notifications/notificationBell/NotificationBell';
 import { getUserWallets } from '../../API/wallets';
+import { getUserTransactions } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import './Dashboard.css';
 
 const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const navigate = useNavigate();
   const [userWallets, setUserWallets] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [totalBalance, setTotalBalance] = useState(0);
+  const [chartData, setChartData] = useState([]);
   
   const userId = user?.id || getCurrentUser()?.id;
   
+  // Cargar billeteras y transacciones
   useEffect(() => {
-    const loadWallets = async () => {
+    const loadData = async () => {
       if (!userId) {
         setLoading(false);
         return;
       }
       
       setLoading(true);
-      const result = await getUserWallets(userId);
-      if (result.success && result.data) {
-        setUserWallets(result.data);
-        const total = result.data.reduce((sum, w) => sum + (w.balance || 0), 0);
+      
+      // Cargar billeteras
+      const walletsResult = await getUserWallets(userId);
+      let wallets = [];
+      if (walletsResult.success && walletsResult.data) {
+        wallets = walletsResult.data;
+        setUserWallets(wallets);
+        const total = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
         setTotalBalance(total);
       }
+      
+      // Cargar transacciones
+      const transResult = await getUserTransactions(userId);
+      let trans = [];
+      if (transResult.success && transResult.data) {
+        trans = transResult.data;
+        setTransactions(trans);
+      }
+      
+      // Calcular evolución del balance
+      calculateBalanceEvolution(trans, wallets);
+      
       setLoading(false);
     };
     
-    loadWallets();
+    loadData();
   }, [userId]);
   
-  const recentTransactions = [
-    { id: 1, type: 'recarga', description: 'Recarga desde tarjeta **** 4532', date: '8 abr, 10:30', amount: 500000, status: 'Completada', isPositive: true },
-    { id: 2, type: 'transferencia', description: 'Transferencia a Juan Pérez', date: '7 abr, 15:45', amount: 120000, status: 'Completada', isPositive: false },
-    { id: 3, type: 'recarga', description: 'Recarga desde tarjeta **** 1234', date: '6 abr, 09:15', amount: 300000, status: 'Completada', isPositive: true },
-    { id: 4, type: 'pago', description: 'Pago suscripción Netflix', date: '5 abr, 18:30', amount: 49900, status: 'Completada', isPositive: false }
-  ];
+  // Calcular la evolución del balance por día
+  const calculateBalanceEvolution = (transactions, wallets) => {
+    // Si no hay transacciones, usar el balance actual
+    const currentBalance = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
+    const last7Days = getLast7Days();
+    
+    if (!transactions || transactions.length === 0) {
+      const evolution = last7Days.map(day => ({
+        day: day.label,
+        value: currentBalance
+      }));
+      setChartData(evolution);
+      return;
+    }
+    
+    // Ordenar transacciones por fecha
+    const sortedTransactions = [...transactions].sort((a, b) => 
+      new Date(a.createdAt) - new Date(b.createdAt)
+    );
+    
+    // Calcular balance acumulado por día
+    const balanceByDay = {};
+    
+    // Inicializar todos los días
+    last7Days.forEach(day => {
+      balanceByDay[day.date] = 0;
+    });
+    
+    // Para cada día, calcular el balance sumando todas las transacciones hasta esa fecha
+    for (const day of last7Days) {
+      let dayBalance = 0;
+      const dayEnd = new Date(day.date + 'T23:59:59');
+      
+      for (const trans of sortedTransactions) {
+        const transDate = new Date(trans.createdAt);
+        
+        if (transDate <= dayEnd) {
+          // Determinar si la transacción afecta al usuario
+          let affectsUser = false;
+          let amountToAdd = 0;
+          
+          // Transacción de recarga - aumenta el balance
+          if (trans.type === 'RECHARGE') {
+            affectsUser = true;
+            amountToAdd = trans.amount;
+          }
+          // Transacción de retiro - disminuye el balance
+          else if (trans.type === 'WITHDRAWAL') {
+            affectsUser = true;
+            amountToAdd = -trans.amount;
+          }
+          // Transferencia - puede ser enviada o recibida
+          else if (trans.type === 'TRANSFER') {
+            if (trans.userId === userId) {
+              // El usuario envió dinero
+              affectsUser = true;
+              amountToAdd = -trans.amount;
+            } else if (trans.receiverUserId === userId) {
+              // El usuario recibió dinero
+              affectsUser = true;
+              amountToAdd = trans.amount;
+            }
+          }
+          
+          if (affectsUser) {
+            dayBalance += amountToAdd;
+          }
+        }
+      }
+      
+      balanceByDay[day.date] = dayBalance;
+    }
+    
+    // Convertir a formato para el gráfico
+    const evolution = last7Days.map(day => ({
+      day: day.label,
+      value: Math.max(balanceByDay[day.date], 0)
+    }));
+    
+    setChartData(evolution);
+  };
   
-  const chartData = [
-    { day: '1 Abr', value: 48000 }, { day: '2 Abr', value: 49500 },
-    { day: '3 Abr', value: 51200 }, { day: '4 Abr', value: 50800 },
-    { day: '5 Abr', value: 52500 }, { day: '6 Abr', value: 53000 },
-    { day: '7 Abr', value: 52800 }, { day: '8 Abr', value: 53151 }
-  ];
+  // Obtener últimos 7 días con formato
+  const getLast7Days = () => {
+    const days = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const label = `${date.getDate()} ${getMonthName(date.getMonth())}`;
+      days.push({ date: dateStr, label });
+    }
+    
+    return days;
+  };
   
-  const maxValue = Math.max(...chartData.map(d => d.value));
-  const changePercentage = 12.5;
+  const getMonthName = (month) => {
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return months[month];
+  };
+  
+  // Transacciones recientes (últimas 5)
+  const recentTransactions = transactions
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 5)
+    .map(t => ({
+      id: t.id,
+      type: t.type === 'RECHARGE' ? 'recarga' : t.type === 'WITHDRAWAL' ? 'retiro' : 'transferencia',
+      description: getTransactionDescription(t),
+      date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
+      amount: t.amount,
+      status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : 'Reversada',
+      isPositive: t.type === 'RECHARGE' || (t.type === 'TRANSFER' && t.receiverUserId === userId)
+    }));
+  
+  const getTransactionDescription = (t) => {
+    if (t.type === 'RECHARGE') {
+      return `Recarga a ${t.targetWallet || 'billetera'}`;
+    } else if (t.type === 'WITHDRAWAL') {
+      return `Retiro de ${t.sourceWallet || 'billetera'}`;
+    } else if (t.type === 'TRANSFER') {
+      if (t.userId === userId) {
+        return `Transferencia a ${t.targetWallet || 'usuario'}`;
+      } else {
+        return `Recibiste transferencia de ${t.sourceWallet || 'usuario'}`;
+      }
+    }
+    return 'Transacción';
+  };
+  
+  // Encontrar el valor máximo para la escala del gráfico
+  const maxValue = Math.max(...chartData.map(d => d.value), totalBalance, 1000);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
@@ -104,14 +242,14 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <div className="stat-info">
             <h3>Balance Total</h3>
             <p className="stat-value">{formatCurrency(totalBalance)}</p>
-            <span className="stat-change positive">+{changePercentage}% este mes</span>
+            <span className="stat-change positive">+12.5% este mes</span>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">💳</div>
           <div className="stat-info">
             <h3>Billeteras Activas</h3>
-            <p className="stat-value">{userWallets.length}</p>
+            <p className="stat-value">{userWallets.filter(w => w.active).length}</p>
             <span className="stat-sub">Todas operativas</span>
           </div>
         </div>
@@ -139,16 +277,26 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <span className="trend positive">▲ Tendencia positiva</span>
         </div>
         <div className="chart-container">
-          <div className="chart-bars">
-            {chartData.map((item, index) => (
-              <div key={index} className="chart-bar-wrapper">
-                <div className="chart-bar" style={{ height: `${(item.value / maxValue) * 100}%` }}>
-                  <span className="chart-tooltip">{formatCurrency(item.value)}</span>
+          {chartData.length > 0 && chartData.some(d => d.value > 0) ? (
+            <div className="chart-bars">
+              {chartData.map((item, index) => (
+                <div key={index} className="chart-bar-wrapper">
+                  <div 
+                    className="chart-bar"
+                    style={{ height: `${Math.max((item.value / maxValue) * 100, 4)}%` }}
+                  >
+                    <span className="chart-tooltip">{formatCurrency(item.value)}</span>
+                  </div>
+                  <span className="chart-label">{item.day}</span>
                 </div>
-                <span className="chart-label">{item.day}</span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-chart-data">
+              <p>No hay datos suficientes para mostrar el gráfico</p>
+              <span>Realiza transacciones para ver tu evolución</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -158,23 +306,30 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <button className="view-all" onClick={() => onTabChange('transactions')}>Ver todas →</button>
         </div>
         <div className="transactions-list">
-          {recentTransactions.map(transaction => (
-            <div key={transaction.id} className="transaction-item">
-              <div className="transaction-icon">
-                {transaction.type === 'recarga' ? '📥' : transaction.type === 'transferencia' ? '🔄' : '💳'}
+          {recentTransactions.length > 0 ? (
+            recentTransactions.map(transaction => (
+              <div key={transaction.id} className="transaction-item">
+                <div className="transaction-icon">
+                  {transaction.type === 'recarga' ? '📥' : transaction.type === 'transferencia' ? '🔄' : '📤'}
+                </div>
+                <div className="transaction-info">
+                  <p className="transaction-description">{transaction.description}</p>
+                  <span className="transaction-date">{transaction.date}</span>
+                </div>
+                <div className="transaction-amount">
+                  <span className={transaction.isPositive ? 'positive' : 'negative'}>
+                    {transaction.isPositive ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  </span>
+                  <span className="transaction-status">{transaction.status}</span>
+                </div>
               </div>
-              <div className="transaction-info">
-                <p className="transaction-description">{transaction.description}</p>
-                <span className="transaction-date">{transaction.date}</span>
-              </div>
-              <div className="transaction-amount">
-                <span className={transaction.isPositive ? 'positive' : 'negative'}>
-                  {transaction.isPositive ? '+' : '-'}{formatCurrency(transaction.amount)}
-                </span>
-                <span className="transaction-status">{transaction.status}</span>
-              </div>
+            ))
+          ) : (
+            <div className="empty-transactions">
+              <p>No hay transacciones recientes</p>
+              <span>Realiza tu primera transacción</span>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

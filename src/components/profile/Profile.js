@@ -129,11 +129,9 @@ const Profile = ({ user, onUpdateUser }) => {
     setIsSaving(true);
     const userId = user?.id || getCurrentUser()?.id;
     
-    // Solo enviar nombre y teléfono (el email no se puede modificar)
     const result = await updateUser(userId, {
       name: formData.nombre,
       phoneNumber: formData.telefono
-      // email no se envía porque no se puede modificar
     });
     
     if (result.success) {
@@ -159,6 +157,12 @@ const Profile = ({ user, onUpdateUser }) => {
       case 'Plata': return '#c0c0c0';
       default: return '#cd7f32';
     }
+  };
+  
+  // Función para copiar ID al portapapeles
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('✅ ID copiado al portapapeles');
   };
   
   if (isLoading) {
@@ -194,6 +198,20 @@ const Profile = ({ user, onUpdateUser }) => {
             </div>
           </div>
           <div className="profile-stats">
+            <div className="stat-item">
+              <span className="stat-label">ID de Usuario</span>
+              <div className="stat-value-with-copy">
+                <span className="stat-value-id">{userData.id || 'No disponible'}</span>
+                <button 
+                  className="btn-copy-id" 
+                  onClick={() => copyToClipboard(userData.id)}
+                  title="Copiar ID"
+                >
+                  📋
+                </button>
+              </div>
+              <small className="stat-hint">Usa este ID para recibir transferencias</small>
+            </div>
             <div className="stat-item">
               <span className="stat-label">Miembro desde</span>
               <span className="stat-value">{userData.fechaRegistro}</span>

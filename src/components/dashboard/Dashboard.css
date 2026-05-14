@@ -441,4 +441,42 @@
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
 }
+/* Estilos para estado vacío */
+.no-chart-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  background: #f8fafc;
+  border-radius: 16px;
+  color: #6b7280;
+}
+
+.no-chart-data p {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.no-chart-data span {
+  font-size: 12px;
+}
+
+.empty-transactions {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 16px;
+  color: #6b7280;
+}
+
+.empty-transactions p {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.empty-transactions span {
+  font-size: 12px;
+}
+
 }
