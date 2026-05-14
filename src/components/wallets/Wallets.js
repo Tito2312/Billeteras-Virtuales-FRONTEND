@@ -1,4 +1,4 @@
-// Wallets.js - Página de gestión de billeteras (CONECTADO A API)
+// Wallets.js - Página de gestión de billeteras (SIN botones Recargar/Transferir/Retirar)
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserWallets, createWallet, updateWallet, getCurrentUser } from '../../API/auth';
@@ -11,7 +11,6 @@ const Wallets = ({ user }) => {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // Estados para modales
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -20,7 +19,6 @@ const Wallets = ({ user }) => {
   
   const userId = user?.id || getCurrentUser()?.id;
   
-  // Tipos de billetera disponibles
   const walletTypes = [
     { value: 'Gastos diarios', label: 'Gastos diarios', icon: '☕' },
     { value: 'Ahorro', label: 'Ahorro', icon: '🏦' },
@@ -29,28 +27,22 @@ const Wallets = ({ user }) => {
     { value: 'Compras', label: 'Compras', icon: '🛍️' }
   ];
   
-  // Cargar billeteras desde API
   const loadWallets = useCallback(async () => {
     setLoading(true);
     const result = await getUserWallets(userId);
     if (result.success && result.data) {
       setWallets(result.data);
-    } else {
-      console.error('Error al cargar billeteras:', result.message);
     }
     setLoading(false);
   }, [userId]);
   
   useEffect(() => {
-    if (userId) {
-      loadWallets();
-    }
+    if (userId) loadWallets();
   }, [userId, loadWallets]);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
     }).format(value || 0);
@@ -99,7 +91,6 @@ const Wallets = ({ user }) => {
   };
   
   const handleDeleteWallet = () => {
-    // Eliminación solo simulada (backend no tiene DELETE)
     alert(`🗑️ Eliminar billetera "${selectedWallet?.name}"\n\n⚠️ El backend aún no tiene endpoint DELETE.`);
     setShowDeleteModal(false);
     setSelectedWallet(null);
@@ -198,17 +189,6 @@ const Wallets = ({ user }) => {
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
             </div>
-            <div className="wallet-actions-full">
-              <button className="wallet-btn recargar" onClick={() => alert(`Recargar ${wallet.name} - Próximamente`)}>
-                Recargar
-              </button>
-              <button className="wallet-btn transferir" onClick={() => alert(`Transferir desde ${wallet.name} - Próximamente`)}>
-                Transferir
-              </button>
-              <button className="wallet-btn retirar" onClick={() => alert(`Retirar desde ${wallet.name} - Próximamente`)}>
-                Retirar
-              </button>
-            </div>
             <p className="wallet-status">
               Estado: <span className={wallet.active ? 'status-active' : 'status-inactive'}>
                 {wallet.active ? 'Activa' : 'Inactiva'}
@@ -218,7 +198,6 @@ const Wallets = ({ user }) => {
         ))}
       </div>
       
-      {/* Modales */}
       <CreateWalletModal 
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
