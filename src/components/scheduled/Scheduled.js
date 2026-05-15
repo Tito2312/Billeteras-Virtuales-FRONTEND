@@ -1,294 +1,283 @@
 // Scheduled.js - Página de operaciones programadas
-// Las operaciones se muestran ordenadas por prioridad (Alta > Media > Baja)
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getUserScheduledOperations, createScheduledOperation } from '../../API/scheduled';
+import { getUserWallets } from '../../API/wallets';
+import { getCurrentUser } from '../../API/auth';
 import CreateScheduledModal from './CreateScheduledModal';
-import EditScheduledModal from './EditScheduledModal';
-import CancelScheduledModal from './CancelScheduledModal';
 import './Scheduled.css';
 
 const Scheduled = ({ user }) => {
-  // Estados para modales
+  const [operations, setOperations] = useState([]);
+  const [wallets, setWallets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [selectedOperation, setSelectedOperation] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [error, setError] = useState('');
   
-  // Estado para filtro de prioridad
-  const [priorityFilter, setPriorityFilter] = useState('todas');
+  const userId = user?.id || getCurrentUser()?.id;
   
-  // Datos de ejemplo para operaciones programadas
-  // Ordenadas por prioridad: Alta (3), Media (2), Baja (1)
-  const [scheduledOperations, setScheduledOperations] = useState([
-  { 
-    id: 1, 
-    type: 'transferencia', 
-    typeLabel: 'Transferencia',
-    priority: 'alta', 
-    priorityLabel: 'Alta',
-    priorityLevel: 3,
-    date: '10 de abril de 2026, 10:00',
-    fromWallet: 'Billetera Principal',
-    toDestination: 'Usuario: juan.perez@email.com',  // Cambiado: puede ser otro usuario
-    amount: 1500,
-    description: 'Pago mensual',
-    status: 'Programada',
-    frequency: 'Mensual'
-  },
-  { 
-    id: 2, 
-    type: 'retiro', 
-    typeLabel: 'Retiro',
-    priority: 'media', 
-    priorityLabel: 'Media',
-    priorityLevel: 2,
-    date: '15 de abril de 2026, 08:00',
-    fromWallet: 'Billetera Principal',
-    toDestination: 'Cuenta Bancaria **** 3456',
-    amount: 800,
-    description: 'Retiro para gastos',
-    status: 'Programada',
-    frequency: 'Única'
-  },
-  { 
-    id: 3, 
-    type: 'ahorro', 
-    typeLabel: 'Ahorro Automático',
-    priority: 'baja', 
-    priorityLabel: 'Baja',
-    priorityLevel: 1,
-    date: '20 de abril de 2026, 12:00',
-    fromWallet: 'Billetera Principal',
-    toDestination: 'Ahorros',
-    amount: 2000,
-    description: 'Ahorro semanal',
-    status: 'Programada',
-    frequency: 'Semanal'
-  },
-  { 
-    id: 4, 
-    type: 'recarga', 
-    typeLabel: 'Recarga Automática',
-    priority: 'alta', 
-    priorityLabel: 'Alta',
-    priorityLevel: 3,
-    date: '12 de abril de 2026, 09:00',
-    fromWallet: 'Tarjeta **** 4532',
-    toDestination: 'Billetera Principal',
-    amount: 500,
-    description: 'Recarga automática',
-    status: 'Programada',
-    frequency: 'Semanal'
-  }
-]);
+  // Cargar operaciones programadas
+  const loadOperations = useCallback(async () => {
+    if (!userId) return;
+    
+    try {
+      const result = await getUserScheduledOperations(userId);
+      if (result.success && result.data) {
+        // Ordenar por fecha (próximas primero)
+        const sorted = [...result.data].sort((a, b) => 
+          new Date(a.scheduledDate) - new Date(b.scheduledDate)
+        );
+        setOperations(sorted);
+        setError('');
+      } else {
+        setError('Error al cargar las operaciones');
+      }
+    } catch (err) {
+      console.error('Error cargando operaciones:', err);
+      setError('Error al cargar las operaciones');
+    }
+  }, [userId]);
   
-  // Billeteras del usuario (para modales)
-  const userWallets = [
-    { id: 1, name: 'Principal', balance: 25430.50 },
-    { id: 2, name: 'Ahorros', balance: 8920.00 },
-    { id: 3, name: 'Inversión', balance: 15600.75 },
-    { id: 4, name: 'Viajes', balance: 3500.00 }
-  ];
+  // Cargar billeteras
+  const loadWallets = useCallback(async () => {
+    if (!userId) return;
+    
+    try {
+      const result = await getUserWallets(userId);
+      if (result.success && result.data) {
+        setWallets(result.data);
+      }
+    } catch (err) {
+      console.error('Error cargando billeteras:', err);
+    }
+  }, [userId]);
   
-  /// Tipos de operación
-const operationTypes = [
-  { value: 'transferencia', label: 'Transferencia', icon: '🔄' },
-  { value: 'recarga', label: 'Recarga automática', icon: '📥' },
-  { value: 'retiro', label: 'Retiro programado', icon: '📤' },
-  { value: 'ahorro', label: 'Ahorro automático', icon: '🏦' }
-];
-
-// Prioridades
-const priorities = [
-  { value: 'alta', label: 'Alta', level: 3, color: '#ef4444' },
-  { value: 'media', label: 'Media', level: 2, color: '#f59e0b' },
-  { value: 'baja', label: 'Baja', level: 1, color: '#10b981' }
-];
-
-// Frecuencias
-const frequencies = [
-  { value: 'unica', label: 'Única' },
-  { value: 'diaria', label: 'Diaria' },
-  { value: 'semanal', label: 'Semanal' },
-  { value: 'quincenal', label: 'Quincenal' },
-  { value: 'mensual', label: 'Mensual' }
-];
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await loadOperations();
+      await loadWallets();
+      setLoading(false);
+    };
+    
+    loadData();
+  }, [loadOperations, loadWallets]);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    }).format(value);
+    }).format(value || 0);
   };
   
-  // Filtrar por prioridad
-  const filteredOperations = scheduledOperations.filter(op => {
-    if (priorityFilter === 'todas') return true;
-    return op.priority === priorityFilter;
-  });
-  
-  // Ordenar por prioridad (mayor a menor)
-  const sortedOperations = [...filteredOperations].sort((a, b) => b.priorityLevel - a.priorityLevel);
-  
-  // Contar por prioridad
-  const counts = {
-    alta: scheduledOperations.filter(op => op.priority === 'alta').length,
-    media: scheduledOperations.filter(op => op.priority === 'media').length,
-    baja: scheduledOperations.filter(op => op.priority === 'baja').length,
-    total: scheduledOperations.length
-  };
-  
-  // Obtener clase de prioridad
-  const getPriorityClass = (priority) => {
-    switch(priority) {
-      case 'alta': return 'priority-high';
-      case 'media': return 'priority-medium';
-      case 'baja': return 'priority-low';
-      default: return '';
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '-';
+      
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${day}/${month}/${year}, ${hours}:${minutes}`;
+    } catch (error) {
+      return '-';
     }
   };
   
-  // Obtener icono según tipo
   const getTypeIcon = (type) => {
     switch(type) {
-      case 'recarga': return '📥';
-      case 'retiro': return '📤';
-      case 'transferencia': return '🔄';
+      case 'RECHARGE': return '📥';
+      case 'WITHDRAWAL': return '📤';
+      case 'TRANSFER': return '🔄';
       default: return '💰';
     }
   };
   
-  // Simular acciones (solo alerta visual)
-  const handleCreate = (data) => {
-    alert(`📝 Simulación: Programar operación\n\nOrigen: ${data.fromWallet}\nDestino: ${data.toWallet}\nMonto: ${formatCurrency(data.amount)}\nPrioridad: ${data.priority}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
-    setShowCreateModal(false);
+  const getTypeLabel = (type) => {
+    switch(type) {
+      case 'RECHARGE': return 'Recarga';
+      case 'WITHDRAWAL': return 'Retiro';
+      case 'TRANSFER': return 'Transferencia';
+      default: return type;
+    }
   };
   
-  const handleEdit = (data) => {
-    alert(`✏️ Simulación: Editar operación programada\n\n${data.description}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
-    setShowEditModal(false);
-    setSelectedOperation(null);
+  const getStatusClass = (status) => {
+    switch(status) {
+      case 'EXECUTED': return 'status-executed';
+      case 'FAILED': return 'status-failed';
+      default: return 'status-pending';
+    }
   };
   
-  const handleCancel = () => {
-    alert(`🗑️ Simulación: Cancelar operación programada\n\n"${selectedOperation?.description}"\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
-    setShowCancelModal(false);
-    setSelectedOperation(null);
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'EXECUTED': return 'Ejecutada';
+      case 'FAILED': return 'Fallida';
+      default: return 'Pendiente';
+    }
   };
+  
+  // Calcular prioridad basada en la fecha
+  const getPriority = (scheduledDate) => {
+    const now = new Date();
+    const date = new Date(scheduledDate);
+    const diffHours = (date - now) / (1000 * 60 * 60);
+    
+    if (diffHours < 24) return { label: 'Alta', class: 'priority-high' };
+    if (diffHours < 72) return { label: 'Media', class: 'priority-medium' };
+    return { label: 'Baja', class: 'priority-low' };
+  };
+  
+  // Filtrar operaciones
+  const filteredOperations = operations.filter(op => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'pending') return op.status === 'PENDING';
+    if (filterStatus === 'executed') return op.status === 'EXECUTED';
+    if (filterStatus === 'failed') return op.status === 'FAILED';
+    return true;
+  });
+  
+ // Dentro de handleCreateOperation, agrega estos logs:
+
+const handleCreateOperation = async (operationData) => {
+  console.log('🔍 userId actual:', userId);
+  console.log('🔍 operationData recibido:', operationData);
+  
+  try {
+    const result = await createScheduledOperation({
+      userId: userId,
+      sourceWalletId: operationData.sourceWalletId || null,
+      targetWalletId: operationData.targetWalletId,
+      type: operationData.type,
+      amount: operationData.amount,
+      scheduledDate: operationData.scheduledDate
+    });
+    
+    console.log('🔍 Resultado del backend:', result);
+    
+    if (result.success) {
+      await loadOperations();
+      alert('✅ Operación programada exitosamente');
+      setShowCreateModal(false);
+    } else {
+      alert(`❌ Error al programar: ${result.message}`);
+    }
+  } catch (err) {
+    console.error('🔍 Error capturado:', err);
+    alert('❌ Error al programar la operación');
+  }
+};
+  if (loading) {
+    return (
+      <div className="scheduled-page">
+        <div className="loading-container-scheduled">
+          <div className="loading-spinner-small"></div>
+          <p>Cargando operaciones programadas...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="scheduled-page">
-      {/* Header */}
       <div className="scheduled-header">
         <div>
           <h1>Operaciones Programadas</h1>
-          <p>Movimientos futuros organizados por prioridad</p>
+          <p>Gestiona tus movimientos automáticos</p>
         </div>
-        <button className="btn-create" onClick={() => setShowCreateModal(true)}>
+        <button className="btn-create-scheduled" onClick={() => setShowCreateModal(true)}>
           + Programar Operación
         </button>
       </div>
       
-      {/* Tarjeta de resumen */}
-      <div className="summary-card">
-        <div className="summary-title">
-          <span className="summary-icon">⏰</span>
-          <span>Tienes {counts.total} operaciones programadas pendientes</span>
+      <div className="scheduled-stats">
+        <div className="stat-card-scheduled">
+          <span className="stat-value">{operations.filter(o => o.status === 'PENDING').length}</span>
+          <span className="stat-label">Pendientes</span>
         </div>
-        <div className="priority-badges">
-          <span className="badge-high">Alta: {counts.alta}</span>
-          <span className="badge-medium">Media: {counts.media}</span>
-          <span className="badge-low">Baja: {counts.baja}</span>
+        <div className="stat-card-scheduled">
+          <span className="stat-value">{operations.filter(o => o.status === 'EXECUTED').length}</span>
+          <span className="stat-label">Ejecutadas</span>
         </div>
-      </div>
-      
-      {/* Filtros */}
-      <div className="filters-section">
-        <div className="filter-buttons">
-          <button 
-            className={`filter-btn ${priorityFilter === 'todas' ? 'active' : ''}`}
-            onClick={() => setPriorityFilter('todas')}
-          >
-            Todas
-          </button>
-          <button 
-            className={`filter-btn high ${priorityFilter === 'alta' ? 'active' : ''}`}
-            onClick={() => setPriorityFilter('alta')}
-          >
-            Prioridad Alta
-          </button>
-          <button 
-            className={`filter-btn medium ${priorityFilter === 'media' ? 'active' : ''}`}
-            onClick={() => setPriorityFilter('media')}
-          >
-            Prioridad Media
-          </button>
-          <button 
-            className={`filter-btn low ${priorityFilter === 'baja' ? 'active' : ''}`}
-            onClick={() => setPriorityFilter('baja')}
-          >
-            Prioridad Baja
-          </button>
+        <div className="stat-card-scheduled">
+          <span className="stat-value">{operations.filter(o => o.status === 'FAILED').length}</span>
+          <span className="stat-label">Fallidas</span>
         </div>
       </div>
       
-      {/* Lista de operaciones */}
+      <div className="filters-scheduled">
+        <button 
+          className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
+          onClick={() => setFilterStatus('all')}
+        >
+          Todas
+        </button>
+        <button 
+          className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
+          onClick={() => setFilterStatus('pending')}
+        >
+          Pendientes
+        </button>
+        <button 
+          className={`filter-btn ${filterStatus === 'executed' ? 'active' : ''}`}
+          onClick={() => setFilterStatus('executed')}
+        >
+          Ejecutadas
+        </button>
+        <button 
+          className={`filter-btn ${filterStatus === 'failed' ? 'active' : ''}`}
+          onClick={() => setFilterStatus('failed')}
+        >
+          Fallidas
+        </button>
+      </div>
+      
       <div className="operations-list">
-        {sortedOperations.length > 0 ? (
-          sortedOperations.map(op => (
-            <div key={op.id} className={`operation-card ${getPriorityClass(op.priority)}`}>
-              <div className="operation-priority">
-                <span className={`priority-dot ${getPriorityClass(op.priority)}`}></span>
-                <span className="priority-label">{op.priorityLabel}</span>
-              </div>
-              <div className="operation-content">
-                <div className="operation-main">
+        {filteredOperations.length > 0 ? (
+          filteredOperations.map(op => {
+            const priority = getPriority(op.scheduledDate);
+            return (
+              <div key={op.id} className={`operation-card ${priority.class}`}>
+                <div className="operation-priority-badge">
+                  <span className={`priority-dot ${priority.class}`}></span>
+                  <span className="priority-text">{priority.label}</span>
+                </div>
+                <div className="operation-content">
                   <div className="operation-icon">
                     {getTypeIcon(op.type)}
                   </div>
                   <div className="operation-info">
-                    <h3>{op.typeLabel}</h3>
-                    <p className="operation-description">{op.description || op.typeLabel}</p>
+                    <h3>{getTypeLabel(op.type)}</h3>
+                    <p className="operation-amount">{formatCurrency(op.amount)}</p>
                     <div className="operation-details">
-                      <span className="detail-date">📅 {op.date}</span>
-                      <span className="detail-route">
-                        {op.fromWallet} → {op.toWallet}
+                      <span className="detail-date">📅 {formatDate(op.scheduledDate)}</span>
+                      <span className="detail-wallets">
+                        {op.sourceWalletId ? `Origen: ${op.sourceWalletId.substring(0, 10)}...` : ''}
+                        {op.targetWalletId ? ` → Destino: ${op.targetWalletId.substring(0, 10)}...` : ''}
                       </span>
                     </div>
                   </div>
-                  <div className="operation-amount">
-                    <span className="amount">{formatCurrency(op.amount)}</span>
-                    <span className="frequency">{op.frequency}</span>
-                  </div>
-                  <div className="operation-actions">
-                    <button 
-                      className="btn-edit" 
-                      onClick={() => {
-                        setSelectedOperation(op);
-                        setShowEditModal(true);
-                      }}
-                    >
-                      Editar
-                    </button>
-                    <button 
-                      className="btn-cancel-op" 
-                      onClick={() => {
-                        setSelectedOperation(op);
-                        setShowCancelModal(true);
-                      }}
-                    >
-                      Cancelar
-                    </button>
+                  <div className="operation-status-badge">
+                    <span className={`status-badge-scheduled ${getStatusClass(op.status)}`}>
+                      {getStatusLabel(op.status)}
+                    </span>
                   </div>
                 </div>
-                <div className="operation-status">
-                  <span className="status-badge scheduled">{op.status}</span>
-                </div>
+                {op.errorMessage && (
+                  <div className="operation-error">
+                    <span>❌ {op.errorMessage}</span>
+                  </div>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         ) : (
           <div className="empty-operations">
             <p>No hay operaciones programadas</p>
@@ -297,39 +286,11 @@ const frequencies = [
         )}
       </div>
       
-      {/* Modales */}
       <CreateScheduledModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreate={handleCreate}
-        wallets={userWallets}
-        operationTypes={operationTypes}
-        priorities={priorities}
-        frequencies={frequencies}
-      />
-      
-      <EditScheduledModal
-        isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false);
-          setSelectedOperation(null);
-        }}
-        onEdit={handleEdit}
-        operation={selectedOperation}
-        wallets={userWallets}
-        operationTypes={operationTypes}
-        priorities={priorities}
-        frequencies={frequencies}
-      />
-      
-      <CancelScheduledModal
-        isOpen={showCancelModal}
-        onClose={() => {
-          setShowCancelModal(false);
-          setSelectedOperation(null);
-        }}
-        onCancel={handleCancel}
-        operation={selectedOperation}
+        onCreate={handleCreateOperation}
+        wallets={wallets}
       />
     </div>
   );
