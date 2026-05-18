@@ -2,110 +2,85 @@
 
 const BASE_URL = 'http://localhost:8080/api';
 
-const getAuthToken = () => localStorage.getItem('auth_token');
-
 const getHeaders = (requiresAuth = true) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
+  const headers = { 'Content-Type': 'application/json' };
   if (requiresAuth) {
-    const token = getAuthToken();
-    console.log('🔑 Token:', token ? `${token.substring(0, 30)}...` : 'NO HAY TOKEN');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    const token = localStorage.getItem('auth_token');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  
   return headers;
 };
 
 const handleResponse = async (response) => {
   const textResponse = await response.text();
-  console.log('📡 Respuesta raw:', textResponse);
-  
+
+  if (!textResponse || textResponse.trim() === '') {
+    if (response.ok) return {};
+    throw { status: response.status, message: 'El servidor no respondió correctamente' };
+  }
+
   let data;
   try {
     data = JSON.parse(textResponse);
   } catch (e) {
-    data = { message: textResponse || 'Error en la petición' };
+    throw {
+      status: response.status,
+      message: `Error en la respuesta del servidor: ${textResponse.substring(0, 100)}`
+    };
   }
-  
+
   if (!response.ok) {
     throw {
       status: response.status,
-      message: data.message || data.error || 'Error en la petición',
+      message: data.message || data.error || 'Error interno del servidor'
     };
   }
-  
+
   return data;
 };
 
+// Spring Boot LocalDateTime espera: "2026-05-18T12:00:00" (sin Z ni offset)
+const toLocalDateTime = (isoString) => {
+  if (!isoString) return null;
+  return isoString.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '').split('.')[0];
+};
+
+// ========== OPERACIONES PROGRAMADAS ==========
+
+// POST /api/scheduledOperation
 export const createScheduledOperation = async (operationData) => {
   try {
-    const url = `${BASE_URL}/scheduledOperation`;
-    const token = getAuthToken();
-    
-    if (!token) {
-      throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
-    }
-    
-    const amount = parseFloat(operationData.amount);
-    if (isNaN(amount) || amount <= 0) {
-      throw new Error('El monto debe ser un número válido mayor a 0');
-    }
-    
     const body = {
       userId: operationData.userId,
-      targetWalletId: operationData.targetWalletId,
       type: operationData.type,
-      amount: amount,
-      scheduledDate: operationData.scheduledDate
+      amount: operationData.amount,
+      scheduledDate: toLocalDateTime(operationData.scheduledDate),
+      sourceWalletId: operationData.sourceWalletId || null,
+      targetWalletId: operationData.targetWalletId || null,
     };
-    
-    if (operationData.sourceWalletId && (operationData.type === 'TRANSFER' || operationData.type === 'WITHDRAWAL')) {
-      body.sourceWalletId = operationData.sourceWalletId;
-    }
-    
-    console.log('📤 POST', url);
-    console.log('📤 Headers:', { Authorization: `Bearer ${token.substring(0, 20)}...` });
-    console.log('📤 Body:', JSON.stringify(body, null, 2));
-    
-    const params = {
+
+    console.log('📤 Body enviado al backend:', body);
+
+    const response = await fetch(`${BASE_URL}/scheduledOperation`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getHeaders(true),
       body: JSON.stringify(body)
-    };
-    
-    const response = await fetch(url, params);
+    });
+
     const result = await handleResponse(response);
-    console.log('✅ Éxito:', result);
     return { success: true, data: result };
   } catch (error) {
-    console.error('❌ Error:', error);
-    return { success: false, message: error.message };
+    console.error('Error al crear operación programada:', error);
+    return { success: false, message: error.message || 'Error interno del servidor' };
   }
 };
 
+// GET /api/scheduledOperation/{userId}
 export const getUserScheduledOperations = async (userId) => {
   try {
-    const url = `${BASE_URL}/scheduledOperation/${userId}`;
-    const token = getAuthToken();
-    
-    console.log('📤 GET', url);
-    
-    const params = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
+    const response = await fetch(`${BASE_URL}/scheduledOperation/${userId}`, {
+      headers: getHeaders(true)
+    });
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
@@ -114,24 +89,32 @@ export const getUserScheduledOperations = async (userId) => {
   }
 };
 
+// GET /api/scheduledOperation
 export const getAllScheduledOperations = async () => {
   try {
-    const url = `${BASE_URL}/scheduledOperation`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
+    const response = await fetch(`${BASE_URL}/scheduledOperation`, {
+      headers: getHeaders(true)
+    });
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error al obtener operaciones programadas:', error);
+    console.error('Error al obtener operaciones:', error);
     return { success: false, message: error.message, data: [] };
+  }
+};
+
+// POST /api/scheduledOperation/executeOperation/{id}
+export const executeScheduledOperation = async (operation) => {
+  try {
+    const response = await fetch(`${BASE_URL}/scheduledOperation/executeOperation/${operation.id}`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(operation)
+    });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al ejecutar operación:', error);
+    return { success: false, message: error.message };
   }
 };

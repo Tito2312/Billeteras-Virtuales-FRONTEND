@@ -1,142 +1,88 @@
 // Rewards.js - Sistema de Recompensas y Niveles
-// Según documento: puntos por transacciones, niveles y beneficios
+// Según documento del proyecto - SIN historial de puntos recientes
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RewardsModal from './rewardsModal/RewardsModal';
+import { getUserLevelInfo, getPointsRules } from '../../API/rewards';
+import { getCurrentUser } from '../../API/auth';
 import './Rewards.css';
 
 const Rewards = ({ user }) => {
-  // Estados para el modal
+  const [loading, setLoading] = useState(true);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   
-  // Datos del usuario (simulados por ahora, después vendrán del backend)
-  const [userPoints, setUserPoints] = useState(12450);
-  const [userLevel, setUserLevel] = useState('Oro');
+  const [userPoints, setUserPoints] = useState(0);
+  const [userLevel, setUserLevel] = useState('Bronce');
+  const [nextLevel, setNextLevel] = useState(null);
+  const [pointsToNextLevel, setPointsToNextLevel] = useState(0);
+  const [benefits, setBenefits] = useState([]);
+  const [allLevels, setAllLevels] = useState([]);
   
-  // Historial de puntos recientes
-  const recentPoints = [
-    { id: 1, description: 'Recarga de $500', date: '8 Abr', points: 50, type: 'recarga' },
-    { id: 2, description: 'Transferencia de $1,200', date: '7 Abr', points: 120, type: 'transferencia' },
-    { id: 3, description: 'Pago a comercio', date: '6 Abr', points: 85, type: 'pago' },
-    { id: 4, description: 'Transferencia de $450', date: '5 Abr', points: 45, type: 'transferencia' },
-    { id: 5, description: '¡Nivel Oro alcanzado!', date: '3 Abr', points: 1000, type: 'bono' }
-  ];
+  const userId = user?.id || getCurrentUser()?.id;
+  const pointsRules = getPointsRules();
   
-  // Definición de niveles según documento
-  const levels = [
-    { 
-      name: 'Bronce', 
-      minPoints: 0, 
-      maxPoints: 500,
-      color: '#cd7f32',
-      bgColor: '#fdf6ec',
-      benefits: [
-        '1% cashback en compras',
-        'Soporte básico',
-        'Sin comisiones',
-        'Acceso anticipado'
-      ]
-    },
-    { 
-      name: 'Plata', 
-      minPoints: 501, 
-      maxPoints: 1000,
-      color: '#c0c0c0',
-      bgColor: '#f5f5f5',
-      benefits: [
-        '2% cashback en compras',
-        'Soporte prioritario',
-        'Sin comisiones',
-        'Acceso anticipado'
-      ]
-    },
-    { 
-      name: 'Oro', 
-      minPoints: 1001, 
-      maxPoints: 5000,
-      color: '#ffd700',
-      bgColor: '#fffbea',
-      benefits: [
-        '3% cashback en compras',
-        'Soporte VIP',
-        'Sin comisiones',
-        'Acceso anticipado',
-        'Eventos exclusivos'
-      ]
-    },
-    { 
-      name: 'Platino', 
-      minPoints: 5001, 
-      maxPoints: Infinity,
-      color: '#e5e4e2',
-      bgColor: '#f0f0f0',
-      benefits: [
-        '5% cashback en compras',
-        'Soporte VIP 24/7',
-        'Sin comisiones',
-        'Acceso anticipado',
-        'Eventos exclusivos',
-        'Asesor financiero personal'
-      ]
-    }
-  ];
-  
-  // Encontrar nivel actual
-  const currentLevel = levels.find(l => userPoints >= l.minPoints && userPoints <= l.maxPoints) || levels[0];
-  
-  // Encontrar siguiente nivel
-  const currentLevelIndex = levels.findIndex(l => l.name === currentLevel.name);
-  const nextLevel = levels[currentLevelIndex + 1];
-  
-  // Calcular progreso al siguiente nivel
-  const pointsToNextLevel = nextLevel ? nextLevel.minPoints - userPoints : 0;
-  const progressPercentage = nextLevel 
-    ? ((userPoints - currentLevel.minPoints) / (nextLevel.minPoints - currentLevel.minPoints)) * 100
-    : 100;
-  
-  // Reglas de puntos según documento
-  const pointsRules = [
-    { type: 'Recarga', points: '1 punto por cada $100', icon: '📥', multiplier: 0.01 },
-    { type: 'Retiro', points: '2 puntos por cada $100', icon: '📤', multiplier: 0.02 },
-    { type: 'Transferencia', points: '3 puntos por cada $100', icon: '🔄', multiplier: 0.03 },
-    { type: 'Pago programado', points: 'Bono adicional', icon: '⏰', multiplier: 'bono' }
-  ];
+  useEffect(() => {
+    const loadRewardsData = async () => {
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+      
+      setLoading(true);
+      
+      const levelResult = await getUserLevelInfo(userId);
+      if (levelResult.success && levelResult.data) {
+        setUserPoints(levelResult.data.points);
+        setUserLevel(levelResult.data.level);
+        setNextLevel(levelResult.data.nextLevel);
+        setPointsToNextLevel(levelResult.data.pointsToNextLevel);
+        setBenefits(levelResult.data.benefits);
+        setAllLevels(levelResult.data.allLevels);
+      }
+      
+      setLoading(false);
+    };
+    
+    loadRewardsData();
+  }, [userId]);
   
   const formatNumber = (value) => {
-    return new Intl.NumberFormat('es-CO').format(value);
+    return new Intl.NumberFormat('es-CO').format(value || 0);
   };
   
-  // Manejar canje de puntos
+  const currentLevelInfo = allLevels.find(l => l.name === userLevel);
+  const nextLevelInfo = allLevels.find(l => l.name === nextLevel);
+  const progressPercentage = nextLevelInfo && currentLevelInfo
+    ? ((userPoints - currentLevelInfo.minPoints) / (nextLevelInfo.minPoints - currentLevelInfo.minPoints)) * 100
+    : 100;
+  
   const handleRedeem = (redemptionData) => {
-    // Restar los puntos canjeados
-    const newPoints = userPoints - redemptionData.pointsSpent;
-    setUserPoints(newPoints);
-    
-    // Verificar si cambió de nivel
-    const newLevel = levels.find(l => newPoints >= l.minPoints && newPoints <= l.maxPoints) || levels[0];
-    if (newLevel.name !== userLevel) {
-      setUserLevel(newLevel.name);
-      alert(`🎉 ¡Felicidades! Has alcanzado el nivel ${newLevel.name}`);
-    }
-    
-    alert(`🎁 Beneficio canjeado: ${redemptionData.benefit.name}\n\nPuntos gastados: ${formatNumber(redemptionData.pointsSpent)}\n\n⚠️ Próximamente se conectará con el backend.`);
+    alert(`🎁 Beneficio canjeado: ${redemptionData.benefit.name}\n\nPuntos gastados: ${formatNumber(redemptionData.pointsSpent)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
   };
+  
+  if (loading) {
+    return (
+      <div className="rewards-page">
+        <div className="loading-container-rewards">
+          <div className="loading-spinner-small"></div>
+          <p>Cargando sistema de recompensas...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="rewards-page">
-      {/* Header */}
       <div className="rewards-header">
         <h1>Sistema de Recompensas</h1>
         <p>Gana puntos y desbloquea beneficios</p>
       </div>
       
       {/* Tarjeta de nivel actual */}
-      <div className="level-card" style={{ background: `linear-gradient(135deg, ${currentLevel.bgColor} 0%, #fff 100%)`, borderBottom: `3px solid ${currentLevel.color}` }}>
+      <div className="level-card">
         <div className="level-info">
           <span className="level-label">Nivel Actual</span>
-          <div className="level-name" style={{ color: currentLevel.color }}>
-            {currentLevel.name}
-          </div>
+          <div className="level-name">{userLevel}</div>
           <div className="level-points">
             <span className="points-number">{formatNumber(userPoints)}</span>
             <span className="points-label">puntos</span>
@@ -146,11 +92,11 @@ const Rewards = ({ user }) => {
         {nextLevel && (
           <div className="level-progress">
             <div className="progress-header">
-              <span>Progreso a {nextLevel.name}</span>
+              <span>Progreso a {nextLevel}</span>
               <span>{formatNumber(pointsToNextLevel)} puntos restantes</span>
             </div>
             <div className="progress-bar-container">
-              <div className="progress-bar" style={{ width: `${progressPercentage}%`, background: currentLevel.color }}></div>
+              <div className="progress-bar" style={{ width: `${progressPercentage}%` }}></div>
             </div>
           </div>
         )}
@@ -197,28 +143,32 @@ const Rewards = ({ user }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {levels.map((level, idx) => (
-                    <tr key={idx} className={level.name === currentLevel.name ? 'current-level' : ''}>
-                      <td>
-                        <div className="level-badge" style={{ background: level.color }}>
+                  {allLevels.map((level, idx) => (
+                    <tr key={idx} className={level.name === userLevel ? 'current-level' : ''}>
+                      <td style={{ fontWeight: level.name === userLevel ? 'bold' : 'normal' }}>
+                        <span className="level-badge" style={{ 
+                          backgroundColor: level.color,
+                          color: level.name === 'Oro' ? '#8B6914' : '#1e1b4b',
+                          padding: '4px 12px',
+                          borderRadius: '20px',
+                          fontSize: '12px',
+                          fontWeight: '600'
+                        }}>
                           {level.name}
-                        </div>
-                       </td>
+                        </span>
+                      </td>
                       <td>
                         {level.minPoints.toLocaleString('es-CO')}
                         {level.maxPoints !== Infinity ? ` - ${level.maxPoints.toLocaleString('es-CO')}` : '+'}
-                       </td>
+                      </td>
                       <td>
                         <ul className="benefits-list">
-                          {level.benefits.slice(0, 3).map((benefit, i) => (
+                          {level.benefits.map((benefit, i) => (
                             <li key={i}>{benefit}</li>
                           ))}
-                          {level.benefits.length > 3 && (
-                            <li className="more-benefits">+{level.benefits.length - 3} más</li>
-                          )}
                         </ul>
-                       </td>
-                     </tr>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
@@ -226,33 +176,8 @@ const Rewards = ({ user }) => {
           </div>
         </div>
         
-        {/* Columna derecha: Puntos recientes y beneficios destacados */}
+        {/* Columna derecha: Beneficios destacados y canje */}
         <div className="activity-section">
-          {/* Puntos recientes */}
-          <div className="section-card">
-            <h2>Puntos Recientes</h2>
-            <div className="recent-points-list">
-              {recentPoints.map(point => (
-                <div key={point.id} className="recent-point-item">
-                  <div className="point-info">
-                    <div className="point-icon">
-                      {point.type === 'recarga' && '📥'}
-                      {point.type === 'transferencia' && '🔄'}
-                      {point.type === 'pago' && '💳'}
-                      {point.type === 'bono' && '🎁'}
-                    </div>
-                    <div className="point-details">
-                      <span className="point-description">{point.description}</span>
-                      <span className="point-date">{point.date}</span>
-                    </div>
-                  </div>
-                  <div className="point-value positive">+{formatNumber(point.points)} pts</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          {/* Beneficios destacados con botón de canje */}
           <div className="section-card">
             <div className="section-header">
               <h2>Beneficios Destacados</h2>
@@ -264,28 +189,28 @@ const Rewards = ({ user }) => {
               <div className="benefit-item">
                 <div className="benefit-icon">💰</div>
                 <div className="benefit-info">
-                  <span className="benefit-title">Cashback</span>
-                  <span className="benefit-desc">Hasta 5% de vuelta en tus compras</span>
+                  <span className="benefit-title">Reducción de comisiones</span>
+                  <span className="benefit-desc">Menos comisiones por transacción</span>
                 </div>
               </div>
               <div className="benefit-item">
                 <div className="benefit-icon">⚡</div>
                 <div className="benefit-info">
                   <span className="benefit-title">Prioridad</span>
-                  <span className="benefit-desc">Transacciones prioritarias</span>
+                  <span className="benefit-desc">Transacciones más rápidas</span>
                 </div>
               </div>
               <div className="benefit-item">
                 <div className="benefit-icon">🎁</div>
                 <div className="benefit-info">
-                  <span className="benefit-title">Bonos</span>
-                  <span className="benefit-desc">Bonos de puntos por nivel</span>
+                  <span className="benefit-title">Bonos de puntos</span>
+                  <span className="benefit-desc">Gana puntos más rápido</span>
                 </div>
               </div>
               <div className="benefit-item">
                 <div className="benefit-icon">💎</div>
                 <div className="benefit-info">
-                  <span className="benefit-title">Límites</span>
+                  <span className="benefit-title">Límites aumentados</span>
                   <span className="benefit-desc">Mayores límites de transacción</span>
                 </div>
               </div>

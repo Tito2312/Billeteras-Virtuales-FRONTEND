@@ -3,9 +3,14 @@
 import React, { useState } from 'react';
 import { transferToOwnWallet, transferToUser } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
+import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Modals.css';
 
 const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
+  const currentUser = getCurrentUser();
+  const userLevel = currentUser?.nivel || 'Bronce';
+  const benefits = useLevelBenefits(userLevel);
+  
   const [formData, setFormData] = useState({
     fromWalletId: wallets[0]?.id || '',
     destinationType: 'own', // 'own' o 'user'
@@ -22,6 +27,9 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
   if (!isOpen) return null;
   
   const selectedWallet = wallets.find(w => w.id === formData.fromWalletId);
+  const amount = parseFloat(formData.amount) || 0;
+  const commissionAmount = benefits.calculateCommission(amount);
+  const totalAmount = amount + commissionAmount;
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
@@ -43,8 +51,8 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
       if (!formData.toUserWalletId) newErrors.toUserWalletId = 'Ingresa el ID de la billetera destino';
     }
     
-    if (!formData.amount || formData.amount <= 0) newErrors.amount = 'Ingresa un monto válido';
-    if (formData.amount > selectedWallet?.balance) newErrors.amount = 'Monto excede el balance disponible';
+    if (!amount || amount <= 0) newErrors.amount = 'Ingresa un monto válido';
+    if (amount > selectedWallet?.balance) newErrors.amount = 'Monto excede el balance disponible';
     
     return newErrors;
   };
@@ -62,26 +70,24 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     let result;
     
     if (formData.destinationType === 'own') {
-      // Transferencia entre mis propias billeteras
       result = await transferToOwnWallet(
         userId,
         formData.fromWalletId,
         formData.toWalletId,
-        parseFloat(formData.amount)
+        amount
       );
     } else {
-      // Transferencia a otro usuario
       result = await transferToUser(
         userId,
         formData.toUserId,
         formData.fromWalletId,
         formData.toUserWalletId,
-        parseFloat(formData.amount)
+        amount
       );
     }
     
     if (result.success) {
-      alert(`✅ Transferencia exitosa: ${formatCurrency(formData.amount)}`);
+      alert(`✅ Transferencia exitosa: ${formatCurrency(amount)}\n\n💰 Comisión aplicada: ${formatCurrency(commissionAmount)} (${benefits.formatCommissionRate()})\n📊 Total debitado: ${formatCurrency(totalAmount)}`);
       if (onSuccess) onSuccess();
       onClose();
       setFormData({
@@ -237,6 +243,27 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
             </div>
             {errors.amount && <span className="error-text">{errors.amount}</span>}
           </div>
+          
+          {/* ========== NUEVA SECCIÓN: INFORMACIÓN DE COMISIÓN ========== */}
+          {amount > 0 && selectedWallet && (
+            <div className="commission-info-box">
+              <div className="commission-row">
+                <span>Monto a transferir:</span>
+                <span>{formatCurrency(amount)}</span>
+              </div>
+              <div className="commission-row">
+                <span>Comisión ({benefits.formatCommissionRate()}):</span>
+                <span>{formatCurrency(commissionAmount)}</span>
+              </div>
+              <div className="commission-row total">
+                <span>Total a debitar:</span>
+                <span>{formatCurrency(totalAmount)}</span>
+              </div>
+              <div className="commission-note">
+                <small>⚠️ La comisión se aplica según tu nivel ({userLevel})</small>
+              </div>
+            </div>
+          )}
           
           <div className="form-group">
             <label>Concepto (opcional)</label>

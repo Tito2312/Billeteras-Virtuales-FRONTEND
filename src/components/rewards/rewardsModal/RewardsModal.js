@@ -1,5 +1,4 @@
 // RewardsModal.js - Modal para canjear beneficios
-// Permite al usuario canjear sus puntos por recompensas
 
 import React, { useState } from 'react';
 import './RewardsModal.css';
@@ -7,7 +6,6 @@ import './RewardsModal.css';
 const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
   const [selectedBenefit, setSelectedBenefit] = useState(null);
   
-  // Beneficios disponibles para canjear según el nivel del usuario
   const availableBenefits = [
     { 
       id: 1, 
@@ -65,7 +63,6 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
     }
   ];
   
-  // Filtrar beneficios según nivel del usuario
   const levelOrder = { 'Bronce': 1, 'Plata': 2, 'Oro': 3, 'Platino': 4 };
   const userLevelValue = levelOrder[userLevel] || 1;
   
@@ -117,14 +114,12 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
         </div>
         
         <div className="modal-body">
-          {/* Puntos disponibles */}
           <div className="points-available-card">
             <span className="points-label">Tus puntos disponibles</span>
             <span className="points-value">{formatNumber(userPoints)}</span>
             <span className="points-level">Nivel {userLevel}</span>
           </div>
           
-          {/* Lista de beneficios */}
           <div className="benefits-list-modal">
             <h3>Beneficios disponibles para ti</h3>
             <div className="benefits-grid-modal">
@@ -154,7 +149,6 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
             </div>
           </div>
           
-          {/* Resumen del canje */}
           {selectedBenefit && (
             <div className="redemption-summary">
               <h4>Resumen del canje</h4>
