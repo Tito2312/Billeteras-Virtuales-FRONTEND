@@ -1,9 +1,10 @@
+// Register.js - Formulario de registro
+
 import React, { useState } from 'react';
 import { register } from '../../API/auth';
 import './Auth.css';
 
 const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
-  // Estados para los campos del formulario
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -16,7 +17,6 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Manejar cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -25,10 +25,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     }));
   };
 
-  // Validar el formulario
   const validateForm = () => {
-    // validar que TODOS los campos estén llenos
-    // nombre, email, password, confirmPassword, telefono, documento son OBLIGATORIOS
     if (!formData.nombre || !formData.email || !formData.password || !formData.confirmPassword || !formData.telefono || !formData.documento) {
       setError('Por favor completa TODOS los campos');
       return false;
@@ -44,20 +41,17 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
       return false;
     }
 
-    // Validar formato de email básico
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setError('Ingresa un correo electrónico válido');
       return false;
     }
 
-    // Validar que el teléfono tenga al menos 7 dígitos (básico)
     if (formData.telefono.length < 7) {
       setError('Ingresa un número de teléfono válido (mínimo 7 dígitos)');
       return false;
     }
 
-    // Validar que el documento tenga al menos 5 caracteres
     if (formData.documento.length < 5) {
       setError('Ingresa un número de documento válido (mínimo 5 caracteres)');
       return false;
@@ -66,7 +60,6 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     return true;
   };
 
-  // Manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -74,25 +67,40 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     setLoading(true);
 
     if (!validateForm()) {
-        setLoading(false);
-        return;
+      setLoading(false);
+      return;
     }
 
-    const result = await register({
-        nombre: formData.nombre,
-        email: formData.email,
-        password: formData.password,
-        telefono: formData.telefono
-    });
+    const userData = {
+      nombre: formData.nombre,
+      email: formData.email,
+      password: formData.password,
+      telefono: formData.telefono,
+      documento: formData.documento
+    };
 
+    const result = await register(userData);
+    
     if (result.success) {
-        setSuccess(result.message);
-        setTimeout(() => onRegisterSuccess(), 2000);
+      setSuccess(result.message);
+      setFormData({
+        nombre: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        telefono: '',
+        documento: ''
+      });
+      // No redirigimos automáticamente, mostramos mensaje de éxito
+      setTimeout(() => {
+        setSuccess('');
+      }, 8000);
     } else {
-        setError(result.message);
+      setError(result.message);
     }
+    
     setLoading(false);
-};
+  };
 
   return (
     <div className="auth-container">
@@ -117,7 +125,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
             </div>
 
             <div className="form-group">
-              <label htmlFor="documento">Documento *</label> 
+              <label htmlFor="documento">Documento *</label>
               <input
                 type="text"
                 id="documento"
@@ -142,7 +150,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="telefono">Teléfono *</label> 
+            <label htmlFor="telefono">Teléfono *</label>
             <input
               type="tel"
               id="telefono"

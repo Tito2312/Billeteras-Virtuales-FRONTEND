@@ -1,5 +1,9 @@
 /* Modals.css - Estilos comunes para todos los modales de transacciones */
 
+/* ============================================ */
+/* BASE DEL MODAL */
+/* ============================================ */
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -42,6 +46,10 @@
   }
 }
 
+/* ============================================ */
+/* HEADER DEL MODAL */
+/* ============================================ */
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -72,6 +80,10 @@
 .modal-close:hover {
   background: #e2e8f0;
 }
+
+/* ============================================ */
+/* FORMULARIOS */
+/* ============================================ */
 
 .modal-content form {
   padding: 24px;
@@ -148,7 +160,6 @@
   transform: translateY(-1px);
 }
 
-/* Botón confirmar principal - MORADO (para Recargar, Retirar, Transferir) */
 .btn-confirm {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -165,30 +176,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Botón de reversión */
-.btn-reverse-modal {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s;
-}
-
-.btn-reverse-modal:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
-}
-
-.btn-reverse-modal:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Botón editar (morado) */
 .btn-edit-modal {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -205,7 +192,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Botón crear (morado) */
 .btn-create-modal {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -222,7 +208,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Botón eliminar (rojo) */
 .btn-delete {
   padding: 10px 24px;
   background: #ef4444;
@@ -241,11 +226,15 @@
 }
 
 /* ============================================ */
-/* ESTILOS ESPECÍFICOS PARA EL MODAL DE REVERSIÓN */
+/* MODAL DE REVERSIÓN - ESTILOS MEJORADOS */
 /* ============================================ */
 
 .modal-reversal {
-  max-width: 600px;
+  max-width: 650px;
+}
+
+.modal-reversal .modal-body {
+  padding: 24px;
 }
 
 .modal-reversal-header {
@@ -278,112 +267,136 @@
 .reversal-policy-card {
   background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   margin-bottom: 24px;
   border-left: 4px solid #7c3aed;
+}
+
+.reversal-policy-card h3 {
+  font-size: 16px;
+  color: #5b21b6;
+  margin-bottom: 12px;
+  font-weight: 600;
 }
 
 .reversal-policy-card p {
   font-size: 13px;
   color: #4c1d95;
   line-height: 1.5;
-}
-
-/* Lista de transacciones reversibles */
-.reversible-list-modal {
-  margin-bottom: 24px;
-}
-
-.reversible-list-modal h3 {
-  font-size: 16px;
-  color: #1e1b4b;
   margin-bottom: 12px;
 }
 
-.reversible-items {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 250px;
-  overflow-y: auto;
+.reversal-policy-card ul {
+  margin-left: 20px;
+  margin-top: 8px;
 }
 
-.reversible-item-modal {
+.reversal-policy-card li {
+  font-size: 13px;
+  color: #4c1d95;
+  margin: 6px 0;
+}
+
+/* Lista de transferencias reversibles */
+.reversible-list-section {
+  margin-bottom: 24px;
+}
+
+.reversible-list-section h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #f3e8ff;
+}
+
+.reversible-items-list {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px;
-  background: #faf5ff;
-  border-radius: 14px;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.reversible-item {
+  position: relative;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 16px;
   cursor: pointer;
   transition: all 0.2s;
   border: 2px solid transparent;
-  position: relative;
 }
 
-.reversible-item-modal:hover {
+.reversible-item:hover {
   background: #f3e8ff;
   transform: translateX(4px);
 }
 
-.reversible-item-modal.selected {
-  border-color: #7c3aed;
+.reversible-item.selected {
   background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #7c3aed;
 }
 
-.reversible-info-modal {
+.reversible-item-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.reversible-icon-modal {
-  width: 40px;
-  height: 40px;
+.reversible-item-icon {
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
-  border-radius: 12px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 24px;
 }
 
-.reversible-desc-modal {
-  font-weight: 600;
-  color: #1e1b4b;
-  margin-bottom: 4px;
-  font-size: 14px;
+.reversible-item-details {
+  flex: 1;
 }
 
-.reversible-date-modal {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-.reversible-amount-modal {
-  text-align: right;
-}
-
-.reversible-amount-modal .amount-value {
-  display: block;
+.reversible-item-amount {
+  font-size: 16px;
   font-weight: 700;
   color: #1e1b4b;
-  font-size: 14px;
 }
 
-.reversible-amount-modal .points-value {
-  display: block;
+.reversible-item-date {
   font-size: 11px;
-  color: #7c3aed;
-  font-weight: 600;
+  color: #6b7280;
+  margin-top: 4px;
 }
 
-.selected-check {
+.reversible-item-wallets {
+  font-size: 10px;
+  font-family: monospace;
+  color: #7c3aed;
+  margin-top: 4px;
+}
+
+.reversible-item-points {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f59e0b;
+  background: #fef3c7;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.reversible-item-check {
   position: absolute;
-  right: 8px;
   top: 8px;
-  width: 20px;
-  height: 20px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
   background: #7c3aed;
   border-radius: 50%;
   display: flex;
@@ -393,57 +406,333 @@
   font-size: 12px;
 }
 
+/* Detalles de la transferencia seleccionada */
+.reversal-details-section {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.reversal-details-section h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.details-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e9d5ff;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+  text-align: right;
+}
+
+.detail-value.highlight {
+  color: #7c3aed;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.detail-value.warning {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.id-value {
+  font-family: monospace;
+  font-size: 11px;
+  word-break: break-all;
+  max-width: 60%;
+}
+
+/* Estado de carga */
+.loading-transactions {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 16px;
+}
+
+.loading-spinner-small {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 12px;
+}
+
+/* Estado vacío */
+.empty-reversible {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 16px;
+  color: #6b7280;
+}
+
+.empty-reversible p {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1e1b4b;
+}
+
+.empty-reversible span {
+  font-size: 12px;
+}
+
+/* Mensaje de error */
+.reversal-error {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  font-size: 13px;
+  text-align: center;
+}
+
 /* Consecuencias */
 .reversal-consequences {
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  background: #fef2f2;
   border-radius: 12px;
-  padding: 12px 16px;
-  font-size: 12px;
-  border: 1px solid #e9d5ff;
+  padding: 16px;
   margin-top: 16px;
+  border: 1px solid #fee2e2;
 }
 
-.reversal-consequences ul {
-  margin-left: 20px;
-  color: #4c1d95;
+.consequences-title {
+  font-weight: 600;
+  color: #991b1b;
+  margin-bottom: 8px;
+  font-size: 13px;
 }
 
-.reversal-consequences li {
-  margin: 4px 0;
+.reversal-consequences p {
+  font-size: 12px;
+  color: #7f1d1d;
+  margin: 0;
 }
 
 /* Botones del modal de reversión */
 .reversal-buttons {
   padding: 20px 24px;
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-  border-radius: 0 0 24px 24px;
-  margin-top: 0;
-  border-top: 1px solid #e9d5ff;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
 }
 
-/* Empty state */
-.empty-reversible-modal {
-  text-align: center;
-  padding: 32px;
-  background: #faf5ff;
-  border-radius: 16px;
-  color: #6b7280;
-  border: 1px solid #e9d5ff;
+.btn-reverse-modal {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
 }
 
-.empty-reversible-modal p {
+.btn-reverse-modal:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-reverse-modal:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================ */
+/* TARJETAS DE SELECCIÓN (TransferModal) */
+/* ============================================ */
+
+.section-label {
+  display: block;
+  font-size: 14px;
   font-weight: 600;
-  margin-bottom: 6px;
-  color: #5b21b6;
+  color: #1e1b4b;
+  margin-bottom: 12px;
+}
+
+.destination-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.destination-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.destination-card:hover {
+  background: #f3e8ff;
+  border-color: #c4b5fd;
+}
+
+.destination-card.selected {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #7c3aed;
+}
+
+.destination-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.destination-info {
+  flex: 1;
+}
+
+.destination-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 4px;
+}
+
+.destination-info p {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.destination-radio {
+  flex-shrink: 0;
+}
+
+.custom-radio {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #c4b5fd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.custom-radio.checked {
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+.custom-radio.checked span {
+  color: white;
+  font-size: 12px;
+}
+
+/* ============================================ */
+/* INPUTS CON ICONOS */
+/* ============================================ */
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 16px;
+  color: #7c3aed;
+}
+
+.input-with-icon input,
+.input-with-icon select {
+  width: 100%;
+  padding: 12px 12px 12px 42px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: white;
+}
+
+.input-with-icon input:focus,
+.input-with-icon select:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.field-hint {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 8px;
+  padding: 8px;
+  background: #fef3c7;
+  border-radius: 8px;
+  color: #92400e;
+}
+
+/* ============================================ */
+/* ANIMACIONES */
+/* ============================================ */
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* ============================================ */
 /* RESPONSIVE */
 /* ============================================ */
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .modal-content {
     width: 95%;
+    max-width: 95%;
   }
   
   .modal-buttons {
@@ -454,22 +743,66 @@
     width: 100%;
   }
   
-  .reversal-stats-modal {
+  .destination-cards {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
   }
   
-  .reversible-item-modal {
+  .reversible-item-info {
     flex-direction: column;
     text-align: center;
-    gap: 10px;
   }
   
-  .reversible-info-modal {
+  .reversible-item-points {
+    white-space: normal;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .detail-value {
+    text-align: left;
+  }
+  
+  .id-value {
+    max-width: 100%;
+  }
+  
+  .reversal-buttons {
     flex-direction: column;
   }
   
-  .reversible-amount-modal {
-    text-align: center;
+  .reversal-buttons button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-reversal .modal-body {
+    padding: 16px;
+  }
+  
+  .reversal-policy-card {
+    padding: 16px;
+  }
+  
+  .reversal-details-section {
+    padding: 16px;
+  }
+  
+  .reversible-item {
+    padding: 12px;
+  }
+  
+  .reversible-item-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .reversible-item-amount {
+    font-size: 14px;
   }
 }

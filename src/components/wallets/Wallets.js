@@ -1,7 +1,9 @@
-// Wallets.js - Página de gestión de billeteras (SIN botones Recargar/Transferir/Retirar)
+// Wallets.js - Página de gestión de billeteras (CONECTADO A API)
+// Sin emojis, ID siempre visible
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getUserWallets, createWallet, updateWallet, getCurrentUser } from '../../API/auth';
+import { getUserWallets, createWallet, updateWallet } from '../../API/wallets';
+import { getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
 import EditWalletModal from './EditWalletModal';
 import DeleteWalletModal from './DeleteWalletModal';
@@ -176,10 +178,10 @@ const Wallets = ({ user }) => {
                 {menuOpenId === wallet.id && (
                   <div className="menu-dropdown">
                     <button onClick={() => openEditModal(wallet)}>
-                      ✏️ Editar
+                      Editar
                     </button>
                     <button onClick={() => openDeleteModal(wallet)} className="danger">
-                      🗑️ Eliminar
+                      Eliminar
                     </button>
                   </div>
                 )}
@@ -189,6 +191,15 @@ const Wallets = ({ user }) => {
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
             </div>
+            
+            {/* ID de billetera - siempre visible */}
+            <div className="wallet-id-section-full">
+              <span className="wallet-id-label">ID de Billetera:</span>
+              <div className="wallet-id-value-full">
+                <span className="id-text-full">{wallet.id}</span>
+              </div>
+            </div>
+            
             <p className="wallet-status">
               Estado: <span className={wallet.active ? 'status-active' : 'status-inactive'}>
                 {wallet.active ? 'Activa' : 'Inactiva'}

@@ -21,13 +21,20 @@
   font-size: 14px;
 }
 
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+
 .profile-container {
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 32px;
 }
 
-/* Sidebar */
+/* ============================================
+   SIDEBAR DEL PERFIL (izquierda)
+   ============================================ */
+
 .profile-sidebar {
   background: white;
   border-radius: 24px;
@@ -87,26 +94,78 @@
 .profile-stats {
   border-top: 1px solid #e2e8f0;
   padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .stat-item {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
   padding: 10px 0;
 }
 
 .stat-label {
   font-size: 12px;
+  font-weight: 600;
   color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .stat-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+/* ID con botón de copiar */
+.stat-value-with-copy {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.stat-value-id {
   font-size: 12px;
   font-weight: 600;
   color: #1e1b4b;
+  background: #f1f5f9;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-family: monospace;
+  word-break: break-all;
 }
 
-/* Formulario */
+.btn-copy-id {
+  background: #f3e8ff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.btn-copy-id:hover {
+  background: #e9d5ff;
+  transform: scale(1.05);
+}
+
+.stat-hint {
+  display: block;
+  font-size: 10px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* ============================================
+   FORMULARIO DEL PERFIL (derecha)
+   ============================================ */
+
 .profile-form-container {
   background: white;
   border-radius: 24px;
@@ -124,15 +183,16 @@
 }
 
 .form-header h2 {
-  font-size: 18px;
+  font-size: 20px;
   color: #1e1b4b;
+  font-weight: 600;
 }
 
 .btn-edit-profile {
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
+  padding: 8px 20px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 13px;
@@ -145,6 +205,7 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
+/* Formulario */
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -176,16 +237,44 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.level-display {
-  font-weight: 700;
+.email-field {
+  background: #f8fafc;
+  color: #64748b;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-bottom: none;
 }
 
+.disabled-field {
+  background: #f1f5f9;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-bottom: none;
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.level-display {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.field-hint {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Inputs en modo edición */
 .form-group input {
   padding: 10px 14px;
   border: 2px solid #e2e8f0;
   border-radius: 10px;
   font-size: 14px;
   transition: all 0.2s;
+  width: 100%;
 }
 
 .form-group input:focus {
@@ -203,6 +292,7 @@
   color: #ef4444;
 }
 
+/* Botones del formulario */
 .form-buttons {
   display: flex;
   justify-content: flex-end;
@@ -219,6 +309,11 @@
   border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
 }
 
 .btn-save {
@@ -237,29 +332,9 @@
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .profile-page {
-    padding: 20px;
-  }
-  
-  .profile-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .form-header {
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-  }
-
-  /* Agregar al final de Profile.css */
+/* ============================================
+   LOADING
+   ============================================ */
 
 .loading-container-profile {
   display: flex;
@@ -280,16 +355,58 @@
   margin-bottom: 16px;
 }
 
-.disabled-field {
-  background: #f1f5f9;
-  cursor: not-allowed;
-  opacity: 0.7;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.field-hint {
-  display: block;
-  font-size: 11px;
-  color: #6b7280;
-  margin-top: 4px;
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding: 20px;
+  }
+  
+  .profile-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .form-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .stat-value-with-copy {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
+
+@media (max-width: 480px) {
+  .profile-page {
+    padding: 16px;
+  }
+  
+  .profile-sidebar {
+    padding: 20px;
+  }
+  
+  .profile-form-container {
+    padding: 20px;
+  }
+  
+  .avatar-large {
+    width: 90px;
+    height: 90px;
+    font-size: 32px;
+  }
 }

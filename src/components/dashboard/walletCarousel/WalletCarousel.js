@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import WalletCard from '../walletCard/WalletCard';
 import './WalletCarousel.css';
 
-const WalletCarousel = ({ wallets }) => {
+const WalletCarousel = ({ wallets, onRecharge, onTransfer, onWithdraw }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [cardsPerPage, setCardsPerPage] = useState(3);
   
@@ -85,6 +85,10 @@ const WalletCarousel = ({ wallets }) => {
                 name={wallet.name}
                 type={wallet.type}
                 balance={wallet.balance}
+                walletId={wallet.id}
+                onRecharge={() => onRecharge && onRecharge(wallet)}
+                onTransfer={() => onTransfer && onTransfer(wallet)}
+                onWithdraw={() => onWithdraw && onWithdraw(wallet)}
               />
             </div>
           ))}
