@@ -44,6 +44,10 @@ const handleResponse = async (response) => {
 // BILLETERAS
 // ============================================
 
+/**
+ * Crear una nueva billetera
+ * POST /api/wallets
+ */
 export const createWallet = async (walletData) => {
   try {
     const url = `${BASE_URL}/wallets`;
@@ -71,12 +75,17 @@ export const createWallet = async (walletData) => {
   }
 };
 
+/**
+ * Obtener todas las billeteras de un usuario
+ * GET /api/wallets/user/{userId}
+ */
 export const getUserWallets = async (userId) => {
   try {
     const url = `${BASE_URL}/wallets/user/${userId}`;
     const token = localStorage.getItem('auth_token');
     
     const params = {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -91,12 +100,17 @@ export const getUserWallets = async (userId) => {
   }
 };
 
+/**
+ * Obtener billetera por ID
+ * GET /api/wallets/{id}?userId={userId}
+ */
 export const getWalletById = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
     const token = localStorage.getItem('auth_token');
     
     const params = {
+      method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -111,6 +125,10 @@ export const getWalletById = async (id, userId) => {
   }
 };
 
+/**
+ * Actualizar billetera
+ * PUT /api/wallets/{id}?userId={userId}
+ */
 export const updateWallet = async (id, userId, walletData) => {
   try {
     const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
@@ -138,6 +156,10 @@ export const updateWallet = async (id, userId, walletData) => {
   }
 };
 
+/**
+ * Activar billetera
+ * PATCH /api/wallets/{id}/activate?userId={userId}
+ */
 export const activateWallet = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}/activate?userId=${userId}`;
@@ -159,6 +181,10 @@ export const activateWallet = async (id, userId) => {
   }
 };
 
+/**
+ * Desactivar billetera
+ * PATCH /api/wallets/{id}/deactivate?userId={userId}
+ */
 export const deactivateWallet = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}/deactivate?userId=${userId}`;
@@ -180,6 +206,10 @@ export const deactivateWallet = async (id, userId) => {
   }
 };
 
+/**
+ * Obtener balance de billetera
+ * POST /api/wallets/{id}/balance?userId={userId}
+ */
 export const getWalletBalance = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}/balance?userId=${userId}`;

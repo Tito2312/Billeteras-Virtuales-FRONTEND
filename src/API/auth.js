@@ -217,13 +217,10 @@ export const verifyEmail = async (token) => {
     
     const response = await fetch(url, params);
     
-    // Leer como texto primero
     const textResponse = await response.text();
     console.log('Respuesta del backend:', textResponse);
     
-    // Si la respuesta está vacía pero el status es OK, consideramos éxito
     if (response.ok) {
-      // Intentar parsear como JSON, si falla usar el texto
       let result;
       try {
         result = JSON.parse(textResponse);
@@ -237,7 +234,6 @@ export const verifyEmail = async (token) => {
       };
     }
     
-    // Si hay error, intentar obtener el mensaje
     let errorMessage = 'Error al verificar la cuenta';
     try {
       const errorJson = JSON.parse(textResponse);
@@ -255,4 +251,34 @@ export const verifyEmail = async (token) => {
       message: error.message || 'Error al verificar la cuenta. El enlace puede haber expirado.'
     };
   }
-}; 
+};
+
+// ============================================
+// BILLETERAS (AGREGADO PARA ANALÍTICA)
+// ============================================
+
+/**
+ * Obtener todas las billeteras de un usuario
+ * GET /api/wallets/user/{userId}
+ */
+export const getUserWallets = async (userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/user/${userId}`;
+    const token = getToken();
+    
+    const params = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener billeteras:', error);
+    return { success: false, message: error.message, data: [] };
+  }
+};

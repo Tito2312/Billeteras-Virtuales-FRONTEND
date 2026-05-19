@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import WalletCarousel from './walletCarousel/WalletCarousel';
 import UserMenu from '../common/UserMenu';
 import NotificationBell from '../notifications/notificationBell/NotificationBell';
-import { getUserWallets } from '../../API/wallets';
-import { getUserTransactions } from '../../API/transactions';
+import { getUserWallets } from '../../API/wallets'; 
+import { getUserTransactions } from '../../API/analytics';
 import { getCurrentUser } from '../../API/auth';
 import RechargeModal from '../transactions/RechargeModal';
 import WithdrawModal from '../transactions/WithdrawModal';
@@ -32,88 +32,20 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   // Función para obtener la descripción de la transacción
   const getTransactionDescription = (t) => {
     if (t.type === 'RECHARGE') {
-      return `Recarga a ${t.targetWallet || 'billetera'}`;
+      return `Recarga a billetera`;
     } else if (t.type === 'WITHDRAWAL') {
-      return `Retiro de ${t.sourceWallet || 'billetera'}`;
+      return `Retiro de billetera`;
     } else if (t.type === 'TRANSFER') {
       if (t.userId === userId) {
-        return `Transferencia a ${t.targetWallet || 'usuario'}`;
+        return `Transferencia enviada`;
       } else {
-        return `Recibiste transferencia de ${t.sourceWallet || 'usuario'}`;
+        return `Transferencia recibida`;
       }
     }
     return 'Transacción';
   };
   
-  // Calcular la evolución del balance por día
-  const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
-    const currentBalance = walletsList.reduce((sum, w) => sum + (w.balance || 0), 0);
-    const last7Days = getLast7Days();
-    
-    if (!transactionsList || transactionsList.length === 0) {
-      const evolution = last7Days.map(day => ({
-        day: day.label,
-        value: currentBalance,
-        fullDate: day.date
-      }));
-      setChartData(evolution);
-      return;
-    }
-    
-    const sortedTransactions = [...transactionsList].sort((a, b) => 
-      new Date(a.createdAt) - new Date(b.createdAt)
-    );
-    
-    const balanceMap = new Map();
-    
-    last7Days.forEach(day => {
-      balanceMap.set(day.date, 0);
-    });
-    
-    for (const day of last7Days) {
-      let dayBalance = 0;
-      const dayEnd = new Date(day.date + 'T23:59:59');
-      
-      for (const trans of sortedTransactions) {
-        const transDate = new Date(trans.createdAt);
-        
-        if (transDate <= dayEnd) {
-          let amountChange = 0;
-          
-          switch (trans.type) {
-            case 'RECHARGE':
-              amountChange = trans.amount;
-              break;
-            case 'WITHDRAWAL':
-              amountChange = -trans.amount;
-              break;
-            case 'TRANSFER':
-              if (trans.userId === userId) {
-                amountChange = -trans.amount;
-              } else if (trans.receiverUserId === userId) {
-                amountChange = trans.amount;
-              }
-              break;
-            default:
-              amountChange = 0;
-          }
-          
-          dayBalance += amountChange;
-        }
-      }
-      
-      balanceMap.set(day.date, Math.max(dayBalance, 0));
-    }
-    
-    const evolution = last7Days.map(day => ({
-      day: day.label,
-      value: balanceMap.get(day.date),
-      fullDate: day.date
-    }));
-    
-    setChartData(evolution);
-  }, [userId]);
-  
+  // Obtener los últimos 7 días
   const getLast7Days = () => {
     const days = [];
     const today = new Date();
@@ -129,6 +61,96 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     }
     
     return days;
+  };
+  
+  // Calcular la evolución del balance por día
+  const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
+    const last7Days = getLast7Days();
+    const currentBalance = walletsList.reduce((sum, w) => sum + (w.balance || 0), 0);
+    
+    // Si no hay transacciones, todos los días muestran el balance actual
+    if (!transactionsList || transactionsList.length === 0) {
+      const evolution = last7Days.map(day => ({
+        day: day.label,
+        value: currentBalance,
+        fullDate: day.date
+      }));
+      setChartData(evolution);
+      return;
+    }
+    
+    // Ordenar transacciones por fecha
+    const sortedTransactions = [...transactionsList].sort((a, b) => 
+      new Date(a.createdAt) - new Date(b.createdAt)
+    );
+    
+    // Calcular balance acumulado por día
+    let runningBalance = 0;
+    const dailyBalances = {};
+    
+    // Inicializar todos los días
+    last7Days.forEach(day => {
+      dailyBalances[day.date] = 0;
+    });
+    
+    // Procesar cada día
+    for (const day of last7Days) {
+      const dayEnd = new Date(day.date + 'T23:59:59');
+      
+      for (const trans of sortedTransactions) {
+        const transDate = new Date(trans.createdAt);
+        
+        if (transDate <= dayEnd) {
+          let amountChange = 0;
+          switch (trans.type) {
+            case 'RECHARGE':
+              amountChange = trans.amount;
+              break;
+            case 'WITHDRAWAL':
+              amountChange = -trans.amount;
+              break;
+            case 'TRANSFER':
+              if (trans.userId === userId && !trans.receiverUserId) {
+                amountChange = -trans.amount;
+              } else if (trans.receiverUserId === userId) {
+                amountChange = trans.amount;
+              }
+              break;
+            default:
+              amountChange = 0;
+          }
+          runningBalance += amountChange;
+        }
+      }
+      dailyBalances[day.date] = Math.max(runningBalance, 0);
+    }
+    
+    // Convertir a array para el gráfico
+    const evolution = last7Days.map(day => ({
+      day: day.label,
+      value: dailyBalances[day.date],
+      fullDate: day.date
+    }));
+    
+    console.log('📈 Evolución:', evolution);
+    setChartData(evolution);
+  }, [userId]);
+  
+  // Calcular altura de barra - PROPORCIONAL al valor máximo
+  const getBarHeight = (value) => {
+    if (chartData.length === 0) return 5;
+    
+    const values = chartData.map(d => d.value);
+    const maxValue = Math.max(...values, 1);
+    
+    if (maxValue === 0) return 5;
+    if (value === 0) return 5;
+    
+    // Altura proporcional: (value / maxValue) * 90% (para dejar espacio arriba)
+    let height = (value / maxValue) * 90;
+    
+    // Mínimo 8% para que se vea aunque sea poco
+    return Math.max(height, 8);
   };
   
   // Cargar billeteras y transacciones
@@ -180,11 +202,11 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       description: getTransactionDescription(t),
       date: t.createdAt ? new Date(t.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '',
       amount: t.amount,
-      status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : 'Reversada',
+      status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : t.status === 'REVERSED' ? 'Reversada' : 'Pendiente',
       isPositive: t.type === 'RECHARGE' || (t.type === 'TRANSFER' && t.receiverUserId === userId)
     }));
   
-  // Handlers para abrir modales desde las billeteras
+  // Handlers para abrir modales
   const handleRecharge = (wallet) => {
     setSelectedWallet(wallet);
     setShowRechargeModal(true);
@@ -201,7 +223,6 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   };
   
   const handleTransactionSuccess = async () => {
-    // Recargar datos después de una transacción
     const walletsResult = await getUserWallets(userId);
     if (walletsResult.success && walletsResult.data) {
       setUserWallets(walletsResult.data);
@@ -215,8 +236,6 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       setTransactions(transResult.data);
     }
   };
-  
-  const maxValue = Math.max(...chartData.map(d => d.value), totalBalance, 1000);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
@@ -310,17 +329,20 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         <div className="chart-container">
           {chartData.length > 0 ? (
             <div className="chart-bars">
-              {chartData.map((item, index) => (
-                <div key={index} className="chart-bar-wrapper">
-                  <div 
-                    className="chart-bar"
-                    style={{ height: `${Math.max((item.value / maxValue) * 100, 4)}%` }}
-                  >
-                    <span className="chart-tooltip">{formatCurrency(item.value)}</span>
+              {chartData.map((item, index) => {
+                const barHeight = getBarHeight(item.value);
+                return (
+                  <div key={index} className="chart-bar-wrapper">
+                    <div 
+                      className="chart-bar"
+                      style={{ height: `${barHeight}%` }}
+                    >
+                      <span className="chart-tooltip">{formatCurrency(item.value)}</span>
+                    </div>
+                    <span className="chart-label">{item.day}</span>
                   </div>
-                  <span className="chart-label">{item.day}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="no-chart-data">
