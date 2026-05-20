@@ -8,6 +8,7 @@ import AdminAudit from './AdminAudit';
 import AdminReports from './AdminReports';
 import AdminWallets from './AdminWallets';
 import { getAdminStats } from '../../API/admin';
+import AdminTransactions from './AdminTransactions';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -81,6 +82,8 @@ const AdminDashboard = ({ user, onLogout }) => {
       case 'wallets':
         return <AdminWallets />;
       case 'transactions':
+        case 'transactions':
+  return <AdminTransactions />;
         return (
           <div className="admin-placeholder">
             <div className="placeholder-icon">🔄</div>

@@ -287,6 +287,48 @@ export const getAllWallets = async () => {
   }
 };
 
+
+// ============================================
+// TRANSACCIONES (ADMIN)
+// ============================================
+
+/**
+ * Obtener todas las transacciones del sistema (solo admin)
+ * GET /api/transactions
+ */
+export const getAllTransactions = async () => {
+  try {
+    const url = `${BASE_URL}/transactions`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: getHeaders(true)
+    });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener todas las transacciones:', error);
+    return { success: false, message: error.message, data: [] };
+  }
+};
+
+/**
+ * Revertir transacción (admin)
+ * PUT /api/transactions/reverseTransaction?userId={userId}&transactionId={transactionId}
+ */
+export const reverseTransaction = async (userId, transactionId) => {
+  try {
+    const url = `${BASE_URL}/transactions/reverseTransaction?userId=${userId}&transactionId=${transactionId}`;
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: getHeaders(true)
+    });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al revertir transacción:', error);
+    return { success: false, message: error.message };
+  }
+};
 /**
  * Obtener billetera por ID (admin)
  * GET /api/wallets/{id}
