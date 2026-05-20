@@ -460,4 +460,49 @@
   background: #fee2e2;
 }
 
+/* Agregar al final de Wallets.css */
+
+.wallet-transfer-key-full {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  margin: 12px 0;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.key-label-full {
+  opacity: 0.8;
+  font-size: 11px;
+}
+
+.key-value-full {
+  font-family: monospace;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  word-break: break-all;
+  flex: 1;
+}
+
+.btn-copy-key-full {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.btn-copy-key-full:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.05);
+}
+
 }

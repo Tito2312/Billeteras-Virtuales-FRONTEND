@@ -1,5 +1,5 @@
 // Wallets.js - Página de gestión de billeteras (CONECTADO A API)
-// Sin emojis, ID siempre visible
+// Sin emojis, ahora con transferKey (clave) sin ID visible
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserWallets, createWallet, updateWallet } from '../../API/wallets';
@@ -58,6 +58,11 @@ const Wallets = ({ user }) => {
     if (name === 'Viajes') return 'VJ';
     if (name === 'Emergencias') return 'EM';
     return name.substring(0, 2).toUpperCase();
+  };
+  
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('✅ Clave copiada al portapapeles');
   };
   
   const handleCreateWallet = async (walletData) => {
@@ -187,17 +192,25 @@ const Wallets = ({ user }) => {
                 )}
               </div>
             </div>
+            
+            {/* CLAVE DE LA BILLETERA (transferKey) */}
+            {wallet.transferKey && (
+              <div className="wallet-transfer-key-full">
+                <span className="key-label-full">🔑 Clave:</span>
+                <span className="key-value-full">{wallet.transferKey}</span>
+                <button 
+                  className="btn-copy-key-full" 
+                  onClick={() => copyToClipboard(wallet.transferKey)}
+                  title="Copiar clave"
+                >
+                  📋
+                </button>
+              </div>
+            )}
+            
             <div className="wallet-balance-full">
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
-            </div>
-            
-            {/* ID de billetera - siempre visible */}
-            <div className="wallet-id-section-full">
-              <span className="wallet-id-label">ID de Billetera:</span>
-              <div className="wallet-id-value-full">
-                <span className="id-text-full">{wallet.id}</span>
-              </div>
             </div>
             
             <p className="wallet-status">

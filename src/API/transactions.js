@@ -235,3 +235,61 @@ export const getWalletTransactions = async (walletId) => {
     return { success: false, message: error.message, data: [] };
   }
 };
+
+// ============================================
+// NUEVAS FUNCIONES: TRANSFERENCIA POR TRANSFERKEY
+// ============================================
+
+/**
+ * Obtener información de una billetera por su transferKey
+ * GET /api/wallets/by-key/{transferKey}
+ */
+export const getWalletByKey = async (transferKey) => {
+  try {
+    const url = `${BASE_URL}/wallets/by-key/${transferKey}`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    console.log('🔑 Verificando clave:', transferKey);
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener billetera por clave:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Transferir dinero usando transferKey (clave de la billetera destino)
+ * NOTA: Este endpoint debe ser agregado por los del backend
+ * POST /api/transactions/transfer-by-key
+ */
+export const transferByKey = async (userId, sourceWalletId, transferKey, amount, description = '') => {
+  try {
+    const url = `${BASE_URL}/transactions/transfer-by-key?userId=${userId}&sourceWalletId=${sourceWalletId}&transferKey=${transferKey}&amount=${amount}&description=${encodeURIComponent(description)}`;
+    const token = getAuthToken();
+    
+    const params = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    console.log('🔑 Transfiriendo por clave:', url);
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al transferir por clave:', error);
+    return { success: false, message: error.message };
+  }
+};

@@ -1,9 +1,12 @@
 // WalletCard.js - Tarjeta de billetera para el Dashboard
+// Sin ID visible, solo con clave (transferKey)
 
-import React from 'react';
+import React, { useState } from 'react';
 import './WalletCard.css';
 
-const WalletCard = ({ name, type, balance, color = 'purple', walletId, onRecharge, onTransfer, onWithdraw }) => {
+const WalletCard = ({ name, type, balance, color = 'purple', transferKey, onRecharge, onTransfer, onWithdraw }) => {
+  
+  const [copied, setCopied] = useState(false);
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
@@ -21,6 +24,12 @@ const WalletCard = ({ name, type, balance, color = 'purple', walletId, onRecharg
     if (name === 'Viajes') return 'VJ';
     if (name === 'Emergencias') return 'EM';
     return name.substring(0, 2).toUpperCase();
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleRecharge = () => {
@@ -46,6 +55,22 @@ const WalletCard = ({ name, type, balance, color = 'purple', walletId, onRecharg
           <p className="wallet-type">{type}</p>
         </div>
       </div>
+      
+      {/* CLAVE DE LA BILLETERA (transferKey) */}
+      {transferKey && (
+        <div className="wallet-transfer-key">
+          <span className="key-label">🔑 Clave:</span>
+          <span className="key-value">{transferKey}</span>
+          <button 
+            className="btn-copy-key" 
+            onClick={() => copyToClipboard(transferKey)}
+            title="Copiar clave"
+          >
+            {copied ? '✓' : '📋'}
+          </button>
+        </div>
+      )}
+      
       <div className="wallet-balance">
         <span className="balance-label">BALANCE DISPONIBLE</span>
         <span className="balance-value">{formatCurrency(balance)}</span>
