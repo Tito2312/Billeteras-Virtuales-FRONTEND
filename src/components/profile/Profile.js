@@ -2,8 +2,9 @@
 // El correo electrónico NO se puede modificar
 
 import React, { useState, useEffect } from 'react';
-import { getUserById, updateUser } from '../../API/users';
 import { getCurrentUser } from '../../API/auth';
+import { getUserById, updateUser } from '../../API/auth';  // ← CAMBIADO: ahora desde auth.js
+import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Profile.css';
 
 const Profile = ({ user, onUpdateUser }) => {
@@ -25,6 +26,20 @@ const Profile = ({ user, onUpdateUser }) => {
   
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
+  
+  // Función para convertir nivel de inglés a español para mostrar
+  const translateLevel = (level) => {
+    const levelMap = {
+      'Bronze': 'Bronce',
+      'Silver': 'Plata',
+      'Gold': 'Oro',
+      'Platinum': 'Platino'
+    };
+    return levelMap[level] || level || 'Bronce';
+  };
+  
+  // Obtener beneficios según el nivel del usuario
+  const benefits = useLevelBenefits(userData.nivel);
   
   const formatNumber = (value) => {
     return new Intl.NumberFormat('es-CO').format(value || 0);
@@ -54,7 +69,7 @@ const Profile = ({ user, onUpdateUser }) => {
         nombre: apiUser.name || '',
         email: apiUser.email || '',
         telefono: apiUser.phoneNumber || '',
-        documento: apiUser.documento || 'No registrado',
+        documento: apiUser.documentNumber || 'No registrado',  // ← CAMBIADO: documentNumber
         nivel: apiUser.level || 'Bronce',
         puntos: apiUser.points || 0,
         fechaRegistro: formatDate(apiUser.registrationDate),
@@ -68,7 +83,7 @@ const Profile = ({ user, onUpdateUser }) => {
         nombre: apiUser.name || '',
         email: apiUser.email || '',
         telefono: apiUser.phoneNumber || '',
-        documento: apiUser.documento || ''
+        documento: apiUser.documentNumber || ''
       });
       
       const currentStoredUser = getCurrentUser();
@@ -79,7 +94,8 @@ const Profile = ({ user, onUpdateUser }) => {
           email: apiUser.email || '',
           telefono: apiUser.phoneNumber || '',
           nivel: apiUser.level || 'Bronce',
-          puntos: apiUser.points || 0
+          puntos: apiUser.points || 0,
+          documento: apiUser.documentNumber || ''
         };
         localStorage.setItem('user', JSON.stringify(updatedStoredUser));
         if (onUpdateUser) onUpdateUser(updatedStoredUser);
@@ -131,6 +147,7 @@ const Profile = ({ user, onUpdateUser }) => {
     
     const result = await updateUser(userId, {
       name: formData.nombre,
+      email: userData.email,  // ← El email no se puede cambiar, pero lo enviamos igual
       phoneNumber: formData.telefono
     });
     
@@ -151,7 +168,7 @@ const Profile = ({ user, onUpdateUser }) => {
   };
   
   const getLevelColor = () => {
-    switch(userData.nivel) {
+    switch(translateLevel(userData.nivel)) {
       case 'Platino': return '#e5e4e2';
       case 'Oro': return '#ffd700';
       case 'Plata': return '#c0c0c0';
@@ -190,13 +207,41 @@ const Profile = ({ user, onUpdateUser }) => {
               <span>{userData.nombre?.charAt(0) || 'U'}{userData.nombre?.split(' ')[1]?.charAt(0) || ''}</span>
             </div>
             <div className="profile-level" style={{ backgroundColor: getLevelColor() }}>
-              {userData.nivel}
+              {translateLevel(userData.nivel)}
             </div>
             <div className="profile-points">
               <span className="points-icon">⭐</span>
               <span className="points-value">{formatNumber(userData.puntos)} puntos</span>
             </div>
           </div>
+          
+          {/* ========== SECCIÓN: BENEFICIOS ACTIVOS ========== */}
+          <div className="profile-benefits">
+            <h3>Beneficios de {translateLevel(userData.nivel)}</h3>
+            <div className="benefits-list-profile">
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Comisión:</span>
+                <span className="benefit-value">{benefits.formatCommissionRate()}</span>
+              </div>
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Límite diario:</span>
+                <span className="benefit-value">{benefits.formatLimit()}</span>
+              </div>
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Bono de puntos:</span>
+                <span className="benefit-value">{benefits.formatPointsBonus()}</span>
+              </div>
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Prioridad:</span>
+                <span className="benefit-value">
+                  {benefits.processingPriority === 1 ? 'Máxima' : 
+                   benefits.processingPriority === 2 ? 'Alta' :
+                   benefits.processingPriority === 3 ? 'Media' : 'Baja'}
+                </span>
+              </div>
+            </div>
+          </div>
+          
           <div className="profile-stats">
             <div className="stat-item">
               <span className="stat-label">ID de Usuario</span>
@@ -290,7 +335,7 @@ const Profile = ({ user, onUpdateUser }) => {
               <div className="form-group">
                 <label>Nivel</label>
                 <div className="field-value level-display" style={{ color: getLevelColor() }}>
-                  {userData.nivel}
+                  {translateLevel(userData.nivel)}
                 </div>
               </div>
               

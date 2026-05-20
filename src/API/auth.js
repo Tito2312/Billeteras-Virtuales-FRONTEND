@@ -65,7 +65,8 @@ export const register = async (userData) => {
       name: userData.nombre,
       email: userData.email,
       password: userData.password,
-      phone: userData.telefono || ''
+      phone: userData.telefono || '',
+      documentNumber: userData.documento || ''
     };
     
     console.log('📝 Registrando usuario:', { email: body.email, name: body.name });
@@ -89,7 +90,6 @@ export const register = async (userData) => {
   } catch (error) {
     console.error('❌ Error en registro:', error);
     
-    // Mensajes de error más amigables
     let userMessage = 'Error al registrar usuario';
     
     if (error.message?.includes('correo electronico ya esta en uso') || 
@@ -124,7 +124,20 @@ export const login = async (email, password) => {
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     
+    console.log('🔍 Resultado del login:', result);
+    console.log('🔍 Role recibido del backend:', result.role);
+    
     if (result.token) {
+      // Normalizar el role: el backend puede devolver "ROLE_ADMIN", "ADMIN", "admin", etc.
+      let userRole = 'USER';
+      if (result.role) {
+        const roleUpper = result.role.toUpperCase();
+        // Aceptar "ROLE_ADMIN" o "ADMIN" como administrador
+        if (roleUpper === 'ROLE_ADMIN' || roleUpper === 'ADMIN') {
+          userRole = 'ROLE_ADMIN';
+        }
+      }
+      
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user', JSON.stringify({
         id: result.userId,
@@ -132,8 +145,11 @@ export const login = async (email, password) => {
         email: email,
         nivel: result.level || 'Bronce',
         puntos: 0,
+        role: userRole,
         token: result.token
       }));
+      
+      console.log('👤 Usuario guardado con role:', userRole);
     }
     
     return { 
@@ -217,13 +233,10 @@ export const verifyEmail = async (token) => {
     
     const response = await fetch(url, params);
     
-    // Leer como texto primero
     const textResponse = await response.text();
     console.log('Respuesta del backend:', textResponse);
     
-    // Si la respuesta está vacía pero el status es OK, consideramos éxito
     if (response.ok) {
-      // Intentar parsear como JSON, si falla usar el texto
       let result;
       try {
         result = JSON.parse(textResponse);
@@ -237,7 +250,6 @@ export const verifyEmail = async (token) => {
       };
     }
     
-    // Si hay error, intentar obtener el mensaje
     let errorMessage = 'Error al verificar la cuenta';
     try {
       const errorJson = JSON.parse(textResponse);
@@ -255,4 +267,110 @@ export const verifyEmail = async (token) => {
       message: error.message || 'Error al verificar la cuenta. El enlace puede haber expirado.'
     };
   }
-}; 
+};
+
+// ============================================
+// USUARIOS
+// ============================================
+
+export const getUserById = async (id) => {
+  try {
+    const url = `${BASE_URL}/users/${id}`;
+    const token = getToken();
+    
+    const params = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener usuario:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const updateUser = async (id, userData) => {
+  try {
+    const url = `${BASE_URL}/users/${id}`;
+    const token = getToken();
+    
+    const params = {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: userData.name || userData.nombre,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber || userData.telefono
+      })
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    
+    const currentUser = getCurrentUser();
+    if (currentUser && currentUser.id === id) {
+      const updatedUser = {
+        ...currentUser,
+        nombre: result.name,
+        email: result.email,
+        telefono: result.phoneNumber
+      };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+    
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al actualizar usuario:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+// ============================================
+// BILLETERAS
+// ============================================
+
+export const getUserWallets = async (userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/user/${userId}`;
+    const token = getToken();
+    
+    const params = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    const response = await fetch(url, params);
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener billeteras:', error);
+    return { success: false, message: error.message, data: [] };
+  }
+};
+
+// ============================================
+// ADMIN
+// ============================================
+
+/**
+ * Verificar si el usuario actual es administrador
+ * El backend usa "ROLE_ADMIN" como valor del enum
+ */
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  const role = user?.role;
+  // Aceptar "ROLE_ADMIN" o "ADMIN" como administrador
+  return role === 'ROLE_ADMIN' || role === 'ADMIN';
+};

@@ -409,4 +409,50 @@
     height: 90px;
     font-size: 32px;
   }
+
+  /* ============================================
+   BENEFICIOS DEL PERFIL
+   ============================================ */
+
+.profile-benefits {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.profile-benefits h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.benefits-list-profile {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+
+.benefit-item-profile {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.benefit-item-profile:last-child {
+  border-bottom: none;
+}
+
+.benefit-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.benefit-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7c3aed;
+}
 }

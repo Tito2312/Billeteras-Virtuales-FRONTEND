@@ -85,7 +85,7 @@ const WalletCarousel = ({ wallets, onRecharge, onTransfer, onWithdraw }) => {
                 name={wallet.name}
                 type={wallet.type}
                 balance={wallet.balance}
-                walletId={wallet.id}
+                transferKey={wallet.transferKey}
                 onRecharge={() => onRecharge && onRecharge(wallet)}
                 onTransfer={() => onTransfer && onTransfer(wallet)}
                 onWithdraw={() => onWithdraw && onWithdraw(wallet)}
