@@ -5,13 +5,21 @@ import './AdminSidebar.css';
 
 const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'users', label: 'Usuarios', icon: '👥' },
-    { id: 'audit', label: 'Auditoría', icon: '📋' },
-    { id: 'reports', label: 'Reportes', icon: '📈' },
-    { id: 'wallets', label: 'Billeteras', icon: '💳' },
-    { id: 'transactions', label: 'Transacciones', icon: '🔄' }
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/admin' },
+    { id: 'users', label: 'Usuarios', icon: '👥', path: '/admin/users' },
+    { id: 'audit', label: 'Auditoría', icon: '📋', path: '/admin/audit' },
+    { id: 'reports', label: 'Reportes', icon: '📈', path: '/admin/reports' },
+    { id: 'wallets', label: 'Billeteras', icon: '💳', path: '/admin/wallets' },
+    { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' }
   ];
+
+  const handleClick = (item) => {
+    if (item.id === 'dashboard') {
+      window.location.href = '/admin';
+    } else {
+      window.location.href = item.path;
+    }
+  };
 
   return (
     <div className="admin-sidebar">
@@ -25,7 +33,7 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
           <button
             key={item.id}
             className={`admin-sidebar-item ${activeTab === item.id ? 'active' : ''}`}
-            onClick={() => onTabChange(item.id)}
+            onClick={() => handleClick(item)}
           >
             <span className="admin-sidebar-icon">{item.icon}</span>
             <span className="admin-sidebar-label">{item.label}</span>

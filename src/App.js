@@ -51,6 +51,16 @@ const AppContent = () => {
         setActiveTab('analytics');
       } else if (path === '/admin') {
         setActiveTab('admin');
+      } else if (path === '/admin/users') {
+        setActiveTab('admin');
+      } else if (path === '/admin/audit') {
+        setActiveTab('admin');
+      } else if (path === '/admin/reports') {
+        setActiveTab('admin');
+      } else if (path === '/admin/wallets') {
+        setActiveTab('admin');
+      } else if (path === '/admin/transactions') {
+        setActiveTab('admin');
       } else {
         setActiveTab('dashboard');
       }
@@ -141,7 +151,22 @@ const AppContent = () => {
   if (isAdmin()) {
     return (
       <Routes>
-        <Route path="/admin/*" element={
+        <Route path="/admin" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/users" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/audit" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/reports" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/wallets" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/transactions" element={
           <AdminDashboard user={user} onLogout={handleLogout} />
         } />
         <Route path="*" element={<Navigate to="/admin" replace />} />

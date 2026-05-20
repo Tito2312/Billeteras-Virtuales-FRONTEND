@@ -1,15 +1,30 @@
 // AdminDashboard.js - Panel de administración
 
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
 import AdminUsers from './AdminUsers';
 import AdminAudit from './AdminAudit';
 import AdminReports from './AdminReports';
+import AdminWallets from './AdminWallets';
 import { getAdminStats } from '../../API/admin';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
+  
+  // Determinar la pestaña activa desde la URL
+  const getTabFromPath = () => {
+    const path = location.pathname;
+    if (path === '/admin/users') return 'users';
+    if (path === '/admin/audit') return 'audit';
+    if (path === '/admin/reports') return 'reports';
+    if (path === '/admin/wallets') return 'wallets';
+    if (path === '/admin/transactions') return 'transactions';
+    return 'dashboard';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getTabFromPath());
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalAudits: 0,
@@ -19,6 +34,11 @@ const AdminDashboard = ({ user, onLogout }) => {
     adminUsers: 0
   });
   const [loading, setLoading] = useState(true);
+
+  // Sincronizar activeTab con la URL cuando cambia
+  useEffect(() => {
+    setActiveTab(getTabFromPath());
+  }, [location.pathname]);
 
   useEffect(() => {
     const loadStats = async () => {
@@ -32,6 +52,24 @@ const AdminDashboard = ({ user, onLogout }) => {
     loadStats();
   }, []);
 
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    // Navegar a la ruta correspondiente
+    if (tab === 'dashboard') {
+      window.location.href = '/admin';
+    } else if (tab === 'users') {
+      window.location.href = '/admin/users';
+    } else if (tab === 'audit') {
+      window.location.href = '/admin/audit';
+    } else if (tab === 'reports') {
+      window.location.href = '/admin/reports';
+    } else if (tab === 'wallets') {
+      window.location.href = '/admin/wallets';
+    } else if (tab === 'transactions') {
+      window.location.href = '/admin/transactions';
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'users':
@@ -41,13 +79,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       case 'reports':
         return <AdminReports />;
       case 'wallets':
-        return (
-          <div className="admin-placeholder">
-            <div className="placeholder-icon">💳</div>
-            <h2>Billeteras</h2>
-            <p>Próximamente: Gestión de billeteras a nivel administrativo</p>
-          </div>
-        );
+        return <AdminWallets />;
       case 'transactions':
         return (
           <div className="admin-placeholder">
@@ -118,7 +150,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       <div className="admin-layout">
         <AdminSidebar 
           activeTab={activeTab} 
-          onTabChange={setActiveTab}
+          onTabChange={handleTabChange}
           onLogout={onLogout}
           userName={user?.nombre}
         />
@@ -136,7 +168,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     <div className="admin-layout">
       <AdminSidebar 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onLogout={onLogout}
         userName={user?.nombre}
       />

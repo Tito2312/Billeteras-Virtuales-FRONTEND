@@ -238,3 +238,99 @@ export const getAdminStats = async () => {
     return { success: false, message: error.message };
   }
 };
+
+// ============================================
+// BILLETERAS (ADMIN) - Usando el API/wallets existente
+// ============================================
+
+/**
+ * Obtener todas las billeteras del sistema (admin)
+ * Usa el endpoint existente GET /api/wallets/user/{userId} para cada usuario
+ * O si el backend tiene GET /api/wallets, usarlo
+ */
+export const getAllWallets = async () => {
+  try {
+    // Primero obtenemos todos los usuarios
+    const usersResult = await getAllUsers();
+    
+    if (!usersResult.success || !usersResult.data) {
+      return { success: false, message: 'No se pudieron obtener usuarios', data: [] };
+    }
+    
+    const allWallets = [];
+    
+    // Para cada usuario, obtenemos sus billeteras
+    for (const user of usersResult.data) {
+      try {
+        const url = `${BASE_URL}/wallets/user/${user.id}`;
+        const response = await fetch(url, { method: 'GET', headers: getHeaders(true) });
+        const result = await handleResponse(response);
+        
+        if (Array.isArray(result)) {
+          result.forEach(wallet => {
+            allWallets.push({
+              ...wallet,
+              userName: user.name,
+              userEmail: user.email
+            });
+          });
+        }
+      } catch (err) {
+        console.error(`Error obteniendo billeteras de usuario ${user.id}:`, err);
+      }
+    }
+    
+    return { success: true, data: allWallets };
+  } catch (error) {
+    console.error('Error al obtener todas las billeteras:', error);
+    return { success: false, message: error.message, data: [] };
+  }
+};
+
+/**
+ * Obtener billetera por ID (admin)
+ * GET /api/wallets/{id}
+ */
+export const getWalletById = async (walletId, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${walletId}?userId=${userId}`;
+    const response = await fetch(url, { method: 'GET', headers: getHeaders(true) });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Activar billetera (admin)
+ * PATCH /api/wallets/{id}/activate
+ */
+export const activateWallet = async (walletId, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${walletId}/activate?userId=${userId}`;
+    const response = await fetch(url, { method: 'PATCH', headers: getHeaders(true) });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al activar billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
+ * Desactivar billetera (admin)
+ * PATCH /api/wallets/{id}/deactivate
+ */
+export const deactivateWallet = async (walletId, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/${walletId}/deactivate?userId=${userId}`;
+    const response = await fetch(url, { method: 'PATCH', headers: getHeaders(true) });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al desactivar billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
