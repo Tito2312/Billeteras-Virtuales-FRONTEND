@@ -1,3 +1,5 @@
+/* Analytics.css - Estilos para la página de analítica */
+
 .analytics-page {
   padding: 32px;
   max-width: 1400px;
@@ -63,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .stat-icon-analytics {
@@ -75,6 +77,12 @@
   align-items: center;
   justify-content: center;
   font-size: 28px;
+}
+
+.stat-info-analytics h3 {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 8px;
 }
 
 .stat-number {
@@ -89,9 +97,15 @@
   font-weight: 500;
 }
 
-.stat-change.positive { color: #10b981; }
-.stat-change.negative { color: #ef4444; }
+.stat-change.positive {
+  color: #10b981;
+}
 
+.stat-change.negative {
+  color: #ef4444;
+}
+
+/* Gráficos */
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -103,11 +117,7 @@
   background: white;
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.chart-card.full-width {
-  grid-column: span 2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .chart-header {
@@ -115,77 +125,103 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 20px;
-}
-
-.chart-header h2 { font-size: 18px; color: #1e1b4b; }
-.chart-subtitle { font-size: 12px; color: #9ca3af; }
-.chart-container { height: 300px; }
-
-.distribution-container {
-  display: flex;
-  align-items: center;
-  gap: 40px;
   flex-wrap: wrap;
-  justify-content: center;
-}
-
-.donut-container { width: 250px; height: 250px; }
-
-.wallet-legend {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.chart-header h2 {
+  font-size: 18px;
+  color: #1e1b4b;
 }
 
-.legend-color { width: 12px; height: 12px; border-radius: 4px; }
-.legend-name { font-size: 13px; color: #475569; }
-.legend-percentage { font-weight: 600; color: #1e1b4b; }
+.chart-subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+}
 
-.summary-table {
+.chart-container {
+  height: 300px;
+}
+
+/* Estado vacío */
+.empty-analytics {
+  text-align: center;
+  padding: 60px 20px;
   background: white;
   border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-top: 24px;
 }
 
-.summary-table h2 { font-size: 18px; margin-bottom: 20px; }
-.table-container { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; }
-th { text-align: left; padding: 12px; background: #f8fafc; font-weight: 600; }
-td { padding: 14px 12px; border-bottom: 1px solid #e2e8f0; }
-
-.wallet-badge {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  margin-right: 8px;
+.empty-analytics p {
+  font-size: 18px;
+  color: #1e1b4b;
+  margin-bottom: 8px;
 }
 
-.percentage-bar {
+.empty-analytics span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Loading */
+.loading-container-analytics {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  min-width: 150px;
+  justify-content: center;
+  min-height: 400px;
+  color: #6b7280;
 }
 
-.percentage-fill { height: 8px; border-radius: 4px; transition: width 0.5s; }
+.loading-spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
-  .analytics-page { padding: 24px; }
-  .stats-grid-analytics { gap: 16px; }
+  .analytics-page {
+    padding: 24px;
+  }
+  
+  .stats-grid-analytics {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 768px) {
-  .analytics-page { padding: 16px; }
-  .stats-grid-analytics { grid-template-columns: 1fr; }
-  .charts-grid { grid-template-columns: 1fr; }
-  .chart-card.full-width { grid-column: span 1; }
-  .distribution-container { flex-direction: column; }
+  .analytics-page {
+    padding: 16px;
+  }
+  
+  .stats-grid-analytics {
+    grid-template-columns: 1fr;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .analytics-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .stat-number {
+    font-size: 24px;
+  }
+  
+  .chart-container {
+    height: 250px;
+  }
 }

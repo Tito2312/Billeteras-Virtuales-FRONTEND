@@ -1,35 +1,35 @@
+// Login.js - Formulario de inicio de sesión
+
 import React, { useState } from 'react';
 import { login } from '../../API/auth';
 import './Auth.css';
 
 const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword }) => {
-  // Estados para manejar los campos del formulario
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     if (!email || !password) {
-        setError('Por favor completa todos los campos');
-        setLoading(false);
-        return;
+      setError('Por favor completa todos los campos');
+      setLoading(false);
+      return;
     }
 
     const result = await login(email, password);
-
+    
     if (result.success) {
-        onLoginSuccess(result.user);
+      onLoginSuccess(result.user);
     } else {
-        setError(result.message);
+      setError(result.message);
     }
     setLoading(false);
-};
+  };
 
   return (
     <div className="auth-container">

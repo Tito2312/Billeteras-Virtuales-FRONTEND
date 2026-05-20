@@ -1,25 +1,19 @@
-// auth.js - Servicio de autenticación, usuarios y billeteras
-// Conecta con el backend real (Spring Boot + MongoDB)
-
-// ============================================
-// CONFIGURACIÓN BASE
-// ============================================
+// auth.js - Servicio de autenticación
+// Solo login, registro, gestión de sesión y verificación de email
 
 const BASE_URL = 'http://localhost:8080/api';
 
 // ============================================
-// UTILIDADES
+// UTILIDADES LOCALES
 // ============================================
 
-const getAuthToken = () => localStorage.getItem('auth_token');
-
-const getHeaders = (requiresAuth = true) => {
+const getHeaders = (requiresAuth = false) => {
   const headers = {
     'Content-Type': 'application/json',
   };
   
   if (requiresAuth) {
-    const token = getAuthToken();
+    const token = localStorage.getItem('auth_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
@@ -29,11 +23,24 @@ const getHeaders = (requiresAuth = true) => {
 };
 
 const handleResponse = async (response) => {
+  // Primero leer como texto para evitar errores de parsing
+  const textResponse = await response.text();
+  
+  if (!textResponse || textResponse.trim() === '') {
+    throw {
+      status: response.status,
+      message: 'El servidor no respondió correctamente'
+    };
+  }
+  
   let data;
   try {
-    data = await response.json();
+    data = JSON.parse(textResponse);
   } catch (e) {
-    data = {};
+    throw {
+      status: response.status,
+      message: `Error en la respuesta del servidor: ${textResponse.substring(0, 100)}`
+    };
   }
   
   if (!response.ok) {
@@ -50,7 +57,6 @@ const handleResponse = async (response) => {
 // AUTENTICACIÓN
 // ============================================
 
-// REGISTRO - POST /auth/register
 export const register = async (userData) => {
   try {
     const url = `${BASE_URL}/auth/register`;
@@ -59,8 +65,11 @@ export const register = async (userData) => {
       name: userData.nombre,
       email: userData.email,
       password: userData.password,
-      phone: userData.telefono || ''
+      phone: userData.telefono || '',
+      documentNumber: userData.documento || ''
     };
+    
+    console.log('📝 Registrando usuario:', { email: body.email, name: body.name });
     
     const params = {
       method: 'POST',
@@ -71,21 +80,35 @@ export const register = async (userData) => {
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     
+    console.log('✅ Registro exitoso:', result);
+    
     return { 
       success: true, 
-      message: 'Usuario registrado exitosamente',
+      message: '¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta.',
       data: result 
     };
   } catch (error) {
-    console.error('Error en registro:', error);
+    console.error('❌ Error en registro:', error);
+    
+    let userMessage = 'Error al registrar usuario';
+    
+    if (error.message?.includes('correo electronico ya esta en uso') || 
+        error.message?.includes('email already in use')) {
+      userMessage = 'Este correo electrónico ya está registrado. ¿Deseas iniciar sesión?';
+    } else if (error.status === 0 || error.message?.includes('Failed to fetch')) {
+      userMessage = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+    } else if (error.message) {
+      userMessage = error.message;
+    }
+    
     return { 
       success: false, 
-      message: error.message || 'Error al registrar usuario' 
+      message: userMessage,
+      error: error
     };
   }
 };
 
-// LOGIN - POST /auth/login
 export const login = async (email, password) => {
   try {
     const url = `${BASE_URL}/auth/login`;
@@ -101,7 +124,20 @@ export const login = async (email, password) => {
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     
+    console.log('🔍 Resultado del login:', result);
+    console.log('🔍 Role recibido del backend:', result.role);
+    
     if (result.token) {
+      // Normalizar el role: el backend puede devolver "ROLE_ADMIN", "ADMIN", "admin", etc.
+      let userRole = 'USER';
+      if (result.role) {
+        const roleUpper = result.role.toUpperCase();
+        // Aceptar "ROLE_ADMIN" o "ADMIN" como administrador
+        if (roleUpper === 'ROLE_ADMIN' || roleUpper === 'ADMIN') {
+          userRole = 'ROLE_ADMIN';
+        }
+      }
+      
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user', JSON.stringify({
         id: result.userId,
@@ -109,8 +145,11 @@ export const login = async (email, password) => {
         email: email,
         nivel: result.level || 'Bronce',
         puntos: 0,
+        role: userRole,
         token: result.token
       }));
+      
+      console.log('👤 Usuario guardado con role:', userRole);
     }
     
     return { 
@@ -120,21 +159,29 @@ export const login = async (email, password) => {
     };
   } catch (error) {
     console.error('Error en login:', error);
+    
+    let userMessage = 'Credenciales incorrectas';
+    if (error.message?.includes('Account is disabled') || error.message?.includes('cuenta no verificada')) {
+      userMessage = 'Cuenta no verificada. Revisa tu correo para activar tu cuenta.';
+    } else if (error.status === 0 || error.message?.includes('Failed to fetch')) {
+      userMessage = 'No se pudo conectar con el servidor. Verifica que el backend esté corriendo.';
+    } else if (error.message) {
+      userMessage = error.message;
+    }
+    
     return { 
       success: false, 
-      message: error.message || 'Credenciales incorrectas' 
+      message: userMessage 
     };
   }
 };
 
-// LOGOUT
 export const logout = () => {
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user');
   return { success: true };
 };
 
-// RECUPERAR CONTRASEÑA
 export const resetPassword = async (email) => {
   try {
     const url = `${BASE_URL}/auth/reset-password`;
@@ -158,7 +205,6 @@ export const resetPassword = async (email) => {
   }
 };
 
-// SESIÓN
 export const getCurrentUser = () => {
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
@@ -173,26 +219,73 @@ export const getToken = () => {
 };
 
 // ============================================
-// USUARIOS
+// VERIFICACIÓN DE EMAIL
 // ============================================
 
-export const getAllUsers = async () => {
+export const verifyEmail = async (token) => {
   try {
-    const url = `${BASE_URL}/users`;
-    const params = { headers: getHeaders(true) };
+    const url = `${BASE_URL}/auth/verify-email?token=${token}`;
+    
+    const params = {
+      method: 'GET',
+      headers: getHeaders(false)
+    };
+    
     const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
+    
+    const textResponse = await response.text();
+    console.log('Respuesta del backend:', textResponse);
+    
+    if (response.ok) {
+      let result;
+      try {
+        result = JSON.parse(textResponse);
+      } catch (e) {
+        result = { message: textResponse || 'Cuenta verificada exitosamente' };
+      }
+      
+      return { 
+        success: true, 
+        message: result.message || result || '¡Cuenta verificada exitosamente!'
+      };
+    }
+    
+    let errorMessage = 'Error al verificar la cuenta';
+    try {
+      const errorJson = JSON.parse(textResponse);
+      errorMessage = errorJson.message || errorJson.error || errorMessage;
+    } catch (e) {
+      if (textResponse) errorMessage = textResponse;
+    }
+    
+    throw new Error(errorMessage);
+    
   } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    return { success: false, message: error.message };
+    console.error('Error en verifyEmail:', error);
+    return { 
+      success: false, 
+      message: error.message || 'Error al verificar la cuenta. El enlace puede haber expirado.'
+    };
   }
 };
+
+// ============================================
+// USUARIOS
+// ============================================
 
 export const getUserById = async (id) => {
   try {
     const url = `${BASE_URL}/users/${id}`;
-    const params = { headers: getHeaders(true) };
+    const token = getToken();
+    
+    const params = {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -205,7 +298,7 @@ export const getUserById = async (id) => {
 export const updateUser = async (id, userData) => {
   try {
     const url = `${BASE_URL}/users/${id}`;
-    const token = getAuthToken();
+    const token = getToken();
     
     const params = {
       method: 'PUT',
@@ -227,9 +320,9 @@ export const updateUser = async (id, userData) => {
     if (currentUser && currentUser.id === id) {
       const updatedUser = {
         ...currentUser,
-        nombre: result.name || userData.name || userData.nombre,
-        email: result.email || userData.email,
-        telefono: result.phoneNumber || userData.phoneNumber || userData.telefono
+        nombre: result.name,
+        email: result.email,
+        telefono: result.phoneNumber
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
@@ -241,78 +334,19 @@ export const updateUser = async (id, userData) => {
   }
 };
 
-export const activateUser = async (id) => {
-  try {
-    const url = `${BASE_URL}/users/${id}/activate`;
-    const params = { method: 'PATCH', headers: getHeaders(true) };
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al activar usuario:', error);
-    return { success: false, message: error.message };
-  }
-};
-
-export const deactivateUser = async (id) => {
-  try {
-    const url = `${BASE_URL}/users/${id}/desactivate`;
-    const params = { method: 'PATCH', headers: getHeaders(true) };
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al desactivar usuario:', error);
-    return { success: false, message: error.message };
-  }
-};
-
 // ============================================
 // BILLETERAS
 // ============================================
 
-/**
- * Crear una nueva billetera
- * POST /api/wallets
- */
-export const createWallet = async (walletData) => {
-  try {
-    const url = `${BASE_URL}/wallets`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        name: walletData.name,
-        type: walletData.type,
-        userId: walletData.userId
-      })
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al crear billetera:', error);
-    return { success: false, message: error.message };
-  }
-};
-
-/**
- * Obtener todas las billeteras de un usuario
- * GET /api/wallets/user/{userId}
- */
 export const getUserWallets = async (userId) => {
   try {
     const url = `${BASE_URL}/wallets/user/${userId}`;
-    const token = getAuthToken();
+    const token = getToken();
     
     const params = {
+      method: 'GET',
       headers: {
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
     };
@@ -326,132 +360,17 @@ export const getUserWallets = async (userId) => {
   }
 };
 
-/**
- * Obtener billetera por ID
- * GET /api/wallets/{id}?userId={userId}
- */
-export const getWalletById = async (id, userId) => {
-  try {
-    const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
-    const token = getAuthToken();
-    
-    const params = {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al obtener billetera:', error);
-    return { success: false, message: error.message };
-  }
-};
+// ============================================
+// ADMIN
+// ============================================
 
 /**
- * Actualizar billetera
- * PUT /api/wallets/{id}?userId={userId}
+ * Verificar si el usuario actual es administrador
+ * El backend usa "ROLE_ADMIN" como valor del enum
  */
-export const updateWallet = async (id, userId, walletData) => {
-  try {
-    const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        name: walletData.name,
-        type: walletData.type,
-        userId: userId
-      })
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al actualizar billetera:', error);
-    return { success: false, message: error.message };
-  }
-};
-
-/**
- * Activar billetera
- * PATCH /api/wallets/{id}/activate?userId={userId}
- */
-export const activateWallet = async (id, userId) => {
-  try {
-    const url = `${BASE_URL}/wallets/${id}/activate?userId=${userId}`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al activar billetera:', error);
-    return { success: false, message: error.message };
-  }
-};
-
-/**
- * Desactivar billetera
- * PATCH /api/wallets/{id}/deactivate?userId={userId}
- */
-export const deactivateWallet = async (id, userId) => {
-  try {
-    const url = `${BASE_URL}/wallets/${id}/deactivate?userId=${userId}`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al desactivar billetera:', error);
-    return { success: false, message: error.message };
-  }
-};
-
-/**
- * Obtener balance de billetera
- * POST /api/wallets/{id}/balance?userId={userId}
- */
-export const getWalletBalance = async (id, userId) => {
-  try {
-    const url = `${BASE_URL}/wallets/${id}/balance?userId=${userId}`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, balance: result };
-  } catch (error) {
-    console.error('Error al obtener balance:', error);
-    return { success: false, message: error.message };
-  }
+export const isAdmin = () => {
+  const user = getCurrentUser();
+  const role = user?.role;
+  // Aceptar "ROLE_ADMIN" o "ADMIN" como administrador
+  return role === 'ROLE_ADMIN' || role === 'ADMIN';
 };

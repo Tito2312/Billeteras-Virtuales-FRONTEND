@@ -1,7 +1,9 @@
-// Wallets.js - Página de gestión de billeteras (SIN botones Recargar/Transferir/Retirar)
+// Wallets.js - Página de gestión de billeteras (CONECTADO A API)
+// Sin emojis, ahora con transferKey (clave) sin ID visible
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getUserWallets, createWallet, updateWallet, getCurrentUser } from '../../API/auth';
+import { getUserWallets, createWallet, updateWallet } from '../../API/wallets';
+import { getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
 import EditWalletModal from './EditWalletModal';
 import DeleteWalletModal from './DeleteWalletModal';
@@ -56,6 +58,11 @@ const Wallets = ({ user }) => {
     if (name === 'Viajes') return 'VJ';
     if (name === 'Emergencias') return 'EM';
     return name.substring(0, 2).toUpperCase();
+  };
+  
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('✅ Clave copiada al portapapeles');
   };
   
   const handleCreateWallet = async (walletData) => {
@@ -176,19 +183,36 @@ const Wallets = ({ user }) => {
                 {menuOpenId === wallet.id && (
                   <div className="menu-dropdown">
                     <button onClick={() => openEditModal(wallet)}>
-                      ✏️ Editar
+                      Editar
                     </button>
                     <button onClick={() => openDeleteModal(wallet)} className="danger">
-                      🗑️ Eliminar
+                      Eliminar
                     </button>
                   </div>
                 )}
               </div>
             </div>
+            
+            {/* CLAVE DE LA BILLETERA (transferKey) */}
+            {wallet.transferKey && (
+              <div className="wallet-transfer-key-full">
+                <span className="key-label-full">🔑 Clave:</span>
+                <span className="key-value-full">{wallet.transferKey}</span>
+                <button 
+                  className="btn-copy-key-full" 
+                  onClick={() => copyToClipboard(wallet.transferKey)}
+                  title="Copiar clave"
+                >
+                  📋
+                </button>
+              </div>
+            )}
+            
             <div className="wallet-balance-full">
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
             </div>
+            
             <p className="wallet-status">
               Estado: <span className={wallet.active ? 'status-active' : 'status-inactive'}>
                 {wallet.active ? 'Activa' : 'Inactiva'}

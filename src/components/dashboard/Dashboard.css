@@ -1,7 +1,5 @@
 /* Dashboard.css - Estilos específicos del dashboard */
-/* Este archivo solo afecta al Dashboard, no a otras páginas */
 
-/* Contenedor principal del dashboard */
 .dashboard-main-content {
   padding: 24px 32px;
   width: 100%;
@@ -212,8 +210,9 @@
   display: flex;
   justify-content: space-around;
   align-items: flex-end;
-  height: 250px;
-  gap: 12px;
+  height: 280px;
+  gap: 16px;
+  padding: 10px 0;
 }
 
 .chart-bar-wrapper {
@@ -221,23 +220,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  min-width: 50px;
 }
 
 .chart-bar {
   width: 100%;
-  max-width: 50px;
+  max-width: 60px;
   background: linear-gradient(180deg, #7c3aed 0%, #a855f7 100%);
-  border-radius: 8px 8px 4px 4px;
+  border-radius: 12px 12px 6px 6px;
   transition: all 0.3s ease;
   cursor: pointer;
   position: relative;
-  min-height: 4px;
+  min-height: 20px;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
 
 .chart-bar:hover {
   background: linear-gradient(180deg, #6d28d9 0%, #9333ea 100%);
   transform: scaleX(1.05);
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.5);
 }
 
 .chart-tooltip {
@@ -247,14 +249,16 @@
   transform: translateX(-50%);
   background: #1e1b4b;
   color: white;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .chart-bar:hover .chart-tooltip {
@@ -263,8 +267,9 @@
 
 .chart-label {
   font-size: 11px;
-  color: #6b7280;
+  color: #64748b;
   text-align: center;
+  font-weight: 500;
 }
 
 /* ============================================ */
@@ -347,6 +352,71 @@
 }
 
 /* ============================================ */
+/* ESTADOS DE CARGA Y VACÍOS */
+/* ============================================ */
+
+.loading-container-dashboard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #6b7280;
+}
+
+.loading-spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-chart-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 250px;
+  background: #f8fafc;
+  border-radius: 16px;
+  color: #6b7280;
+}
+
+.no-chart-data p {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.no-chart-data span {
+  font-size: 12px;
+}
+
+.empty-transactions {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 16px;
+  color: #6b7280;
+}
+
+.empty-transactions p {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.empty-transactions span {
+  font-size: 12px;
+}
+
+/* ============================================ */
 /* RESPONSIVE */
 /* ============================================ */
 
@@ -357,6 +427,15 @@
   
   .stats-grid {
     gap: 16px;
+  }
+  
+  .chart-bars {
+    height: 250px;
+    gap: 12px;
+  }
+  
+  .chart-bar-wrapper {
+    min-width: 40px;
   }
 }
 
@@ -381,11 +460,16 @@
   }
   
   .chart-bars {
-    height: 200px;
+    height: 220px;
+    gap: 10px;
   }
   
   .chart-bar {
-    max-width: 35px;
+    max-width: 45px;
+  }
+  
+  .chart-bar-wrapper {
+    min-width: 35px;
   }
   
   .section-header {
@@ -405,8 +489,17 @@
   }
   
   .chart-bars {
-    height: 160px;
-    gap: 6px;
+    height: 180px;
+    gap: 8px;
+  }
+  
+  .chart-bar {
+    max-width: 35px;
+    min-height: 15px;
+  }
+  
+  .chart-bar-wrapper {
+    min-width: 30px;
   }
   
   .chart-label {
@@ -422,23 +515,4 @@
     height: 50px;
     font-size: 20px;
   }
-  /* Loading state */
-.loading-container-dashboard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: #6b7280;
-}
-
-.loading-spinner-small {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #e2e8f0;
-  border-top: 3px solid #7c3aed;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
-}
 }

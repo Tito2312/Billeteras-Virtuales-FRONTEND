@@ -1,17 +1,17 @@
 // Profile.js - Perfil de usuario (ver y editar datos)
-// Conectado a la API real: GET /api/users/{id}, PUT /api/users/{id}
+// El correo electrónico NO se puede modificar
 
 import React, { useState, useEffect } from 'react';
-import { getUserById, updateUser, getCurrentUser } from '../../API/auth';
+import { getCurrentUser } from '../../API/auth';
+import { getUserById, updateUser } from '../../API/auth';  // ← CAMBIADO: ahora desde auth.js
+import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Profile.css';
 
 const Profile = ({ user, onUpdateUser }) => {
-  // Estado para modo edición y carga
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   
-  // Datos del usuario (vienen de la API)
   const [userData, setUserData] = useState({
     id: '',
     nombre: '',
@@ -27,6 +27,20 @@ const Profile = ({ user, onUpdateUser }) => {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   
+  // Función para convertir nivel de inglés a español para mostrar
+  const translateLevel = (level) => {
+    const levelMap = {
+      'Bronze': 'Bronce',
+      'Silver': 'Plata',
+      'Gold': 'Oro',
+      'Platinum': 'Platino'
+    };
+    return levelMap[level] || level || 'Bronce';
+  };
+  
+  // Obtener beneficios según el nivel del usuario
+  const benefits = useLevelBenefits(userData.nivel);
+  
   const formatNumber = (value) => {
     return new Intl.NumberFormat('es-CO').format(value || 0);
   };
@@ -36,71 +50,73 @@ const Profile = ({ user, onUpdateUser }) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+        year: 'numeric', month: 'long', day: 'numeric'
       });
     } catch (e) {
       return dateString;
     }
   };
   
-  // Cargar datos del usuario desde la API
-  useEffect(() => {
-    const loadUserData = async () => {
-      setIsLoading(true);
-      const userId = user?.id || getCurrentUser()?.id;
+  const loadUserData = async (userId) => {
+    setIsLoading(true);
+    
+    const result = await getUserById(userId);
+    
+    if (result.success && result.data) {
+      const apiUser = result.data;
+      const newUserData = {
+        id: apiUser.id,
+        nombre: apiUser.name || '',
+        email: apiUser.email || '',
+        telefono: apiUser.phoneNumber || '',
+        documento: apiUser.documentNumber || 'No registrado',  // ← CAMBIADO: documentNumber
+        nivel: apiUser.level || 'Bronce',
+        puntos: apiUser.points || 0,
+        fechaRegistro: formatDate(apiUser.registrationDate),
+        ultimoAcceso: new Date().toLocaleDateString('es-ES', {
+          day: 'numeric', month: 'long', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        })
+      };
+      setUserData(newUserData);
+      setFormData({
+        nombre: apiUser.name || '',
+        email: apiUser.email || '',
+        telefono: apiUser.phoneNumber || '',
+        documento: apiUser.documentNumber || ''
+      });
       
-      if (!userId) {
-        console.error('No se encontró ID de usuario');
-        setIsLoading(false);
-        return;
-      }
-      
-      const result = await getUserById(userId);
-      
-      if (result.success && result.data) {
-        const apiUser = result.data;
-        setUserData({
-          id: apiUser.id,
+      const currentStoredUser = getCurrentUser();
+      if (currentStoredUser) {
+        const updatedStoredUser = {
+          ...currentStoredUser,
           nombre: apiUser.name || '',
           email: apiUser.email || '',
           telefono: apiUser.phoneNumber || '',
-          documento: apiUser.documento || 'No registrado',
           nivel: apiUser.level || 'Bronce',
           puntos: apiUser.points || 0,
-          fechaRegistro: formatDate(apiUser.registrationDate),
-          ultimoAcceso: new Date().toLocaleDateString('es-ES', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
-        });
-        setFormData({
-          nombre: apiUser.name || '',
-          email: apiUser.email || '',
-          telefono: apiUser.phoneNumber || '',
-          documento: apiUser.documento || ''
-        });
-      } else {
-        console.error('Error al cargar usuario:', result.message);
+          documento: apiUser.documentNumber || ''
+        };
+        localStorage.setItem('user', JSON.stringify(updatedStoredUser));
+        if (onUpdateUser) onUpdateUser(updatedStoredUser);
       }
+    }
+    setIsLoading(false);
+  };
+  
+  useEffect(() => {
+    const userId = user?.id || getCurrentUser()?.id;
+    if (userId) {
+      loadUserData(userId);
+    } else {
       setIsLoading(false);
-    };
-    
-    loadUserData();
-  }, [user]);
+    }
+  }, [user?.id]);
   
   const validateForm = () => {
     const newErrors = {};
     if (!formData.nombre?.trim()) newErrors.nombre = 'El nombre es obligatorio';
-    if (!formData.email?.trim()) newErrors.email = 'El email es obligatorio';
     if (!formData.telefono?.trim()) newErrors.telefono = 'El teléfono es obligatorio';
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Ingresa un email válido';
-    }
     return newErrors;
   };
   
@@ -131,37 +147,13 @@ const Profile = ({ user, onUpdateUser }) => {
     
     const result = await updateUser(userId, {
       name: formData.nombre,
-      email: formData.email,
+      email: userData.email,  // ← El email no se puede cambiar, pero lo enviamos igual
       phoneNumber: formData.telefono
     });
     
     if (result.success) {
-      // Actualizar datos locales
-      setUserData(prev => ({
-        ...prev,
-        nombre: formData.nombre,
-        email: formData.email,
-        telefono: formData.telefono
-      }));
+      await loadUserData(userId);
       setIsEditing(false);
-      
-      // Actualizar usuario en localStorage
-      const currentUser = getCurrentUser();
-      if (currentUser) {
-        const updatedUser = {
-          ...currentUser,
-          nombre: formData.nombre,
-          email: formData.email,
-          telefono: formData.telefono
-        };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-      }
-      
-      // Notificar al padre
-      if (onUpdateUser) {
-        onUpdateUser(result.data);
-      }
-      
       alert('✅ Perfil actualizado exitosamente');
     } else {
       alert('❌ Error al actualizar: ' + result.message);
@@ -176,12 +168,18 @@ const Profile = ({ user, onUpdateUser }) => {
   };
   
   const getLevelColor = () => {
-    switch(userData.nivel) {
+    switch(translateLevel(userData.nivel)) {
       case 'Platino': return '#e5e4e2';
       case 'Oro': return '#ffd700';
       case 'Plata': return '#c0c0c0';
       default: return '#cd7f32';
     }
+  };
+  
+  // Función para copiar ID al portapapeles
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    alert('✅ ID copiado al portapapeles');
   };
   
   if (isLoading) {
@@ -203,21 +201,62 @@ const Profile = ({ user, onUpdateUser }) => {
       </div>
       
       <div className="profile-container">
-        {/* Avatar y nivel */}
         <div className="profile-sidebar">
           <div className="profile-avatar">
             <div className="avatar-large">
               <span>{userData.nombre?.charAt(0) || 'U'}{userData.nombre?.split(' ')[1]?.charAt(0) || ''}</span>
             </div>
             <div className="profile-level" style={{ backgroundColor: getLevelColor() }}>
-              {userData.nivel}
+              {translateLevel(userData.nivel)}
             </div>
             <div className="profile-points">
               <span className="points-icon">⭐</span>
               <span className="points-value">{formatNumber(userData.puntos)} puntos</span>
             </div>
           </div>
+          
+          {/* ========== SECCIÓN: BENEFICIOS ACTIVOS ========== */}
+          <div className="profile-benefits">
+            <h3>Beneficios de {translateLevel(userData.nivel)}</h3>
+            <div className="benefits-list-profile">
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Comisión:</span>
+                <span className="benefit-value">{benefits.formatCommissionRate()}</span>
+              </div>
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Límite diario:</span>
+                <span className="benefit-value">{benefits.formatLimit()}</span>
+              </div>
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Bono de puntos:</span>
+                <span className="benefit-value">{benefits.formatPointsBonus()}</span>
+              </div>
+              <div className="benefit-item-profile">
+                <span className="benefit-label">Prioridad:</span>
+                <span className="benefit-value">
+                  {benefits.processingPriority === 1 ? 'Máxima' : 
+                   benefits.processingPriority === 2 ? 'Alta' :
+                   benefits.processingPriority === 3 ? 'Media' : 'Baja'}
+                </span>
+              </div>
+            </div>
+          </div>
+          
           <div className="profile-stats">
+            <div className="stat-item">
+              <span className="stat-label">ID de Usuario</span>
+              <div className="stat-value-with-copy">
+                <span className="stat-value-id">{userData.id || 'No disponible'}</span>
+                <button 
+                  className="btn-copy-id" 
+                  onClick={() => copyToClipboard(userData.id)}
+                  title="Copiar ID"
+                >
+                  📋
+                </button>
+              </div>
+              <small className="stat-hint">Usa este ID para recibir transferencias</small>
+            </div>
             <div className="stat-item">
               <span className="stat-label">Miembro desde</span>
               <span className="stat-value">{userData.fechaRegistro}</span>
@@ -229,7 +268,6 @@ const Profile = ({ user, onUpdateUser }) => {
           </div>
         </div>
         
-        {/* Formulario de datos */}
         <div className="profile-form-container">
           <div className="form-header">
             <h2>Información Personal</h2>
@@ -260,21 +298,11 @@ const Profile = ({ user, onUpdateUser }) => {
             </div>
             
             <div className="form-group">
-              <label>Correo electrónico *</label>
-              {isEditing ? (
-                <>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email || ''}
-                    onChange={handleChange}
-                    className={errors.email ? 'error' : ''}
-                  />
-                  {errors.email && <span className="error-text">{errors.email}</span>}
-                </>
-              ) : (
-                <div className="field-value">{userData.email || 'No registrado'}</div>
-              )}
+              <label>Correo electrónico</label>
+              <div className="field-value email-field">
+                {userData.email || 'No registrado'}
+              </div>
+              <small className="field-hint">El correo electrónico no puede ser modificado</small>
             </div>
             
             <div className="form-row">
@@ -298,18 +326,7 @@ const Profile = ({ user, onUpdateUser }) => {
               
               <div className="form-group">
                 <label>Documento</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    name="documento"
-                    value={formData.documento || ''}
-                    onChange={handleChange}
-                    disabled
-                    className="disabled-field"
-                  />
-                ) : (
-                  <div className="field-value">{userData.documento || 'No registrado'}</div>
-                )}
+                <div className="field-value disabled-field">{userData.documento || 'No registrado'}</div>
                 <small className="field-hint">El documento no puede ser modificado</small>
               </div>
             </div>
@@ -318,7 +335,7 @@ const Profile = ({ user, onUpdateUser }) => {
               <div className="form-group">
                 <label>Nivel</label>
                 <div className="field-value level-display" style={{ color: getLevelColor() }}>
-                  {userData.nivel}
+                  {translateLevel(userData.nivel)}
                 </div>
               </div>
               

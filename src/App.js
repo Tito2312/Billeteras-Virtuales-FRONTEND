@@ -1,9 +1,7 @@
 // App.js - Componente principal de la aplicación
-// Controla la navegación entre login, registro, dashboard, billeteras y transacciones
-// CON SOPORTE PARA RUTAS URL (React Router)
 
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
@@ -11,31 +9,29 @@ import Dashboard from './components/dashboard/Dashboard';
 import Wallets from './components/wallets/Wallets';
 import Transactions from './components/transactions/Transactions';
 import Sidebar from './components/dashboard/sidebar/Sidebar';
-import { getCurrentUser, logout } from './API/auth';
+import { getCurrentUser, logout, isAdmin } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
 import Rewards from './components/rewards/Rewards';
 import Security from './components/security/Security';
 import Profile from './components/profile/Profile';
 import Notifications from './components/notifications/Notifications';
 import Analytics from './components/analytics/Analytics';
+import VerifyEmail from './components/auth/VerifyEmail';
+import AdminDashboard from './components/admin/AdminDashboard';
 import './App.css';
 
-// Componente interno que maneja la navegación por URL
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Estados para manejar la vista actual y el usuario
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Verificar si hay una sesión guardada al cargar la app
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
-      // Sincronizar vista según la URL actual
       const path = location.pathname;
       if (path === '/wallets') {
         setActiveTab('wallets');
@@ -53,6 +49,18 @@ const AppContent = () => {
         setActiveTab('notifications');
       } else if (path === '/analytics') {
         setActiveTab('analytics');
+      } else if (path === '/admin') {
+        setActiveTab('admin');
+      } else if (path === '/admin/users') {
+        setActiveTab('admin');
+      } else if (path === '/admin/audit') {
+        setActiveTab('admin');
+      } else if (path === '/admin/reports') {
+        setActiveTab('admin');
+      } else if (path === '/admin/wallets') {
+        setActiveTab('admin');
+      } else if (path === '/admin/transactions') {
+        setActiveTab('admin');
       } else {
         setActiveTab('dashboard');
       }
@@ -60,28 +68,27 @@ const AppContent = () => {
     setLoading(false);
   }, [location.pathname]);
 
-  // Manejar login exitoso
   const handleLoginSuccess = (loggedInUser) => {
     setUser(loggedInUser);
-    navigate('/'); // Ir al dashboard
+    if (loggedInUser?.role === 'ADMIN' || loggedInUser?.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
   };
 
-  // Manejar registro exitoso (cambia a login)
   const handleRegisterSuccess = () => {
     navigate('/login');
   };
 
-  // Manejar cierre de sesión
   const handleLogout = () => {
     logout();
     setUser(null);
     navigate('/login');
   };
 
-  // Manejar cambio de pestaña en el sidebar
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Navegar a la ruta correspondiente
     if (tab === 'dashboard') {
       navigate('/');
     } else if (tab === 'wallets') {
@@ -100,10 +107,11 @@ const AppContent = () => {
       navigate('/notifications');
     } else if (tab === 'analytics') {
       navigate('/analytics');
+    } else if (tab === 'admin') {
+      navigate('/admin');
     }
   };
 
-  // Mostrar pantalla de carga mientras verificamos sesión
   if (loading) {
     return (
       <div className="loading-container">
@@ -113,7 +121,6 @@ const AppContent = () => {
     );
   }
 
-  // Si no hay usuario, mostrar pantalla de login
   if (!user) {
     return (
       <Routes>
@@ -135,16 +142,38 @@ const AppContent = () => {
             onBackToLogin={() => navigate('/login')}
           />
         } />
-        <Route path="*" element={<Login
-          onLoginSuccess={handleLoginSuccess}
-          onSwitchToRegister={() => navigate('/register')}
-          onSwitchToForgotPassword={() => navigate('/forgot-password')}
-        />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
   }
 
-  // Si hay usuario, mostrar layout con sidebar
+  if (isAdmin()) {
+    return (
+      <Routes>
+        <Route path="/admin" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/users" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/audit" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/reports" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/wallets" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="/admin/transactions" element={
+          <AdminDashboard user={user} onLogout={handleLogout} />
+        } />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/" element={
@@ -225,6 +254,14 @@ const AppContent = () => {
           <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
           <div className="app-main-content">
             <Analytics user={user} />
+          </div>
+        </div>
+      } />
+      <Route path="/verify-email" element={
+        <div className="app-layout">
+          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+          <div className="app-main-content">
+            <VerifyEmail />
           </div>
         </div>
       } />

@@ -1,0 +1,262 @@
+/* AdminTransactions.css - Estilos para gestión de transacciones */
+
+.admin-transactions-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-transactions-header {
+  margin-bottom: 32px;
+}
+
+.admin-transactions-header h1 {
+  font-size: 28px;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.admin-transactions-header p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.admin-transactions-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.filter-box select {
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.date-range-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.date-range-filter input {
+  padding: 10px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.date-range-filter button {
+  padding: 10px 16px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.date-range-filter button:hover {
+  background: #e2e8f0;
+}
+
+.refresh-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.admin-transactions-table-container {
+  background: white;
+  border-radius: 20px;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.admin-transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.admin-transactions-table th {
+  text-align: left;
+  padding: 16px 12px;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-transactions-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.admin-transactions-table tr:hover {
+  background: #faf5ff;
+}
+
+.date-cell {
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.id-cell, .user-cell {
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.amount-cell {
+  font-weight: 600;
+  color: #1e1b4b;
+}
+
+.points-cell {
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-completed {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-failed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-reversed {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-pending {
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.btn-reverse {
+  padding: 6px 12px;
+  background: #fef3c7;
+  color: #d97706;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-reverse:hover {
+  background: #fde68a;
+  transform: scale(1.02);
+}
+
+.empty-transactions {
+  text-align: center;
+  padding: 60px;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 1024px) {
+  .admin-transactions-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+  
+  .filter-box select {
+    width: 100%;
+  }
+  
+  .date-range-filter {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .date-range-filter {
+    flex-direction: column;
+  }
+  
+  .date-range-filter input,
+  .date-range-filter button {
+    width: 100%;
+  }
+}

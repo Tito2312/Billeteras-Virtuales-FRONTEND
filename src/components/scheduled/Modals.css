@@ -207,4 +207,8 @@
   .destination-info h4 {
     font-size: 14px;
   }
+
+.modal-scheduled {
+  max-width: 550px;
+}
 }
