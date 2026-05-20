@@ -52,7 +52,6 @@ export const getUserTransactions = async (userId) => {
       return { success: false, message: 'No userId provided', data: [] };
     }
     
-    // ✅ URL correcta para el endpoint con @PathVariable
     const url = `${BASE_URL}/transactions/user/${userId}`;
     console.log('📤 GET Transactions URL:', url);
     
@@ -70,7 +69,10 @@ export const getUserTransactions = async (userId) => {
   }
 };
 
-// Resto de funciones igual...
+// ============================================
+// REPORTES
+// ============================================
+
 export const getMostUsedWallets = async (top = 5) => {
   try {
     const url = `${BASE_URL}/reports/wallets/most-used?top=${top}`;

@@ -2,8 +2,8 @@
 // El correo electrónico NO se puede modificar
 
 import React, { useState, useEffect } from 'react';
-import { getUserById, updateUser } from '../../API/users';
 import { getCurrentUser } from '../../API/auth';
+import { getUserById, updateUser } from '../../API/auth';  // ← CAMBIADO: ahora desde auth.js
 import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Profile.css';
 
@@ -69,7 +69,7 @@ const Profile = ({ user, onUpdateUser }) => {
         nombre: apiUser.name || '',
         email: apiUser.email || '',
         telefono: apiUser.phoneNumber || '',
-        documento: apiUser.documento || 'No registrado',
+        documento: apiUser.documentNumber || 'No registrado',  // ← CAMBIADO: documentNumber
         nivel: apiUser.level || 'Bronce',
         puntos: apiUser.points || 0,
         fechaRegistro: formatDate(apiUser.registrationDate),
@@ -83,7 +83,7 @@ const Profile = ({ user, onUpdateUser }) => {
         nombre: apiUser.name || '',
         email: apiUser.email || '',
         telefono: apiUser.phoneNumber || '',
-        documento: apiUser.documento || ''
+        documento: apiUser.documentNumber || ''
       });
       
       const currentStoredUser = getCurrentUser();
@@ -94,7 +94,8 @@ const Profile = ({ user, onUpdateUser }) => {
           email: apiUser.email || '',
           telefono: apiUser.phoneNumber || '',
           nivel: apiUser.level || 'Bronce',
-          puntos: apiUser.points || 0
+          puntos: apiUser.points || 0,
+          documento: apiUser.documentNumber || ''
         };
         localStorage.setItem('user', JSON.stringify(updatedStoredUser));
         if (onUpdateUser) onUpdateUser(updatedStoredUser);
@@ -146,6 +147,7 @@ const Profile = ({ user, onUpdateUser }) => {
     
     const result = await updateUser(userId, {
       name: formData.nombre,
+      email: userData.email,  // ← El email no se puede cambiar, pero lo enviamos igual
       phoneNumber: formData.telefono
     });
     
