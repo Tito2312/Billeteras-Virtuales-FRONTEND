@@ -43,34 +43,34 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
   };
   
   // Verificar la transferKey mientras el usuario escribe
-  const handleTransferKeyChange = async (key) => {
-    setFormData({...formData, transferKey: key});
-    setDestinationInfo(null);
-    
-    if (key.length > 5) {
-      setVerifying(true);
-      try {
-        const result = await getWalletByKey(key);
-        if (result.success && result.data) {
-          setDestinationInfo({
-            name: result.data.name,
-            owner: result.data.userId?.substring(0, 12) + '...',
-            exists: true,
-            walletId: result.data.id
-          });
-        } else {
-          setDestinationInfo({ 
-            exists: false, 
-            message: result.message || 'Clave no válida o billetera no encontrada' 
-          });
-        }
-      } catch (error) {
-        console.error('Error verificando clave:', error);
-        setDestinationInfo({ exists: false, message: 'Error al verificar la clave' });
+const handleTransferKeyChange = async (key) => {
+  setFormData({...formData, transferKey: key});
+  setDestinationInfo(null);
+  
+  if (key.length > 5) {
+    setVerifying(true);
+    try {
+      const result = await getWalletByKey(key);
+      if (result.success && result.data) {
+        setDestinationInfo({
+          name: result.data.name,
+          exists: true,
+          walletId: result.data.id
+          // ❌ owner eliminado
+        });
+      } else {
+        setDestinationInfo({ 
+          exists: false, 
+          message: result.message || 'Clave no válida o billetera no encontrada' 
+        });
       }
-      setVerifying(false);
+    } catch (error) {
+      console.error('Error verificando clave:', error);
+      setDestinationInfo({ exists: false, message: 'Error al verificar la clave' });
     }
-  };
+    setVerifying(false);
+  }
+};
   
   const validate = () => {
     const newErrors = {};
@@ -233,18 +233,21 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
                 {verifying && <span className="verifying-spinner">⏳ Verificando...</span>}
               </div>
               {errors.transferKey && <span className="error-text">{errors.transferKey}</span>}
-              {destinationInfo && destinationInfo.exists && (
-                <div className="destination-info success">
-                  ✅ Billetera: <strong>{destinationInfo.name}</strong>
-                  <br />
-                  <small>Propietario: {destinationInfo.owner}</small>
-                </div>
-              )}
-              {destinationInfo && !destinationInfo.exists && (
-                <div className="destination-info error">
-                  ❌ {destinationInfo.message}
-                </div>
-              )}
+              // ANTES (mostraba el propietario)
+{destinationInfo && destinationInfo.exists && (
+  <div className="destination-info success">
+    ✅ Billetera: <strong>{destinationInfo.name}</strong>
+    <br />
+    <small>Propietario: {destinationInfo.owner}</small>
+  </div>
+)}
+
+// DESPUÉS (solo muestra la billetera, sin propietario)
+{destinationInfo && destinationInfo.exists && (
+  <div className="destination-info success">
+    ✅ Billetera: <strong>{destinationInfo.name}</strong>
+  </div>
+)}
               <small className="field-hint">La clave aparece en la tarjeta de cada billetera.</small>
             </div>
           )}

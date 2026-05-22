@@ -1,10 +1,9 @@
 // WalletCard.js - Tarjeta de billetera para el Dashboard
-// Sin ID visible, solo con clave (transferKey)
 
 import React, { useState } from 'react';
 import './WalletCard.css';
 
-const WalletCard = ({ name, type, balance, color = 'purple', transferKey, onRecharge, onTransfer, onWithdraw }) => {
+const WalletCard = ({ name, type, balance, color = 'purple', walletId, transferKey, onRecharge, onTransfer, onWithdraw }) => {
   
   const [copied, setCopied] = useState(false);
   
@@ -44,6 +43,9 @@ const WalletCard = ({ name, type, balance, color = 'purple', transferKey, onRech
     if (onWithdraw) onWithdraw();
   };
 
+  // Si no hay transferKey, no mostrar la sección
+  const hasTransferKey = transferKey && transferKey !== 'null' && transferKey !== '';
+
   return (
     <div className={`wallet-card wallet-card-${color}`}>
       <div className="wallet-card-header">
@@ -56,18 +58,22 @@ const WalletCard = ({ name, type, balance, color = 'purple', transferKey, onRech
         </div>
       </div>
       
-      {/* CLAVE DE LA BILLETERA (transferKey) */}
-      {transferKey && (
+      {/* CLAVE DE LA BILLETERA - MEJORADA */}
+      {hasTransferKey && (
         <div className="wallet-transfer-key">
-          <span className="key-label">🔑 Clave:</span>
-          <span className="key-value">{transferKey}</span>
-          <button 
-            className="btn-copy-key" 
-            onClick={() => copyToClipboard(transferKey)}
-            title="Copiar clave"
-          >
-            {copied ? '✓' : '📋'}
-          </button>
+          <div className="key-header">
+            <span className="key-label">🔑 Clave de la billetera</span>
+          </div>
+          <div className="key-content">
+            <span className="key-value">{transferKey}</span>
+            <button 
+              className="btn-copy-key" 
+              onClick={() => copyToClipboard(transferKey)}
+              title="Copiar clave"
+            >
+              {copied ? '✓ Copiado' : '📋 Copiar'}
+            </button>
+          </div>
         </div>
       )}
       

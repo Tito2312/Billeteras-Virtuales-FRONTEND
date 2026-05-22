@@ -1,12 +1,11 @@
-/* WalletCard.css - Estilos profesionales con fondo morado */
+/* WalletCard.css - Estilos para la tarjeta de billetera */
 
 .wallet-card {
   background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
   border-radius: 20px;
-  padding: 24px;
+  padding: 20px;
   color: white;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -17,26 +16,24 @@
   box-shadow: 0 12px 28px rgba(109, 40, 217, 0.3);
 }
 
+/* Header de la tarjeta */
 .wallet-card-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-/* Ícono minimalista sin emojis */
 .wallet-icon-minimal {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   background: rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 18px;
-  letter-spacing: 1px;
-  color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -45,21 +42,80 @@
 }
 
 .wallet-name {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   margin-bottom: 4px;
-  letter-spacing: -0.3px;
 }
 
 .wallet-type {
   font-size: 12px;
   opacity: 0.75;
-  font-weight: 400;
 }
 
+/* Sección de la clave - MEJORADA Y CORREGIDA */
+.wallet-transfer-key {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 14px;
+  padding: 12px 14px;
+  margin: 8px 0 16px 0;
+}
+
+.key-header {
+  margin-bottom: 8px;
+}
+
+.key-label {
+  font-size: 11px;
+  opacity: 0.7;
+  letter-spacing: 0.5px;
+}
+
+.key-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px; /* Reducido un poco para dar más espacio al texto */
+}
+
+.key-value {
+  font-family: monospace;
+  font-size: 11px; /* Reducido levemente de 12px a 11px para asegurar que entre */
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 10px;
+  border-radius: 8px;
+  white-space: nowrap; /* Evita que el texto salte a la línea de abajo */
+  overflow: hidden; /* Seguridad en pantallas ultra pequeñas */
+  text-overflow: ellipsis; /* Si no cabe, añade "..." con elegancia en vez de romperse */
+  flex: 1;
+  letter-spacing: 0.3px;
+}
+
+.btn-copy-key {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+  color: white;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-copy-key:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+/* Balance */
 .wallet-balance {
-  margin-bottom: 24px;
-  padding-top: 16px;
+  margin-bottom: 18px;
+  padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
@@ -67,18 +123,17 @@
   display: block;
   font-size: 11px;
   opacity: 0.7;
-  margin-bottom: 8px;
-  letter-spacing: 0.8px;
-  font-weight: 500;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
 }
 
 .balance-value {
   display: block;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
+/* Botones de acción */
 .wallet-actions {
   display: flex;
   gap: 10px;
@@ -96,7 +151,6 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: inherit;
 }
 
 .wallet-btn:hover {
@@ -104,7 +158,121 @@
   transform: translateY(-2px);
 }
 
-/* Colores específicos para cada tipo de botón (sutiles) */
+.wallet-btn.recargar {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.wallet-btn.recargar:hover {
+  background: rgba(16, 185, 129, 0.35);
+}
+
+.wallet-btn.transferir {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.wallet-btn.transferir:hover {
+  background: rgba(59, 130, 246, 0.35);
+}
+
+.wallet-btn.retirar {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.wallet-btn.retirar:hover {
+  background: rgba(245, 158, 11, 0.35);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .wallet-card {
+    padding: 18px;
+  }
+  
+  .wallet-name {
+    font-size: 18px;
+  }
+  
+  .balance-value {
+    font-size: 24px;
+  }
+  
+  .wallet-btn {
+    font-size: 11px;
+    padding: 8px 4px;
+  }
+  
+  .wallet-icon-minimal {
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+  }
+
+  /* Ajustes responsivos corregidos para la clave */
+  .key-value {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .btn-copy-key {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+.btn-copy-key:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.02);
+}
+
+/* Balance */
+.wallet-balance {
+  margin-bottom: 18px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.balance-label {
+  display: block;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.balance-value {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Botones de acción */
+.wallet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.wallet-btn {
+  flex: 1;
+  padding: 10px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wallet-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
 .wallet-btn.recargar {
   background: rgba(16, 185, 129, 0.2);
   border-color: rgba(16, 185, 129, 0.4);

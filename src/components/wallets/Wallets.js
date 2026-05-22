@@ -193,24 +193,40 @@ const Wallets = ({ user }) => {
               </div>
             </div>
             
-            {/* CLAVE DE LA BILLETERA (transferKey) */}
-            {wallet.transferKey && (
+            {/* CLAVE DE LA BILLETERA (transferKey) - MEJORADA */}
+            {wallet.transferKey && wallet.transferKey !== 'null' && (
               <div className="wallet-transfer-key-full">
-                <span className="key-label-full">🔑 Clave:</span>
-                <span className="key-value-full">{wallet.transferKey}</span>
-                <button 
-                  className="btn-copy-key-full" 
-                  onClick={() => copyToClipboard(wallet.transferKey)}
-                  title="Copiar clave"
-                >
-                  📋
-                </button>
+                <div className="key-header-full">
+                  <span className="key-label-full">🔑 Clave de la billetera</span>
+                </div>
+                <div className="key-content-full">
+                  <span className="key-value-full">{wallet.transferKey}</span>
+                  <button 
+                    className="btn-copy-key-full" 
+                    onClick={() => copyToClipboard(wallet.transferKey)}
+                    title="Copiar clave"
+                  >
+                    <span>📋</span> <span>Copiar</span>
+                  </button>
+                </div>
               </div>
             )}
             
             <div className="wallet-balance-full">
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
+            </div>
+            
+            <div className="wallet-actions-full">
+              <button className="wallet-btn recargar" onClick={() => alert(`Recargar ${wallet.name}`)}>
+                Recargar
+              </button>
+              <button className="wallet-btn transferir" onClick={() => alert(`Transferir desde ${wallet.name}`)}>
+                Transferir
+              </button>
+              <button className="wallet-btn retirar" onClick={() => alert(`Retirar desde ${wallet.name}`)}>
+                Retirar
+              </button>
             </div>
             
             <p className="wallet-status">
