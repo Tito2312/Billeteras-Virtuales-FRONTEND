@@ -1,4 +1,4 @@
-// scheduled.js - Servicio de operaciones programadas
+// API/scheduled.js - Servicio de operaciones programadas
 
 const BASE_URL = 'http://localhost:8080/api';
 
@@ -39,10 +39,20 @@ const handleResponse = async (response) => {
   return data;
 };
 
-// Spring Boot LocalDateTime espera: "2026-05-18T12:00:00" (sin Z ni offset)
+// Convertir fecha a LocalDateTime format (sin Z ni offset)
 const toLocalDateTime = (isoString) => {
   if (!isoString) return null;
-  return isoString.replace('Z', '').replace(/\+\d{2}:\d{2}$/, '').split('.')[0];
+  let dateStr = isoString;
+  if (dateStr.includes('Z')) {
+    dateStr = dateStr.replace('Z', '');
+  }
+  if (dateStr.includes('+')) {
+    dateStr = dateStr.split('+')[0];
+  }
+  if (dateStr.includes('-') && dateStr.match(/-\d{2}:\d{2}$/)) {
+    dateStr = dateStr.replace(/-\d{2}:\d{2}$/, '');
+  }
+  return dateStr.split('.')[0];
 };
 
 // ========== OPERACIONES PROGRAMADAS ==========
@@ -57,9 +67,10 @@ export const createScheduledOperation = async (operationData) => {
       scheduledDate: toLocalDateTime(operationData.scheduledDate),
       sourceWalletId: operationData.sourceWalletId || null,
       targetWalletId: operationData.targetWalletId || null,
+      transferKey: operationData.transferKey || null
     };
 
-    console.log('📤 Body enviado al backend:', body);
+    console.log('📤 Creando operación programada:', body);
 
     const response = await fetch(`${BASE_URL}/scheduledOperation`, {
       method: 'POST',
@@ -103,18 +114,17 @@ export const getAllScheduledOperations = async () => {
   }
 };
 
-// POST /api/scheduledOperation/executeOperation/{id}
-export const executeScheduledOperation = async (operation) => {
+// DELETE /api/scheduledOperation/{id} (si existe en el backend)
+export const deleteScheduledOperation = async (operationId) => {
   try {
-    const response = await fetch(`${BASE_URL}/scheduledOperation/executeOperation/${operation.id}`, {
-      method: 'POST',
-      headers: getHeaders(true),
-      body: JSON.stringify(operation)
+    const response = await fetch(`${BASE_URL}/scheduledOperation/${operationId}`, {
+      method: 'DELETE',
+      headers: getHeaders(true)
     });
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error al ejecutar operación:', error);
+    console.error('Error al eliminar operación:', error);
     return { success: false, message: error.message };
   }
 };

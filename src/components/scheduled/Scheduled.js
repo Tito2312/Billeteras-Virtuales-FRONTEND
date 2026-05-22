@@ -1,4 +1,4 @@
-// Scheduled.js - Página de operaciones programadas
+// components/scheduled/Scheduled.js
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserScheduledOperations, createScheduledOperation } from '../../API/scheduled';
@@ -11,25 +11,44 @@ const Scheduled = ({ user }) => {
   const [operations, setOperations] = useState([]);
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [error, setError] = useState('');
   
   const userId = user?.id || getCurrentUser()?.id;
   
-  // Cargar operaciones programadas
+  // Cargar operaciones programadas con orden correcto
   const loadOperations = useCallback(async () => {
     if (!userId) return;
     
     try {
       const result = await getUserScheduledOperations(userId);
       if (result.success && result.data) {
-        // Ordenar por fecha (próximas primero)
-        const sorted = [...result.data].sort((a, b) => 
-          new Date(a.scheduledDate) - new Date(b.scheduledDate)
-        );
+        // Ordenar: Pendientes primero (por fecha más cercana), luego ejecutadas (por fecha más reciente)
+        const sorted = [...result.data].sort((a, b) => {
+          // Si una está pendiente y la otra no, la pendiente va primero
+          if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
+          if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
+          
+          // Si ambas están pendientes, ordenar por fecha (la más cercana primero)
+          if (a.status === 'PENDING' && b.status === 'PENDING') {
+            return new Date(a.scheduledDate) - new Date(b.scheduledDate);
+          }
+          
+          // Si ambas están ejecutadas o fallidas, ordenar por fecha (la más reciente primero)
+          return new Date(b.scheduledDate) - new Date(a.scheduledDate);
+        });
+        
         setOperations(sorted);
         setError('');
+        
+        console.log('📋 Operaciones cargadas y ordenadas:', sorted.map(op => ({
+          id: op.id,
+          type: op.type,
+          status: op.status,
+          scheduledDate: op.scheduledDate
+        })));
       } else {
         setError('Error al cargar las operaciones');
       }
@@ -53,15 +72,28 @@ const Scheduled = ({ user }) => {
     }
   }, [userId]);
   
+  // Recargar datos manualmente
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([loadOperations(), loadWallets()]);
+    setRefreshing(false);
+  };
+  
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await loadOperations();
-      await loadWallets();
+      await Promise.all([loadOperations(), loadWallets()]);
       setLoading(false);
     };
     
     loadData();
+    
+    // Recargar cada 30 segundos para ver cambios automáticos
+    const interval = setInterval(() => {
+      loadOperations();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, [loadOperations, loadWallets]);
   
   const formatCurrency = (value) => {
@@ -124,18 +156,20 @@ const Scheduled = ({ user }) => {
     }
   };
   
-  // Calcular prioridad basada en la fecha
-  const getPriority = (scheduledDate) => {
+  const getPriority = (scheduledDate, status) => {
     const now = new Date();
     const date = new Date(scheduledDate);
     const diffHours = (date - now) / (1000 * 60 * 60);
     
+    if (status === 'EXECUTED') return { label: 'Ejecutada', class: 'priority-executed' };
+    if (status === 'FAILED') return { label: 'Fallida', class: 'priority-failed' };
+    if (diffHours < 0) return { label: 'Atrasada', class: 'priority-overdue' };
+    if (diffHours < 1) return { label: 'Inmediata', class: 'priority-immediate' };
     if (diffHours < 24) return { label: 'Alta', class: 'priority-high' };
     if (diffHours < 72) return { label: 'Media', class: 'priority-medium' };
     return { label: 'Baja', class: 'priority-low' };
   };
   
-  // Filtrar operaciones
   const filteredOperations = operations.filter(op => {
     if (filterStatus === 'all') return true;
     if (filterStatus === 'pending') return op.status === 'PENDING';
@@ -144,36 +178,40 @@ const Scheduled = ({ user }) => {
     return true;
   });
   
- // Dentro de handleCreateOperation, agrega estos logs:
-
-const handleCreateOperation = async (operationData) => {
-  console.log('🔍 userId actual:', userId);
-  console.log('🔍 operationData recibido:', operationData);
+  const pendingCount = operations.filter(o => o.status === 'PENDING').length;
+  const executedCount = operations.filter(o => o.status === 'EXECUTED').length;
+  const failedCount = operations.filter(o => o.status === 'FAILED').length;
   
-  try {
-    const result = await createScheduledOperation({
-      userId: userId,
-      sourceWalletId: operationData.sourceWalletId || null,
-      targetWalletId: operationData.targetWalletId,
-      type: operationData.type,
-      amount: operationData.amount,
-      scheduledDate: operationData.scheduledDate
-    });
+  const handleCreateOperation = async (operationData) => {
+    console.log('🔍 userId actual:', userId);
+    console.log('🔍 operationData recibido:', operationData);
     
-    console.log('🔍 Resultado del backend:', result);
-    
-    if (result.success) {
-      await loadOperations();
-      alert('✅ Operación programada exitosamente');
-      setShowCreateModal(false);
-    } else {
-      alert(`❌ Error al programar: ${result.message}`);
+    try {
+      const result = await createScheduledOperation({
+        userId: userId,
+        sourceWalletId: operationData.sourceWalletId || null,
+        targetWalletId: operationData.targetWalletId || null,
+        transferKey: operationData.transferKey || null,
+        type: operationData.type,
+        amount: operationData.amount,
+        scheduledDate: operationData.scheduledDate
+      });
+      
+      console.log('🔍 Resultado del backend:', result);
+      
+      if (result.success) {
+        await loadOperations();
+        alert('✅ Operación programada exitosamente');
+        setShowCreateModal(false);
+      } else {
+        alert(`❌ Error al programar: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('🔍 Error capturado:', err);
+      alert('❌ Error al programar la operación');
     }
-  } catch (err) {
-    console.error('🔍 Error capturado:', err);
-    alert('❌ Error al programar la operación');
-  }
-};
+  };
+  
   if (loading) {
     return (
       <div className="scheduled-page">
@@ -192,22 +230,27 @@ const handleCreateOperation = async (operationData) => {
           <h1>Operaciones Programadas</h1>
           <p>Gestiona tus movimientos automáticos</p>
         </div>
-        <button className="btn-create-scheduled" onClick={() => setShowCreateModal(true)}>
-          + Programar Operación
-        </button>
+        <div className="header-buttons">
+          <button className="btn-refresh-scheduled" onClick={handleRefresh} disabled={refreshing}>
+            {refreshing ? '⏳' : '🔄'} Actualizar
+          </button>
+          <button className="btn-create-scheduled" onClick={() => setShowCreateModal(true)}>
+            + Programar Operación
+          </button>
+        </div>
       </div>
       
       <div className="scheduled-stats">
-        <div className="stat-card-scheduled">
-          <span className="stat-value">{operations.filter(o => o.status === 'PENDING').length}</span>
+        <div className="stat-card-scheduled pending">
+          <span className="stat-value">{pendingCount}</span>
           <span className="stat-label">Pendientes</span>
         </div>
-        <div className="stat-card-scheduled">
-          <span className="stat-value">{operations.filter(o => o.status === 'EXECUTED').length}</span>
+        <div className="stat-card-scheduled executed">
+          <span className="stat-value">{executedCount}</span>
           <span className="stat-label">Ejecutadas</span>
         </div>
-        <div className="stat-card-scheduled">
-          <span className="stat-value">{operations.filter(o => o.status === 'FAILED').length}</span>
+        <div className="stat-card-scheduled failed">
+          <span className="stat-value">{failedCount}</span>
           <span className="stat-label">Fallidas</span>
         </div>
       </div>
@@ -217,37 +260,42 @@ const handleCreateOperation = async (operationData) => {
           className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
           onClick={() => setFilterStatus('all')}
         >
-          Todas
+          Todas ({operations.length})
         </button>
         <button 
           className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
           onClick={() => setFilterStatus('pending')}
         >
-          Pendientes
+          Pendientes ({pendingCount})
         </button>
         <button 
           className={`filter-btn ${filterStatus === 'executed' ? 'active' : ''}`}
           onClick={() => setFilterStatus('executed')}
         >
-          Ejecutadas
+          Ejecutadas ({executedCount})
         </button>
         <button 
           className={`filter-btn ${filterStatus === 'failed' ? 'active' : ''}`}
           onClick={() => setFilterStatus('failed')}
         >
-          Fallidas
+          Fallidas ({failedCount})
         </button>
       </div>
       
       <div className="operations-list">
         {filteredOperations.length > 0 ? (
           filteredOperations.map(op => {
-            const priority = getPriority(op.scheduledDate);
+            const priority = getPriority(op.scheduledDate, op.status);
+            const isOverdue = op.status === 'PENDING' && new Date(op.scheduledDate) < new Date();
+            
             return (
-              <div key={op.id} className={`operation-card ${priority.class}`}>
+              <div key={op.id} className={`operation-card ${priority.class} ${isOverdue ? 'overdue' : ''}`}>
                 <div className="operation-priority-badge">
                   <span className={`priority-dot ${priority.class}`}></span>
-                  <span className="priority-text">{priority.label}</span>
+                  <span className="priority-text">
+                    {priority.label}
+                    {isOverdue && ' ⚠️'}
+                  </span>
                 </div>
                 <div className="operation-content">
                   <div className="operation-icon">
@@ -259,8 +307,9 @@ const handleCreateOperation = async (operationData) => {
                     <div className="operation-details">
                       <span className="detail-date">📅 {formatDate(op.scheduledDate)}</span>
                       <span className="detail-wallets">
-                        {op.sourceWalletId ? `Origen: ${op.sourceWalletId.substring(0, 10)}...` : ''}
-                        {op.targetWalletId ? ` → Destino: ${op.targetWalletId.substring(0, 10)}...` : ''}
+                        {op.sourceWalletId && `Origen: ${op.sourceWalletId.substring(0, 10)}...`}
+                        {op.targetWalletId && ` → Destino: ${op.targetWalletId.substring(0, 10)}...`}
+                        {op.transferKey && ` → Clave: ${op.transferKey}`}
                       </span>
                     </div>
                   </div>
