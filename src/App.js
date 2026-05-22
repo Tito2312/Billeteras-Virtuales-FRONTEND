@@ -28,6 +28,25 @@ const AppContent = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  // Escuchar cambios de usuario desde el Dashboard (para actualizar puntos y nivel en tiempo real)
+  useEffect(() => {
+    const handleUserUpdate = (event) => {
+      if (event.detail) {
+        console.log('🔄 Actualizando usuario desde evento:', event.detail);
+        setUser(event.detail);
+        // Actualizar localStorage
+        const storedUser = getCurrentUser();
+        if (storedUser) {
+          const mergedUser = { ...storedUser, ...event.detail };
+          localStorage.setItem('user', JSON.stringify(mergedUser));
+        }
+      }
+    };
+    
+    window.addEventListener('userUpdate', handleUserUpdate);
+    return () => window.removeEventListener('userUpdate', handleUserUpdate);
+  }, []);
+
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (currentUser) {

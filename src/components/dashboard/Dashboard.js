@@ -1,13 +1,13 @@
 // Dashboard.js - Pantalla principal (con modales de transacciones)
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WalletCarousel from './walletCarousel/WalletCarousel';
 import UserMenu from '../common/UserMenu';
 import NotificationBell from '../notifications/notificationBell/NotificationBell';
-import { getUserWallets } from '../../API/wallets'; 
-import { getUserTransactions } from '../../API/analytics';
-import { getCurrentUser } from '../../API/auth';
+import { getUserWallets } from '../../API/wallets';
+import { getUserTransactions } from '../../API/transactions';
+import { getCurrentUser, getUserById } from '../../API/auth';
 import RechargeModal from '../transactions/RechargeModal';
 import WithdrawModal from '../transactions/WithdrawModal';
 import TransferModal from '../transactions/TransferModal';
@@ -20,6 +20,11 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const [loading, setLoading] = useState(true);
   const [totalBalance, setTotalBalance] = useState(0);
   const [chartData, setChartData] = useState([]);
+  const [currentUser, setCurrentUser] = useState(user);
+  
+  // Usar useRef para evitar recargas infinitas
+  const isInitialLoad = useRef(true);
+  const isUpdating = useRef(false);
   
   // Estados para modales
   const [showRechargeModal, setShowRechargeModal] = useState(false);
@@ -27,7 +32,41 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState(null);
   
-  const userId = user?.id || getCurrentUser()?.id;
+  const userId = currentUser?.id || user?.id || getCurrentUser()?.id;
+  
+  // Función para actualizar los datos del usuario desde el backend
+  const refreshUserData = useCallback(async () => {
+    if (!userId || isUpdating.current) return;
+    
+    isUpdating.current = true;
+    const result = await getUserById(userId);
+    if (result.success && result.data) {
+      const updatedUser = {
+        id: result.data.id,
+        nombre: result.data.name,
+        email: result.data.email,
+        nivel: result.data.level || 'Bronce',
+        puntos: result.data.points || 0,
+        telefono: result.data.phoneNumber,
+        documento: result.data.documentNumber,
+        role: result.data.role
+      };
+      
+      setCurrentUser(updatedUser);
+      
+      // Actualizar localStorage
+      const storedUser = getCurrentUser();
+      if (storedUser) {
+        const mergedUser = { ...storedUser, ...updatedUser };
+        localStorage.setItem('user', JSON.stringify(mergedUser));
+      }
+      
+      // Disparar evento solo si hay cambios significativos
+      const event = new CustomEvent('userUpdate', { detail: updatedUser });
+      window.dispatchEvent(event);
+    }
+    isUpdating.current = false;
+  }, [userId]);
   
   // Función para obtener la descripción de la transacción
   const getTransactionDescription = (t) => {
@@ -45,30 +84,11 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     return 'Transacción';
   };
   
-  // Obtener los últimos 7 días
-  const getLast7Days = () => {
-    const days = [];
-    const today = new Date();
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-      const dateStr = date.toISOString().split('T')[0];
-      const label = `${date.getDate()} ${months[date.getMonth()]}`;
-      days.push({ date: dateStr, label, fullDate: date });
-    }
-    
-    return days;
-  };
-  
   // Calcular la evolución del balance por día
   const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
     const last7Days = getLast7Days();
     const currentBalance = walletsList.reduce((sum, w) => sum + (w.balance || 0), 0);
     
-    // Si no hay transacciones, todos los días muestran el balance actual
     if (!transactionsList || transactionsList.length === 0) {
       const evolution = last7Days.map(day => ({
         day: day.label,
@@ -79,21 +99,17 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       return;
     }
     
-    // Ordenar transacciones por fecha
     const sortedTransactions = [...transactionsList].sort((a, b) => 
       new Date(a.createdAt) - new Date(b.createdAt)
     );
     
-    // Calcular balance acumulado por día
     let runningBalance = 0;
-    const dailyBalances = {};
+    const endOfDayBalance = new Map();
     
-    // Inicializar todos los días
     last7Days.forEach(day => {
-      dailyBalances[day.date] = 0;
+      endOfDayBalance.set(day.date, 0);
     });
     
-    // Procesar cada día
     for (const day of last7Days) {
       const dayEnd = new Date(day.date + 'T23:59:59');
       
@@ -122,38 +138,37 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           runningBalance += amountChange;
         }
       }
-      dailyBalances[day.date] = Math.max(runningBalance, 0);
+      
+      endOfDayBalance.set(day.date, Math.max(runningBalance, 0));
     }
     
-    // Convertir a array para el gráfico
     const evolution = last7Days.map(day => ({
       day: day.label,
-      value: dailyBalances[day.date],
+      value: endOfDayBalance.get(day.date),
       fullDate: day.date
     }));
     
-    console.log('📈 Evolución:', evolution);
     setChartData(evolution);
   }, [userId]);
   
-  // Calcular altura de barra - PROPORCIONAL al valor máximo
-  const getBarHeight = (value) => {
-    if (chartData.length === 0) return 5;
+  const getLast7Days = () => {
+    const days = [];
+    const today = new Date();
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     
-    const values = chartData.map(d => d.value);
-    const maxValue = Math.max(...values, 1);
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      const dateStr = date.toISOString().split('T')[0];
+      const label = `${date.getDate()} ${months[date.getMonth()]}`;
+      days.push({ date: dateStr, label, fullDate: date });
+    }
     
-    if (maxValue === 0) return 5;
-    if (value === 0) return 5;
-    
-    // Altura proporcional: (value / maxValue) * 90% (para dejar espacio arriba)
-    let height = (value / maxValue) * 90;
-    
-    // Mínimo 8% para que se vea aunque sea poco
-    return Math.max(height, 8);
+    return days;
   };
   
-  // Cargar billeteras y transacciones
+  // Cargar billeteras y transacciones - SOLO UNA VEZ al montar
   useEffect(() => {
     const loadData = async () => {
       if (!userId) {
@@ -189,10 +204,14 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       setLoading(false);
     };
     
-    loadData();
-  }, [userId, calculateBalanceEvolution]);
+    if (isInitialLoad.current) {
+      loadData();
+      refreshUserData();
+      isInitialLoad.current = false;
+    }
+  }, [userId, calculateBalanceEvolution, refreshUserData]); // Dependencias correctas
   
-  // Transacciones recientes
+  // Transacciones recientes (calculado en cada render pero sin recargar)
   const recentTransactions = transactions
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
@@ -222,7 +241,14 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     setShowWithdrawModal(true);
   };
   
+  // Actualizar todos los datos después de una transacción exitosa
   const handleTransactionSuccess = async () => {
+    console.log('🔄 Actualizando datos después de transacción...');
+    
+    // Actualizar datos del usuario (puntos y nivel)
+    await refreshUserData();
+    
+    // Recargar billeteras
     const walletsResult = await getUserWallets(userId);
     if (walletsResult.success && walletsResult.data) {
       setUserWallets(walletsResult.data);
@@ -231,6 +257,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       calculateBalanceEvolution(transactions, walletsResult.data);
     }
     
+    // Recargar transacciones
     const transResult = await getUserTransactions(userId);
     if (transResult.success && transResult.data) {
       setTransactions(transResult.data);
@@ -265,19 +292,22 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     );
   }
   
+  // Calcular valor máximo para el gráfico
+  const maxChartValue = Math.max(...chartData.map(d => d.value), 1000);
+  
   return (
     <div className="dashboard-main-content">
       <header className="dashboard-header">
         <div className="header-welcome">
-          <h1>Bienvenido, {user?.nombre?.split(' ')[0] || user?.nombre || 'Usuario'}</h1>
+          <h1>Bienvenido, {currentUser?.nombre?.split(' ')[0] || currentUser?.nombre || 'Usuario'}</h1>
           <div className="user-badge">
-            <span className="badge-level">{user?.nivel || 'Bronce'}</span>
-            <span className="badge-points">{formatNumber(user?.puntos || 0)} puntos</span>
+            <span className="badge-level">{currentUser?.nivel || 'Bronce'}</span>
+            <span className="badge-points">{formatNumber(currentUser?.puntos || 0)} puntos</span>
           </div>
         </div>
         <div className="header-actions">
           <NotificationBell onViewAll={handleViewAllNotifications} />
-          <UserMenu user={user} onLogout={handleLogout} onNavigateToProfile={handleNavigateToProfile} />
+          <UserMenu user={currentUser} onLogout={handleLogout} onNavigateToProfile={handleNavigateToProfile} />
         </div>
       </header>
 
@@ -302,8 +332,8 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <div className="stat-icon">⭐</div>
           <div className="stat-info">
             <h3>Puntos Acumulados</h3>
-            <p className="stat-value">{formatNumber(user?.puntos || 0)}</p>
-            <span className="stat-sub">Nivel {user?.nivel || 'Bronce'}</span>
+            <p className="stat-value">{formatNumber(currentUser?.puntos || 0)}</p>
+            <span className="stat-sub">Nivel {currentUser?.nivel || 'Bronce'}</span>
           </div>
         </div>
       </div>
@@ -329,20 +359,17 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         <div className="chart-container">
           {chartData.length > 0 ? (
             <div className="chart-bars">
-              {chartData.map((item, index) => {
-                const barHeight = getBarHeight(item.value);
-                return (
-                  <div key={index} className="chart-bar-wrapper">
-                    <div 
-                      className="chart-bar"
-                      style={{ height: `${barHeight}%` }}
-                    >
-                      <span className="chart-tooltip">{formatCurrency(item.value)}</span>
-                    </div>
-                    <span className="chart-label">{item.day}</span>
+              {chartData.map((item, index) => (
+                <div key={index} className="chart-bar-wrapper">
+                  <div 
+                    className="chart-bar"
+                    style={{ height: `${Math.max((item.value / maxChartValue) * 100, 4)}%` }}
+                  >
+                    <span className="chart-tooltip">{formatCurrency(item.value)}</span>
                   </div>
-                );
-              })}
+                  <span className="chart-label">{item.day}</span>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="no-chart-data">

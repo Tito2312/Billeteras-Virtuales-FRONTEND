@@ -1,4 +1,4 @@
-// AdminReports.js - Reportes financieros para admin
+// AdminReports.js - Reportes financieros para admin (con enriquecimiento de datos)
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -8,6 +8,7 @@ import {
   getTransactionFrequency,
   getTransactionsByDateRange 
 } from '../../API/admin';
+import { getAllUsers } from '../../API/admin';
 import './AdminReports.css';
 
 const AdminReports = () => {
@@ -16,30 +17,64 @@ const AdminReports = () => {
   const [mostActiveUsers, setMostActiveUsers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [frequency, setFrequency] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [walletsWithOwner, setWalletsWithOwner] = useState([]);
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [dateRangeResult, setDateRangeResult] = useState(null);
 
   useEffect(() => {
-    loadReports();
+    loadData();
   }, []);
 
-  const loadReports = async () => {
+  const loadData = async () => {
     setLoading(true);
     
     try {
-      const walletsRes = await getMostUsedWallets(5);
-      const usersRes = await getUsersWithMostTransfers(5);
-      const categoriesRes = await getMostActiveCategories();
-      const frequencyRes = await getTransactionFrequency();
-
-      console.log('📊 Billeteras:', walletsRes);
-      console.log('👥 Usuarios:', usersRes);
-      console.log('📁 Categorías:', categoriesRes);
-      console.log('🔄 Frecuencia:', frequencyRes);
-
-      if (walletsRes.success && walletsRes.data) {
-        setMostUsedWallets(walletsRes.data);
+      // Cargar usuarios
+      const usersResult = await getAllUsers();
+      let usersList = [];
+      if (usersResult.success && usersResult.data) {
+        usersList = usersResult.data;
+        setUsers(usersList);
       }
+      
+      // Cargar billeteras más usadas
+      const walletsRes = await getMostUsedWallets(10);
+      let walletsList = [];
+      if (walletsRes.success && walletsRes.data) {
+        walletsList = walletsRes.data;
+        
+        // Enriquecer las billeteras con el nombre del usuario
+        const enrichedWallets = walletsList.map(wallet => {
+          // Buscar el usuario por el userId (si el backend lo devuelve)
+          // O si no, intentar obtenerlo de alguna otra manera
+          let ownerName = 'Desconocido';
+          
+          // Si el wallet tiene userId
+          if (wallet.userId) {
+            const user = usersList.find(u => u.id === wallet.userId);
+            ownerName = user ? user.name : 'Desconocido';
+          } else {
+            // Si no tiene userId, intentar buscar por walletName (no es ideal pero es temporal)
+            // Esta es una solución temporal mientras el backend no envía userId
+            console.log('Billetera sin userId:', wallet);
+          }
+          
+          return {
+            ...wallet,
+            ownerName: ownerName
+          };
+        });
+        setWalletsWithOwner(enrichedWallets);
+        setMostUsedWallets(walletsList);
+      }
+      
+      const [usersRes, categoriesRes, frequencyRes] = await Promise.all([
+        getUsersWithMostTransfers(5),
+        getMostActiveCategories(),
+        getTransactionFrequency()
+      ]);
+
       if (usersRes.success && usersRes.data) {
         setMostActiveUsers(usersRes.data);
       }
@@ -84,6 +119,20 @@ const AdminReports = () => {
     }).format(value || 0);
   };
 
+  const getCategoryLabel = (category) => {
+    if (!category || category === 'Unknown') return 'Sin categoría';
+    return category;
+  };
+
+  const getTypeLabel = (type) => {
+    switch(type) {
+      case 'RECHARGE': return 'Recarga';
+      case 'WITHDRAWAL': return 'Retiro';
+      case 'TRANSFER': return 'Transferencia';
+      default: return type;
+    }
+  };
+
   if (loading) {
     return (
       <div className="admin-reports-container">
@@ -124,12 +173,14 @@ const AdminReports = () => {
       </div>
 
       <div className="reports-grid">
+        {/* Billeteras más usadas */}
         <div className="report-card">
           <h2>🏆 Billeteras más usadas</h2>
           <div className="report-table-container">
             <table className="report-table">
               <thead>
                 <tr>
+                  <th>Propietario</th>
                   <th>Billetera</th>
                   <th>Tipo</th>
                   <th>Transacciones</th>
@@ -137,17 +188,18 @@ const AdminReports = () => {
                 </tr>
               </thead>
               <tbody>
-                {mostUsedWallets.map((item, index) => (
+                {walletsWithOwner.map((item, index) => (
                   <tr key={index}>
+                    <td>{item.ownerName || 'Desconocido'}</td>
                     <td>{item.walletName || '-'}</td>
                     <td>{item.walletType || '-'}</td>
                     <td>{item.transactionCount || 0}</td>
-                    <td>{formatCurrency(item.totalAmount || 0)}</td>
+                    <td>{formatCurrency(item.totalAmount || 0)}</td >
                   </tr>
                 ))}
-                {mostUsedWallets.length === 0 && (
+                {walletsWithOwner.length === 0 && (
                   <tr>
-                    <td colSpan="4" className="empty-table">No hay datos disponibles</td>
+                    <td colSpan="5" className="empty-table">No hay datos disponibles</td>
                   </tr>
                 )}
               </tbody>
@@ -155,6 +207,7 @@ const AdminReports = () => {
           </div>
         </div>
 
+        {/* Usuarios con más transferencias */}
         <div className="report-card">
           <h2>👥 Usuarios con más transferencias</h2>
           <div className="report-table-container">
@@ -186,6 +239,7 @@ const AdminReports = () => {
           </div>
         </div>
 
+        {/* Categorías más activas */}
         <div className="report-card">
           <h2>📊 Categorías más activas</h2>
           <div className="report-table-container">
@@ -200,7 +254,7 @@ const AdminReports = () => {
               <tbody>
                 {categories.map((item, index) => (
                   <tr key={index}>
-                    <td>{item.category || '-'}</td>
+                    <td>{getCategoryLabel(item.category)}</td>
                     <td>{item.transactionCount || 0}</td>
                     <td>{formatCurrency(item.totalAmount || 0)}</td>
                   </tr>
@@ -213,8 +267,12 @@ const AdminReports = () => {
               </tbody>
             </table>
           </div>
+          <div className="report-note">
+            <small>📌 Las categorías se asignan según el tipo de billetera (Ahorro, Gastos diarios, Inversión, etc.)</small>
+          </div>
         </div>
 
+        {/* Frecuencia por tipo de transacción */}
         <div className="report-card">
           <h2>🔄 Frecuencia por tipo de transacción</h2>
           <div className="report-table-container">
@@ -229,7 +287,7 @@ const AdminReports = () => {
               <tbody>
                 {frequency.map((item, index) => (
                   <tr key={index}>
-                    <td>{item.type || '-'}</td>
+                    <td>{getTypeLabel(item.type)}</td>
                     <td>{item.count || 0}</td>
                     <td>{formatCurrency(item.totalAmount || 0)}</td>
                   </tr>
