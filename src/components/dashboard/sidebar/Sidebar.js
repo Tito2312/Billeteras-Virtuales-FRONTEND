@@ -10,7 +10,6 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     { id: 'scheduled', label: 'Operaciones Programadas', icon: '⏰' },
     { id: 'rewards', label: 'Recompensas', icon: '🎁' },
     { id: 'analytics', label: 'Analítica', icon: '📈' },
-    { id: 'security', label: 'Seguridad', icon: '🔒' },   
     { id: 'notifications', label: 'Notificaciones', icon: '🔔' }
   ];
   

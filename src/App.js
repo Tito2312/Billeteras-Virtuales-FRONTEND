@@ -12,12 +12,12 @@ import Sidebar from './components/dashboard/sidebar/Sidebar';
 import { getCurrentUser, logout, isAdmin } from './API/auth';
 import Scheduled from './components/scheduled/Scheduled';
 import Rewards from './components/rewards/Rewards';
-import Security from './components/security/Security';
 import Profile from './components/profile/Profile';
 import Notifications from './components/notifications/Notifications';
 import Analytics from './components/analytics/Analytics';
 import VerifyEmail from './components/auth/VerifyEmail';
 import AdminDashboard from './components/admin/AdminDashboard';
+import AssistantBot from './components/assistant/AssistantBot';
 import './App.css';
 
 const AppContent = () => {
@@ -142,162 +142,163 @@ const AppContent = () => {
 
   if (!user) {
     return (
-      <Routes>
-        <Route path="/login" element={
-          <Login
-            onLoginSuccess={handleLoginSuccess}
-            onSwitchToRegister={() => navigate('/register')}
-            onSwitchToForgotPassword={() => navigate('/forgot-password')}
-          />
-        } />
-        <Route path="/register" element={
-          <Register
-            onRegisterSuccess={handleRegisterSuccess}
-            onSwitchToLogin={() => navigate('/login')}
-          />
-        } />
-        <Route path="/forgot-password" element={
-          <ForgotPassword
-            onBackToLogin={() => navigate('/login')}
-          />
-        } />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="/login" element={
+            <Login
+              onLoginSuccess={handleLoginSuccess}
+              onSwitchToRegister={() => navigate('/register')}
+              onSwitchToForgotPassword={() => navigate('/forgot-password')}
+            />
+          } />
+          <Route path="/register" element={
+            <Register
+              onRegisterSuccess={handleRegisterSuccess}
+              onSwitchToLogin={() => navigate('/login')}
+            />
+          } />
+          <Route path="/forgot-password" element={
+            <ForgotPassword
+              onBackToLogin={() => navigate('/login')}
+            />
+          } />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+        <AssistantBot />
+      </>
     );
   }
 
   if (isAdmin()) {
     return (
-      <Routes>
-        <Route path="/admin" element={
-          <AdminDashboard user={user} onLogout={handleLogout} />
-        } />
-        <Route path="/admin/users" element={
-          <AdminDashboard user={user} onLogout={handleLogout} />
-        } />
-        <Route path="/admin/audit" element={
-          <AdminDashboard user={user} onLogout={handleLogout} />
-        } />
-        <Route path="/admin/reports" element={
-          <AdminDashboard user={user} onLogout={handleLogout} />
-        } />
-        <Route path="/admin/wallets" element={
-          <AdminDashboard user={user} onLogout={handleLogout} />
-        } />
-        <Route path="/admin/transactions" element={
-          <AdminDashboard user={user} onLogout={handleLogout} />
-        } />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="/admin" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="/admin/users" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="/admin/audit" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="/admin/reports" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="/admin/wallets" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="/admin/transactions" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+        <AssistantBot />
+      </>
     );
   }
 
   return (
-    <Routes>
-      <Route path="/" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Dashboard 
-              user={user} 
-              onLogout={handleLogout}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-            />
+    <>
+      <Routes>
+        <Route path="/" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Dashboard 
+                user={user} 
+                onLogout={handleLogout}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+              />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/wallets" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Wallets user={user} />
+        } />
+        <Route path="/wallets" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Wallets user={user} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/transactions" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Transactions user={user} />
+        } />
+        <Route path="/transactions" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Transactions user={user} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/scheduled" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Scheduled user={user} />
+        } />
+        <Route path="/scheduled" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Scheduled user={user} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/rewards" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Rewards user={user} />
+        } />
+        <Route path="/rewards" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Rewards user={user} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/security" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Security user={user} />
+        } />
+        <Route path="/profile" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Profile user={user} onUpdateUser={(updatedUser) => {
+                const newUser = { ...user, ...updatedUser };
+                localStorage.setItem('user', JSON.stringify(newUser));
+                setUser(newUser);
+              }} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/profile" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Profile user={user} onUpdateUser={(updatedUser) => {
-              const newUser = { ...user, ...updatedUser };
-              localStorage.setItem('user', JSON.stringify(newUser));
-              setUser(newUser);
-            }} />
+        } />
+        <Route path="/notifications" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Notifications user={user} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/notifications" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Notifications user={user} />
+        } />
+        <Route path="/analytics" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Analytics user={user} />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/analytics" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Analytics user={user} />
+        } />
+        <Route path="/verify-email" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <VerifyEmail />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="/verify-email" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <VerifyEmail />
+        } />
+        <Route path="*" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <Dashboard 
+                user={user} 
+                onLogout={handleLogout}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+              />
+            </div>
           </div>
-        </div>
-      } />
-      <Route path="*" element={
-        <div className="app-layout">
-          <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
-          <div className="app-main-content">
-            <Dashboard 
-              user={user} 
-              onLogout={handleLogout}
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-            />
-          </div>
-        </div>
-      } />
-    </Routes>
+        } />
+      </Routes>
+      <AssistantBot />
+    </>
   );
 };
 
