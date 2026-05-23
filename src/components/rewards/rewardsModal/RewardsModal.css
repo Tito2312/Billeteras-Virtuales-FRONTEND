@@ -281,3 +281,37 @@
     gap: 4px;
   }
 }
+.benefit-money-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #059669;
+  margin: 4px 0;
+}
+
+.benefit-success-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #d1fae5;
+  border: 1px solid #6ee7b7;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 12px;
+}
+
+.benefit-success-card strong { color: #065f46; font-size: 15px; }
+.benefit-success-card p { color: #065f46; margin: 4px 0 0; font-size: 13px; }
+.benefit-success-icon { font-size: 28px; flex-shrink: 0; }
+
+.wallet-select-redeem {
+  padding: 6px 10px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+  transition: border-color 0.2s;
+}
+
+.wallet-select-redeem:focus { border-color: #7c3aed; }

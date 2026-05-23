@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getTransfersFrom, hasCycle, findPath } from '../../API/graph';
+import { getTransfersFromUser as getTransfersFrom, hasCycles as hasCycle, findPath } from '../../API/graph';
 import { getUserTransactions } from '../../API/transactions';
 import { getUserById, getCurrentUser } from '../../API/auth';
 import './TransferNetwork.css';

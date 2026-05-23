@@ -119,3 +119,36 @@ export const getPointsRules = () => {
     { type: 'Pago programado', points: 'Bono adicional', icon: '⏰', multiplier: 'bono' }
   ];
 };
+// ── Beneficios reales del backend ──────────────────────
+
+export const getAvailableBenefits = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/benefits`, { headers: getHeaders(true) });
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, message: error.message, data: [] };
+  }
+};
+
+export const getRedeemedBenefits = async (userId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/benefits/redeemed/${userId}`, { headers: getHeaders(true) });
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, message: error.message, data: [] };
+  }
+};
+
+export const redeemBenefit = async (userId, benefitId, walletId) => {
+  try {
+    let url = `${BASE_URL}/benefits/redeem?userId=${userId}&benefitId=${benefitId}`;
+    if (walletId) url += `&walletId=${walletId}`;
+    const response = await fetch(url, { method: 'POST', headers: getHeaders(true) });
+    const data = await handleResponse(response);
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};

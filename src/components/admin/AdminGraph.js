@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getAllTransactions, getAllUsers } from '../../API/admin';
+import AdminGraphs from './AdminGraphs';
 import './AdminGraph.css';
 
 const AdminGraph = () => {
@@ -12,12 +13,12 @@ const AdminGraph = () => {
     const [selectedNode, setSelectedNode] = useState(null);
     const svgRef = useRef(null);
 
-    const WIDTH = 800;
-    const HEIGHT = 600;
+    const WIDTH = 1000;
+    const HEIGHT = 680;
     const CX = WIDTH / 2;
     const CY = HEIGHT / 2;
-    const RADIUS = 220;
-    const NODE_R = 28;
+    const RADIUS = 290;
+    const NODE_R = 30;
 
     useEffect(() => {
         loadData();
@@ -79,25 +80,39 @@ const AdminGraph = () => {
 
     const positions = getNodePositions();
 
+    // Set de pares con arista en ambas direcciones
+    const biDirSet = new Set(
+        edges.filter(e => edges.some(e2 => e2.from === e.to && e2.to === e.from))
+             .map(e => `${e.from}__${e.to}`)
+    );
+
     // Flecha curva entre dos nodos
-    const getArrowPath = (from, to) => {
+    // side: 1 = curva hacia la izquierda, -1 = derecha (para bidireccionales)
+    const getEdgeData = (from, to, side = 1, isBiDir = false) => {
         const dx = to.x - from.x;
         const dy = to.y - from.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const ux = dx / dist;
         const uy = dy / dist;
 
-        // Offset para no entrar al nodo
         const sx = from.x + ux * NODE_R;
         const sy = from.y + uy * NODE_R;
-        const ex = to.x - ux * NODE_R;
-        const ey = to.y - uy * NODE_R;
+        const ex = to.x - ux * (NODE_R + 6);
+        const ey = to.y - uy * (NODE_R + 6);
 
-        // Curva de control perpendicular
-        const mx = (sx + ex) / 2 - uy * 40;
-        const my = (sy + ey) / 2 + ux * 40;
+        const curveOffset = isBiDir ? 55 : 35;
+        const cx = (sx + ex) / 2 - uy * curveOffset * side;
+        const cy = (sy + ey) / 2 + ux * curveOffset * side;
 
-        return `M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`;
+        // Punto medio real de la curva bezier (t=0.5)
+        const lx = 0.25 * sx + 0.5 * cx + 0.25 * ex;
+        const ly = 0.25 * sy + 0.5 * cy + 0.25 * ey;
+
+        return {
+            path: `M ${sx} ${sy} Q ${cx} ${cy} ${ex} ${ey}`,
+            labelX: lx,
+            labelY: ly,
+        };
     };
 
     const isHighlighted = (edge) => {
@@ -167,14 +182,16 @@ const AdminGraph = () => {
                         const to = positions[edge.to];
                         if (!from || !to) return null;
                         const highlighted = isHighlighted(edge);
-                        const path = getArrowPath(from, to);
-                        const mx = (from.x + to.x) / 2;
-                        const my = (from.y + to.y) / 2;
+                        const isBiDir = biDirSet.has(`${edge.from}__${edge.to}`);
+                        const side = isBiDir
+                            ? (edge.from < edge.to ? 1 : -1)
+                            : 1;
+                        const edgeData = getEdgeData(from, to, side, isBiDir);
 
                         return (
                             <g key={i}>
                                 <path
-                                    d={path}
+                                    d={edgeData.path}
                                     fill="none"
                                     stroke={highlighted ? '#7c3aed' : '#e5e7eb'}
                                     strokeWidth={highlighted ? Math.min(1 + edge.count, 5) : 1}
@@ -189,9 +206,18 @@ const AdminGraph = () => {
                                     onMouseLeave={() => setTooltip(null)}
                                 />
                                 {highlighted && (
-                                    <text x={mx} y={my} textAnchor="middle" fontSize="10" fill="#7c3aed" fontWeight="600">
-                                        {formatCurrency(edge.total)}
-                                    </text>
+                                    <g>
+                                        <rect
+                                            x={edgeData.labelX - 30} y={edgeData.labelY - 8}
+                                            width={60} height={16}
+                                            rx={4} fill="white" opacity={0.85}
+                                        />
+                                        <text x={edgeData.labelX} y={edgeData.labelY + 1}
+                                            textAnchor="middle" dominantBaseline="middle"
+                                            fontSize="10" fill="#7c3aed" fontWeight="700">
+                                            {formatCurrency(edge.total)}
+                                        </text>
+                                    </g>
                                 )}
                             </g>
                         );
@@ -246,6 +272,8 @@ const AdminGraph = () => {
                     </div>
                 )}
             </div>
+
+            <AdminGraphs />
         </div>
     );
 };

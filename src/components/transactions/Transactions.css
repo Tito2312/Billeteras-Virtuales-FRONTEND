@@ -446,3 +446,122 @@
     display: none;
   }
 }
+/* ── Pila de Reversiones ── */
+.reversed-stack-section {
+  margin-top: 32px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.reversed-stack-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 24px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reversed-stack-icon { font-size: 26px; }
+
+.reversed-stack-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin: 0 0 2px;
+}
+
+.reversed-stack-header p {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.reversed-stack-badge {
+  margin-left: auto;
+  background: #7c3aed;
+  color: white;
+  border-radius: 20px;
+  padding: 3px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.reversed-stack-visual {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  max-width: 560px;
+}
+
+.reversed-stack-top-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.reversed-stack-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  font-size: 13px;
+}
+
+.reversed-stack-card-top {
+  background: linear-gradient(135deg, #ede9fe, #f5f3ff);
+  border-color: #7c3aed;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -2px 8px rgba(124, 58, 237, 0.1);
+}
+
+.reversed-stack-base {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.06em;
+  padding: 6px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-top: 2px solid #d1d5db;
+  border-radius: 0 0 8px 8px;
+}
+
+.reversed-stack-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reversed-stack-type  { font-weight: 600; color: #374151; }
+.reversed-stack-date  { font-size: 11px; color: #9ca3af; }
+
+.reversed-stack-card-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reversed-stack-amount {
+  font-weight: 700;
+  color: #1e1b4b;
+}
+
+.reversed-stack-chip {
+  background: #7c3aed;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 700;
+}

@@ -1,5 +1,31 @@
 /* AdminUserTree.css */
 
+/* ── Etiqueta de sección ─────────────────────── */
+.tree-section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e1b4b;
+    margin-top: 8px;
+    margin-bottom: -8px;
+}
+
+.tree-section-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
 .tree-container {
     max-width: 1100px;
     margin: 0 auto;

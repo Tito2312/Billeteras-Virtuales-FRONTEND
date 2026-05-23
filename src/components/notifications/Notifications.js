@@ -38,16 +38,11 @@ const Notifications = ({ user }) => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const [settings, setSettings] = useState([
-        { id: 1, name: 'Saldo Bajo', description: 'Alertas cuando el saldo es menor a un umbral', enabled: true },
-        { id: 2, name: 'Transacciones Exitosas', description: 'Confirmación de operaciones completadas', enabled: true },
-        { id: 3, name: 'Actividad Inusual', description: 'Alertas de accesos o movimientos sospechosos', enabled: true },
-        { id: 4, name: 'Ascenso de Nivel', description: 'Notificaciones al alcanzar un nuevo nivel', enabled: true },
-        { id: 5, name: 'Promociones y Ofertas', description: 'Ofertas especiales y beneficios exclusivos', enabled: false }
-    ]);
+
+    const storageKey = userId ? `readNotifications_${userId}` : 'readNotifications';
 
     const getReadIds = () => {
-        try { return JSON.parse(localStorage.getItem('readNotifications') || '[]'); }
+        try { return JSON.parse(localStorage.getItem(storageKey) || '[]'); }
         catch { return []; }
     };
 
@@ -75,6 +70,7 @@ const Notifications = ({ user }) => {
             setLoading(false);
         };
         load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
 
     const unreadCount = notifications.filter(n => !n.read).length;
@@ -85,18 +81,14 @@ const Notifications = ({ user }) => {
 
     const markAsRead = (id) => {
         const ids = getReadIds();
-        if (!ids.includes(id)) localStorage.setItem('readNotifications', JSON.stringify([...ids, id]));
+        if (!ids.includes(id)) localStorage.setItem(storageKey, JSON.stringify([...ids, id]));
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
 
     const markAllAsRead = () => {
         const allIds = notifications.map(n => n.id);
-        localStorage.setItem('readNotifications', JSON.stringify(allIds));
+        localStorage.setItem(storageKey, JSON.stringify(allIds));
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    };
-
-    const toggleSetting = (id) => {
-        setSettings(prev => prev.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));
     };
 
     const getTypeClass = (type) => type || 'info';
@@ -116,30 +108,6 @@ const Notifications = ({ user }) => {
             </div>
 
             <div className="notifications-layout">
-                <div className="settings-section">
-                    <div className="section-card">
-                        <h2>Configuración de Notificaciones</h2>
-                        <div className="settings-list">
-                            {settings.map(setting => (
-                                <div key={setting.id} className="setting-item">
-                                    <div className="setting-info">
-                                        <span className="setting-name">{setting.name}</span>
-                                        <span className="setting-description">{setting.description}</span>
-                                    </div>
-                                    <label className="toggle-switch">
-                                        <input
-                                            type="checkbox"
-                                            checked={setting.enabled}
-                                            onChange={() => toggleSetting(setting.id)}
-                                        />
-                                        <span className="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
                 <div className="notifications-section">
                     <div className="section-card">
                         <div className="notifications-tabs">

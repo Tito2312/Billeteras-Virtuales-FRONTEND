@@ -164,9 +164,11 @@ export const getMostUsedWallets = async (top = 5) => {
   }
 };
 
-export const getUsersWithMostTransfers = async (top = 5) => {
+export const getUsersWithMostTransfers = async (top = 5, start = null, end = null) => {
   try {
-    const url = `${BASE_URL}/reports/users/most-transfers?top=${top}`;
+    let url = `${BASE_URL}/reports/users/most-transfers?top=${top}`;
+    if (start) url += `&start=${encodeURIComponent(start)}`;
+    if (end)   url += `&end=${encodeURIComponent(end)}`;
     const response = await fetch(url, { method: 'GET', headers: getHeaders(true) });
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -209,6 +211,18 @@ export const getTransactionsByDateRange = async (start, end) => {
   } catch (error) {
     console.error('Error al obtener transacciones por fecha:', error);
     return { success: false, message: error.message };
+  }
+};
+
+export const getTopTransactionsByAmount = async (top = 10) => {
+  try {
+    const url = `${BASE_URL}/reports/transactions/top-amount?top=${top}`;
+    const response = await fetch(url, { method: 'GET', headers: getHeaders(true) });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al obtener top transacciones:', error);
+    return { success: false, message: error.message, data: [] };
   }
 };
 
@@ -329,6 +343,22 @@ export const reverseTransaction = async (userId, transactionId) => {
     return { success: false, message: error.message };
   }
 };
+/**
+ * Revertir última transacción de un usuario usando la Pila (Stack)
+ * PUT /api/transactions/reverse-pila?userId={userId}
+ */
+export const reverseTransactionPila = async (userId) => {
+  try {
+    const url = `${BASE_URL}/transactions/reverse-pila?userId=${userId}`;
+    const response = await fetch(url, { method: 'PUT', headers: getHeaders(true) });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al revertir con pila:', error);
+    return { success: false, message: error.message };
+  }
+};
+
 /**
  * Obtener billetera por ID (admin)
  * GET /api/wallets/{id}

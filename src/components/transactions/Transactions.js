@@ -452,6 +452,59 @@ const Transactions = ({ user }) => {
         )}
       </div>
       
+      {/* ── Pila de reversiones ── */}
+      {(() => {
+        // Solo transferencias que YO envié y revertí, sin duplicados
+        const seen = new Set();
+        const reversed = transactions
+          .filter(t => {
+            if (t.status !== 'REVERSED' || t.type !== 'TRANSFER' || t.userId !== userId) return false;
+            if (seen.has(t.id)) return false;
+            seen.add(t.id);
+            return true;
+          })
+          // Ordenar por cuándo fue revertida (ASC: base=más antigua → tope=más reciente)
+          .sort((a, b) => {
+            const da = new Date(a.reversedAt || a.createdAt);
+            const db = new Date(b.reversedAt || b.createdAt);
+            return da - db;
+          });
+        if (reversed.length === 0) return null;
+        return (
+          <div className="reversed-stack-section">
+            <div className="reversed-stack-header">
+              <span className="reversed-stack-icon">📚</span>
+              <div>
+                <h2>Pila de Reversiones</h2>
+                <p>Transacciones revertidas apiladas — la más reciente está en el tope</p>
+              </div>
+              <span className="reversed-stack-badge">{reversed.length}</span>
+            </div>
+            <div className="reversed-stack-visual">
+              <div className="reversed-stack-top-label">▲ TOPE (más reciente)</div>
+              {[...reversed].reverse().map((tx, idx) => {
+                const isTop = idx === 0;
+                return (
+                  <div key={tx.id} className={`reversed-stack-card${isTop ? ' reversed-stack-card-top' : ''}`}>
+                    <div className="reversed-stack-card-left">
+                      <span className="reversed-stack-type">🔄 Transferencia revertida</span>
+                      <span className="reversed-stack-date">{formatDate(tx.createdAt)}</span>
+                    </div>
+                    <div className="reversed-stack-card-right">
+                      <span className="reversed-stack-amount">
+                        {formatCurrency(tx.originalAmount || tx.amount)}
+                      </span>
+                      {isTop && <span className="reversed-stack-chip">TOPE</span>}
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="reversed-stack-base">▬ BASE</div>
+            </div>
+          </div>
+        );
+      })()}
+
       <RechargeModal
         isOpen={showRechargeModal}
         onClose={() => setShowRechargeModal(false)}

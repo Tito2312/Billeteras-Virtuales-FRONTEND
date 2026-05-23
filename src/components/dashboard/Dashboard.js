@@ -88,66 +88,47 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
     const last7Days = getLast7Days();
     const currentBalance = walletsList.reduce((sum, w) => sum + (w.balance || 0), 0);
-    
+
     if (!transactionsList || transactionsList.length === 0) {
-      const evolution = last7Days.map(day => ({
-        day: day.label,
-        value: currentBalance,
-        fullDate: day.date
-      }));
-      setChartData(evolution);
+      setChartData(last7Days.map(day => ({ day: day.label, value: currentBalance, fullDate: day.date })));
       return;
     }
-    
-    const sortedTransactions = [...transactionsList].sort((a, b) => 
+
+    const sortedTransactions = [...transactionsList].sort((a, b) =>
       new Date(a.createdAt) - new Date(b.createdAt)
     );
-    
-    let runningBalance = 0;
-    const endOfDayBalance = new Map();
-    
-    last7Days.forEach(day => {
-      endOfDayBalance.set(day.date, 0);
-    });
-    
-    for (const day of last7Days) {
+
+    // Para cada día calcula el balance acumulado desde cero (sin reutilizar runningBalance entre días)
+    const evolution = last7Days.map(day => {
       const dayEnd = new Date(day.date + 'T23:59:59');
-      
+      let balance = 0;
+
       for (const trans of sortedTransactions) {
         const transDate = new Date(trans.createdAt);
-        
-        if (transDate <= dayEnd) {
-          let amountChange = 0;
-          switch (trans.type) {
-            case 'RECHARGE':
-              amountChange = trans.amount;
-              break;
-            case 'WITHDRAWAL':
-              amountChange = -trans.amount;
-              break;
-            case 'TRANSFER':
-              if (trans.userId === userId && !trans.receiverUserId) {
-                amountChange = -trans.amount;
-              } else if (trans.receiverUserId === userId) {
-                amountChange = trans.amount;
-              }
-              break;
-            default:
-              amountChange = 0;
-          }
-          runningBalance += amountChange;
+        if (transDate > dayEnd) continue;
+
+        switch (trans.type) {
+          case 'RECHARGE':
+            balance += trans.amount;
+            break;
+          case 'WITHDRAWAL':
+            balance -= trans.originalAmount || trans.amount;
+            break;
+          case 'TRANSFER':
+            if (trans.userId === userId) {
+              balance -= trans.originalAmount || trans.amount;
+            } else if (trans.receiverUserId === userId) {
+              balance += trans.amount;
+            }
+            break;
+          default:
+            break;
         }
       }
-      
-      endOfDayBalance.set(day.date, Math.max(runningBalance, 0));
-    }
-    
-    const evolution = last7Days.map(day => ({
-      day: day.label,
-      value: endOfDayBalance.get(day.date),
-      fullDate: day.date
-    }));
-    
+
+      return { day: day.label, value: Math.max(balance, 0), fullDate: day.date };
+    });
+
     setChartData(evolution);
   }, [userId]);
   
@@ -361,9 +342,9 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
             <div className="chart-bars">
               {chartData.map((item, index) => (
                 <div key={index} className="chart-bar-wrapper">
-                  <div 
+                  <div
                     className="chart-bar"
-                    style={{ height: `${Math.max((item.value / maxChartValue) * 100, 4)}%` }}
+                    style={{ height: `${Math.max((item.value / maxChartValue) * 220, 8)}px` }}
                   >
                     <span className="chart-tooltip">{formatCurrency(item.value)}</span>
                   </div>
