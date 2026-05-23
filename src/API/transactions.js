@@ -258,3 +258,18 @@ export const getWalletByKey = async (transferKey) => {
     return { success: false, message: error.message };
   }
 };
+export const reverseTransactionPila = async (userId) => {
+  try {
+    const url = `${BASE_URL}/transactions/reverse-pila?userId=${userId}`;
+    const token = getAuthToken();
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error al revertir con pila:', error);
+    return { success: false, message: error.message };
+  }
+};

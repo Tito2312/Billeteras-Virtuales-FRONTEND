@@ -20,41 +20,51 @@ const NotificationBell = ({ onViewAll }) => {
     const menuRef = useRef(null);
     const userId = getCurrentUser()?.id;
 
+    const storageKey = userId ? `readNotifications_${userId}` : 'readNotifications';
+
     const getReadIds = () => {
-        try { return JSON.parse(localStorage.getItem('readNotifications') || '[]'); }
+        try { return JSON.parse(localStorage.getItem(storageKey) || '[]'); }
         catch { return []; }
     };
 
     const saveReadId = (id) => {
         const ids = getReadIds();
         if (!ids.includes(id)) {
-            localStorage.setItem('readNotifications', JSON.stringify([...ids, id]));
+            localStorage.setItem(storageKey, JSON.stringify([...ids, id]));
+        }
+    };
+
+    const loadNotifications = async () => {
+        if (!userId) return;
+        const result = await getUserNotifications(userId);
+        if (result.success) {
+            const readIds = getReadIds();
+            const mapped = result.data.map(n => {
+                const { type, icon } = getTypeAndIcon(n.asunto);
+                return {
+                    id: n.id,
+                    title: n.asunto || 'Notificación',
+                    message: n.message || '',
+                    date: n.registrationDate || '-',
+                    type,
+                    icon,
+                    read: readIds.includes(n.id)
+                };
+            });
+            setNotifications(mapped);
         }
     };
 
     useEffect(() => {
-        const load = async () => {
-            if (!userId) return;
-            const result = await getUserNotifications(userId);
-            if (result.success) {
-                const readIds = getReadIds();
-                const mapped = result.data.map(n => {
-                    const { type, icon } = getTypeAndIcon(n.asunto);
-                    return {
-                        id: n.id,
-                        title: n.asunto || 'Notificación',
-                        message: n.message || '',
-                        date: n.registrationDate || '-',
-                        type,
-                        icon,
-                        read: readIds.includes(n.id)
-                    };
-                });
-                setNotifications(mapped);
-            }
-        };
-        load();
+        loadNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userId]);
+
+    // Recargar desde la API cada vez que se abre el dropdown
+    useEffect(() => {
+        if (isOpen) loadNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -75,7 +85,7 @@ const NotificationBell = ({ onViewAll }) => {
 
     const markAllAsRead = () => {
         const allIds = notifications.map(n => n.id);
-        localStorage.setItem('readNotifications', JSON.stringify(allIds));
+        localStorage.setItem(storageKey, JSON.stringify(allIds));
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
 
@@ -104,7 +114,7 @@ const NotificationBell = ({ onViewAll }) => {
                             notifications.filter(n => !n.read).slice(0, 5).map(notif => (
                                 <div
                                     key={notif.id}
-                                    className={`notification-item ${!notif.read ? 'unread' : ''} ${getTypeClass(notif.type)}`}
+                                    className={`notification-item unread ${getTypeClass(notif.type)}`}
                                     onClick={() => markAsRead(notif.id)}
                                 >
                                     <div className="notif-icon">{notif.icon}</div>
@@ -113,7 +123,7 @@ const NotificationBell = ({ onViewAll }) => {
                                         <div className="notif-message">{notif.message}</div>
                                         <div className="notif-date">{notif.date}</div>
                                     </div>
-                                    {!notif.read && <div className="notif-dot"></div>}
+                                    <div className="notif-dot"></div>
                                 </div>
                             ))
                         ) : (

@@ -147,11 +147,15 @@ const AdminUserTree = () => {
         <div className="tree-container">
             {/* Header */}
             <div className="tree-header">
-                <h1>Árbol Binario de Usuarios (BST)</h1>
-                <p>Los usuarios se insertan ordenados por puntos. El recorrido <strong>inorder</strong> produce la lista de menor a mayor.</p>
+                <h1>Ranking de Usuarios</h1>
+                <p>Usuarios clasificados por puntos acumulados mediante un Árbol Binario de Búsqueda (BST).</p>
             </div>
 
-            {/* ── VISUAL DEL ÁRBOL ── */}
+            {/* ── SECCIÓN 1: ORGANIZAR POR PUNTOS ── */}
+            <div className="tree-section-label">
+                <span className="tree-section-num">1</span>
+                <span>Organizar usuarios según puntos acumulados</span>
+            </div>
             <div className="tree-visual-card">
                 <div className="tree-visual-title">
                     <span className="tree-visual-icon">🌳</span>
@@ -250,6 +254,12 @@ const AdminUserTree = () => {
                 </div>
             </div>
 
+            {/* ── SECCIÓN 2: CLASIFICAR NIVELES ── */}
+            <div className="tree-section-label">
+                <span className="tree-section-num">2</span>
+                <span>Clasificar niveles de fidelización</span>
+            </div>
+
             {/* ── TOP USER ── */}
             {topUser && (
                 <div className="tree-top-card">
@@ -284,6 +294,12 @@ const AdminUserTree = () => {
                 })}
             </div>
 
+            {/* ── SECCIÓN 3: BÚSQUEDA POR RANGO ── */}
+            <div className="tree-section-label">
+                <span className="tree-section-num">3</span>
+                <span>Búsquedas eficientes por rango de puntos</span>
+            </div>
+
             {/* ── FILTROS ── */}
             <div className="tree-filters">
                 <div className="tree-level-tabs">
@@ -309,6 +325,12 @@ const AdminUserTree = () => {
                         onChange={e => setRangeMax(e.target.value)} className="tree-range-input" />
                     <button className="tree-range-btn" onClick={handleRangeSearch}>Buscar</button>
                 </div>
+            </div>
+
+            {/* ── SECCIÓN 4: REPORTE ORDENADO ── */}
+            <div className="tree-section-label">
+                <span className="tree-section-num">4</span>
+                <span>Reporte ordenado — recorrido inorder del BST</span>
             </div>
 
             {/* ── TABLA RANKING ── */}

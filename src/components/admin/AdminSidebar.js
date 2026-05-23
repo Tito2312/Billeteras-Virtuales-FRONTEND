@@ -1,5 +1,4 @@
-// AdminSidebar.js - Menú lateral específico para el panel de administración
-
+// components/admin/AdminSidebar.js
 import React from 'react';
 import logo from '../../assets/LogoWalletTech.png';
 import './AdminSidebar.css';
@@ -16,42 +15,40 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
     { id: 'tree', label: 'Ranking', icon: '🏆', path: '/admin/tree' }
   ];
 
-  const handleClick = (item) => {
-    if (item.id === 'dashboard') {
-      window.location.href = '/admin';
-    } else {
-      window.location.href = item.path;
-    }
-  };
-
   return (
     <div className="admin-sidebar">
       <div className="admin-sidebar-logo">
         <img src={logo} alt="FinWallet" style={{ width: '100px', height: '100px', objectFit: 'contain', marginRight: '-20px' }} />
         <h2>FinWallet Admin</h2>
       </div>
-      
+
       <nav className="admin-sidebar-nav">
-        {menuItems.map(item => (
+        {menuItems.map((item) => (
           <button
             key={item.id}
-            className={`admin-sidebar-item ${activeTab === item.id ? 'active' : ''}`}
-            onClick={() => handleClick(item)}
+            className={`admin-nav-item ${activeTab === item.id ? 'active' : ''}`}
+            onClick={() => onTabChange(item.id)}
           >
-            <span className="admin-sidebar-icon">{item.icon}</span>
-            <span className="admin-sidebar-label">{item.label}</span>
+            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-label">{item.label}</span>
           </button>
         ))}
       </nav>
-      
+
       <div className="admin-sidebar-footer">
         <div className="admin-user-info">
-          <span className="admin-user-name">{userName || 'Admin'}</span>
-          <button className="admin-logout-btn" onClick={onLogout}>
-            🚪 Cerrar Sesión
-          </button>
+          <div className="user-avatar">
+            {userName ? userName.charAt(0).toUpperCase() : 'A'}
+          </div>
+          <div className="user-details">
+            <span className="user-name">{userName || 'Administrador'}</span>
+            <span className="user-role">Admin</span>
+          </div>
         </div>
-        <div className="admin-version">v1.0.0</div>
+        <button className="admin-logout-btn" onClick={onLogout}>
+          <span className="logout-icon">🚪</span>
+          <span className="logout-text">Cerrar Sesión</span>
+        </button>
       </div>
     </div>
   );

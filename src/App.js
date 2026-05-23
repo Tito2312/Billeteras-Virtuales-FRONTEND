@@ -71,21 +71,7 @@ const AppContent = () => {
         setActiveTab('analytics');
       } else if (path === '/network') {
         setActiveTab('network');
-      } else if (path === '/admin') {
-        setActiveTab('admin');
-      } else if (path === '/admin/users') {
-        setActiveTab('admin');
-      } else if (path === '/admin/audit') {
-        setActiveTab('admin');
-      } else if (path === '/admin/reports') {
-        setActiveTab('admin');
-      } else if (path === '/admin/wallets') {
-        setActiveTab('admin');
-      } else if (path === '/admin/transactions') {
-        setActiveTab('admin');
-      } else if (path === '/admin/graph') {
-        setActiveTab('admin');
-      } else if (path === '/admin/tree') {
+      } else if (path === '/admin' || path.startsWith('/admin/')) {
         setActiveTab('admin');
       } else {
         setActiveTab('dashboard');
@@ -183,30 +169,15 @@ const AppContent = () => {
     return (
       <>
         <Routes>
-          <Route path="/admin" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/users" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/audit" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/reports" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/wallets" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/transactions" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/graph" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/tree" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
+          <Route path="/admin" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/users" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/audit" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/reports" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/wallets" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/transactions" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/graphs" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/graph" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/tree" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
         <AssistantBot />

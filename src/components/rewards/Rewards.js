@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import RewardsModal from './rewardsModal/RewardsModal';
-import { getUserLevelInfo, getPointsRules } from '../../API/rewards';
+import { getUserLevelInfo, getPointsRules, getAvailableBenefits, getRedeemedBenefits } from '../../API/rewards';
 import { getCurrentUser } from '../../API/auth';
 import './Rewards.css';
 
@@ -16,6 +16,8 @@ const Rewards = ({ user }) => {
   const [nextLevel, setNextLevel] = useState(null);
   const [pointsToNextLevel, setPointsToNextLevel] = useState(0);
   const [benefits, setBenefits] = useState([]);
+  const [availableBenefits, setAvailableBenefits] = useState([]);
+  const [redeemedBenefits, setRedeemedBenefits] = useState([]);
   const [allLevels, setAllLevels] = useState([]);
   
   const userId = user?.id || getCurrentUser()?.id;
@@ -30,7 +32,12 @@ const Rewards = ({ user }) => {
       
       setLoading(true);
       
-      const levelResult = await getUserLevelInfo(userId);
+      const [levelResult, benefitsResult, redeemedResult] = await Promise.all([
+        getUserLevelInfo(userId),
+        getAvailableBenefits(),
+        getRedeemedBenefits(userId)
+      ]);
+
       if (levelResult.success && levelResult.data) {
         setUserPoints(levelResult.data.points);
         setUserLevel(levelResult.data.level);
@@ -39,7 +46,14 @@ const Rewards = ({ user }) => {
         setBenefits(levelResult.data.benefits);
         setAllLevels(levelResult.data.allLevels);
       }
-      
+
+      if (benefitsResult.success) {
+        setAvailableBenefits(benefitsResult.data);
+      }
+      if (redeemedResult.success) {
+        setRedeemedBenefits(redeemedResult.data);
+      }
+
       setLoading(false);
     };
     
@@ -56,8 +70,19 @@ const Rewards = ({ user }) => {
     ? ((userPoints - currentLevelInfo.minPoints) / (nextLevelInfo.minPoints - currentLevelInfo.minPoints)) * 100
     : 100;
   
-  const handleRedeem = (redemptionData) => {
-    alert(`🎁 Beneficio canjeado: ${redemptionData.benefit.name}\n\nPuntos gastados: ${formatNumber(redemptionData.pointsSpent)}\n\n⚠️ Esta funcionalidad se conectará con el backend próximamente.`);
+  const handleRedeem = async () => {
+    const [levelResult, redeemedResult] = await Promise.all([
+      getUserLevelInfo(userId),
+      getRedeemedBenefits(userId)
+    ]);
+    if (levelResult.success && levelResult.data) {
+      setUserPoints(levelResult.data.points);
+      setUserLevel(levelResult.data.level);
+      setNextLevel(levelResult.data.nextLevel);
+      setPointsToNextLevel(levelResult.data.pointsToNextLevel);
+    }
+    if (redeemedResult.success) setRedeemedBenefits(redeemedResult.data);
+    setShowRedeemModal(false);
   };
   
   if (loading) {
@@ -180,45 +205,64 @@ const Rewards = ({ user }) => {
         <div className="activity-section">
           <div className="section-card">
             <div className="section-header">
-              <h2>Beneficios Destacados</h2>
+              <h2>Beneficios Disponibles</h2>
               <button className="btn-redeem-points" onClick={() => setShowRedeemModal(true)}>
                 Canjear puntos →
               </button>
             </div>
-            <div className="benefits-showcase">
-              <div className="benefit-item">
-                <div className="benefit-icon">💰</div>
-                <div className="benefit-info">
-                  <span className="benefit-title">Reducción de comisiones</span>
-                  <span className="benefit-desc">Menos comisiones por transacción</span>
-                </div>
+            {availableBenefits.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontSize: 13, padding: '8px 0' }}>
+                No hay beneficios disponibles por el momento
+              </p>
+            ) : (
+              <div className="benefits-showcase">
+                {availableBenefits.map(b => (
+                  <div key={b.id} className="benefit-item">
+                    <div className="benefit-icon">💰</div>
+                    <div className="benefit-info">
+                      <span className="benefit-title">{b.name}</span>
+                      <span className="benefit-desc">{b.description}</span>
+                      <span className="benefit-money-showcase">
+                        {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(b.moneyValue)}
+                        {' · '}{b.pointsCost.toLocaleString('es-CO')} pts
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">⚡</div>
-                <div className="benefit-info">
-                  <span className="benefit-title">Prioridad</span>
-                  <span className="benefit-desc">Transacciones más rápidas</span>
-                </div>
-              </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">🎁</div>
-                <div className="benefit-info">
-                  <span className="benefit-title">Bonos de puntos</span>
-                  <span className="benefit-desc">Gana puntos más rápido</span>
-                </div>
-              </div>
-              <div className="benefit-item">
-                <div className="benefit-icon">💎</div>
-                <div className="benefit-info">
-                  <span className="benefit-title">Límites aumentados</span>
-                  <span className="benefit-desc">Mayores límites de transacción</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
-      
+
+      {/* Historial de canjes */}
+      {redeemedBenefits.length > 0 && (
+        <div className="redeemed-section">
+          <h2>🎁 Mis Beneficios Canjeados</h2>
+          <div className="redeemed-list">
+            {[...redeemedBenefits]
+              .sort((a, b) => new Date(b.redeemedAt) - new Date(a.redeemedAt))
+              .map(r => (
+                <div key={r.id} className={`redeemed-item redeemed-${r.status.toLowerCase()}`}>
+                  <div className="redeemed-item-icon">💰</div>
+                  <div className="redeemed-item-info">
+                    <span className="redeemed-item-name">{r.benefitName}</span>
+                    <span className="redeemed-item-date">
+                      {r.redeemedAt ? new Date(r.redeemedAt).toLocaleString('es-CO') : '-'}
+                    </span>
+                  </div>
+                  <div className="redeemed-item-right">
+                    <span className="redeemed-item-pts">−{r.pointsSpent?.toLocaleString('es-CO')} pts</span>
+                    <span className={`redeemed-status redeemed-status-${r.status.toLowerCase()}`}>
+                      {r.status === 'ACTIVE' ? 'Activo' : r.status === 'USED' ? 'Usado' : r.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       {/* Modal de canje de beneficios */}
       <RewardsModal
         isOpen={showRedeemModal}

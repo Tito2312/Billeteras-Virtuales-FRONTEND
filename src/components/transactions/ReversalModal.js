@@ -11,9 +11,9 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [error, setError] = useState('');
-  
+
   const userId = getCurrentUser()?.id;
-  
+
   useEffect(() => {
     if (isOpen) {
       loadReversibleTransactions();
@@ -22,80 +22,57 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
       setError('');
     }
   }, [isOpen]);
-  
+
   const loadReversibleTransactions = async () => {
     setLoadingTransactions(true);
     setError('');
-    
     try {
-      console.log('Cargando transferencias reversibles para userId:', userId);
       const result = await getUserTransactions(userId);
-      console.log('Transacciones recibidas:', result);
-      
       if (result.success && result.data) {
-        // Filtrar SOLO TRANSFERENCIAS que el usuario ENVIÓ y que están completadas y no revertidas
-        const reversible = result.data.filter(t => 
-          t.type === 'TRANSFER' && 
+        const reversible = result.data.filter(t =>
+          t.type === 'TRANSFER' &&
           t.userId === userId &&
-          t.status === 'COMPLETED' && 
+          t.status === 'COMPLETED' &&
           !t.reversed
         );
-        console.log('Transferencias reversibles encontradas:', reversible.length);
         setTransactions(reversible);
       } else {
         setError('No se pudieron cargar las transferencias');
       }
     } catch (err) {
-      console.error('Error cargando transferencias:', err);
       setError('Error al cargar las transferencias');
     }
-    
     setLoadingTransactions(false);
   };
-  
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency', currency: 'COP',
-      minimumFractionDigits: 0
-    }).format(value);
-  };
-  
+
+  const formatCurrency = (value) =>
+    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+
   const formatDate = (dateString) => {
     if (!dateString) return 'Fecha no disponible';
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Fecha no disponible';
-      
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
       const hours = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
-      
       return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (error) {
       return 'Fecha no disponible';
     }
   };
-  
-  const handleSelectTransaction = (transaction) => {
-    setSelectedTransaction(transaction);
-    setError('');
-  };
-  
+
   const handleSubmit = async () => {
     if (!selectedTransaction) {
       setError('Selecciona una transferencia para revertir');
       return;
     }
-    
     setLoading(true);
     setError('');
-    
     const result = await reverseTransaction(userId, selectedTransaction.id);
-    
     if (result.success) {
-      alert('✅ Transferencia revertida exitosamente');
       if (onSuccess) onSuccess();
       onClose();
     } else {
@@ -103,9 +80,9 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
     }
     setLoading(false);
   };
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-reversal" onClick={(e) => e.stopPropagation()}>
@@ -116,9 +93,8 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
           <h2>Reversión de Transferencias</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="modal-body">
-          {/* Política */}
           <div className="reversal-policy-card">
             <h3>¿Qué sucede al revertir?</h3>
             <ul>
@@ -128,8 +104,7 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
               <li>📝 La transferencia quedará marcada como "Reversada"</li>
             </ul>
           </div>
-          
-          {/* Lista de transferencias reversibles */}
+
           <div className="reversible-list-section">
             <h3>Transferencias que puedes revertir</h3>
             {loadingTransactions ? (
@@ -140,10 +115,10 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
             ) : transactions.length > 0 ? (
               <div className="reversible-items-list">
                 {transactions.map(t => (
-                  <div 
-                    key={t.id} 
+                  <div
+                    key={t.id}
                     className={`reversible-item ${selectedTransaction?.id === t.id ? 'selected' : ''}`}
-                    onClick={() => handleSelectTransaction(t)}
+                    onClick={() => { setSelectedTransaction(t); setError(''); }}
                   >
                     <div className="reversible-item-info">
                       <div className="reversible-item-icon">🔄</div>
@@ -151,7 +126,7 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
                         <div className="reversible-item-amount">{formatCurrency(t.amount)}</div>
                         <div className="reversible-item-date">{formatDate(t.createdAt)}</div>
                         <div className="reversible-item-wallets">
-                          {t.sourceWallet ? t.sourceWallet.substring(0, 10) + '...' : '-'} → {t.targetWallet ? t.targetWallet.substring(0, 10) + '...' : '-'}
+                          {t.sourceWallet?.substring(0, 10)}... → {t.targetWallet?.substring(0, 10)}...
                         </div>
                       </div>
                       <div className="reversible-item-points">+{t.points || 0} pts</div>
@@ -169,8 +144,7 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             )}
           </div>
-          
-          {/* Detalles de la transferencia seleccionada */}
+
           {selectedTransaction && (
             <div className="reversal-details-section">
               <h3>Detalles de la transferencia a revertir</h3>
@@ -198,27 +172,21 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
             </div>
           )}
-          
-          {/* Mensaje de error */}
-          {error && (
-            <div className="reversal-error">
-              <span>⚠️ {error}</span>
-            </div>
-          )}
-          
-          {/* Consecuencias */}
+
+          {error && <div className="reversal-error"><span>⚠️ {error}</span></div>}
+
           <div className="reversal-consequences">
             <p className="consequences-title">⚠️ Esta acción no se puede deshacer</p>
             <p>Una vez revertida, la transferencia no podrá ser revertida nuevamente.</p>
           </div>
         </div>
-        
+
         <div className="modal-buttons reversal-buttons">
           <button type="button" className="btn-cancel" onClick={onClose}>
             Cancelar
           </button>
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="btn-reverse-modal"
             onClick={handleSubmit}
             disabled={loading || !selectedTransaction}

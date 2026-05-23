@@ -908,3 +908,129 @@
   margin-bottom: 12px;
   font-size: 13px;
 }
+
+/* ══════════════════════════════════════
+   Stack / Pila Visual — ReversalModal
+══════════════════════════════════════ */
+.stack-section {
+  margin: 16px 0;
+}
+
+.stack-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e1b4b;
+  margin-bottom: 12px;
+}
+
+.stack-count-badge {
+  margin-left: auto;
+  background: #7c3aed;
+  color: white;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stack-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.stack-top-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+
+.stack-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.stack-card:last-of-type {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.stack-card-top {
+  background: linear-gradient(135deg, #ede9fe, #f5f3ff);
+  border-color: #7c3aed;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 -2px 8px rgba(124, 58, 237, 0.12);
+}
+
+.stack-base-bar {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.06em;
+  padding: 6px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-top: 2px solid #d1d5db;
+  border-radius: 0 0 8px 8px;
+}
+
+.stack-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.stack-card-label { font-weight: 600; color: #374151; }
+.stack-card-date  { font-size: 11px; color: #9ca3af; }
+.stack-card-wallet { font-size: 11px; color: #6b7280; font-family: monospace; }
+
+.stack-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.stack-card-amount {
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e1b4b;
+}
+
+.stack-top-chip {
+  background: #7c3aed;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.reversal-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin: 12px 0;
+}
+
+.reversal-result-ok  { background: #d1fae5; color: #065f46; }
+.reversal-result-err { background: #fee2e2; color: #991b1b; }

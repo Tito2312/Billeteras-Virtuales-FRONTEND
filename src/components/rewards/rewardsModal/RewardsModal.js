@@ -1,110 +1,74 @@
-// RewardsModal.js - Modal para canjear beneficios
+// RewardsModal.js - Canje de beneficios de dinero con backend real
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getAvailableBenefits, redeemBenefit } from '../../../API/rewards';
+import { getCurrentUser } from '../../../API/auth';
+import { getUserWallets } from '../../../API/wallets';
 import './RewardsModal.css';
 
 const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
+  const [benefits, setBenefits] = useState([]);
+  const [wallets, setWallets] = useState([]);
   const [selectedBenefit, setSelectedBenefit] = useState(null);
-  
-  const availableBenefits = [
-    { 
-      id: 1, 
-      name: 'Descuento en comisiones', 
-      description: 'Reduce tus comisiones al 0% por 1 mes',
-      pointsCost: 500,
-      minLevel: 'Bronce',
-      icon: '💰',
-      benefits: 'Ahorra hasta $50,000 en comisiones'
-    },
-    { 
-      id: 2, 
-      name: 'Cashback extra', 
-      description: 'Obtén 2% de cashback adicional por 30 días',
-      pointsCost: 800,
-      minLevel: 'Plata',
-      icon: '💳',
-      benefits: 'Gana más por cada compra'
-    },
-    { 
-      id: 3, 
-      name: 'Prioridad en transacciones', 
-      description: 'Tus transacciones serán procesadas con prioridad',
-      pointsCost: 1000,
-      minLevel: 'Plata',
-      icon: '⚡',
-      benefits: 'Transacciones más rápidas'
-    },
-    { 
-      id: 4, 
-      name: 'Límite de transacción aumentado', 
-      description: 'Aumenta tu límite de transacción a $10,000,000',
-      pointsCost: 1500,
-      minLevel: 'Oro',
-      icon: '📈',
-      benefits: 'Mayor capacidad de movimiento'
-    },
-    { 
-      id: 5, 
-      name: 'Asesoría financiera', 
-      description: 'Consulta personalizada con un asesor',
-      pointsCost: 2000,
-      minLevel: 'Oro',
-      icon: '👨‍💼',
-      benefits: 'Planifica tu futuro financiero'
-    },
-    { 
-      id: 6, 
-      name: 'Eventos exclusivos', 
-      description: 'Acceso a eventos VIP de FinWallet',
-      pointsCost: 3000,
-      minLevel: 'Platino',
-      icon: '🎉',
-      benefits: 'Networking y experiencias únicas'
+  const [selectedWalletId, setSelectedWalletId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingBenefits, setLoadingBenefits] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(null);
+
+  const userId = getCurrentUser()?.id;
+
+  useEffect(() => {
+    if (isOpen) {
+      loadData();
+      setSelectedBenefit(null);
+      setSelectedWalletId('');
+      setError('');
+      setSuccess(null);
     }
-  ];
-  
-  const levelOrder = { 'Bronce': 1, 'Plata': 2, 'Oro': 3, 'Platino': 4 };
-  const userLevelValue = levelOrder[userLevel] || 1;
-  
-  const filteredBenefits = availableBenefits.filter(benefit => {
-    const benefitLevelValue = levelOrder[benefit.minLevel] || 1;
-    return benefitLevelValue <= userLevelValue;
-  });
-  
-  const formatNumber = (value) => {
-    return new Intl.NumberFormat('es-CO').format(value);
-  };
-  
-  const handleSelectBenefit = (benefit) => {
-    setSelectedBenefit(benefit);
-  };
-  
-  const handleRedeem = () => {
-    if (!selectedBenefit) {
-      alert('Selecciona un beneficio para canjear');
-      return;
+  }, [isOpen]);
+
+  const loadData = async () => {
+    setLoadingBenefits(true);
+    const [benefitsRes, walletsRes] = await Promise.all([
+      getAvailableBenefits(),
+      getUserWallets(userId)
+    ]);
+    if (benefitsRes.success) setBenefits(benefitsRes.data);
+    if (walletsRes.success && walletsRes.data) {
+      const active = walletsRes.data.filter(w => w.active !== false);
+      setWallets(active);
+      if (active.length > 0) setSelectedWalletId(active[0].id);
     }
-    
-    if (userPoints < selectedBenefit.pointsCost) {
-      alert(`No tienes suficientes puntos. Necesitas ${formatNumber(selectedBenefit.pointsCost)} puntos.`);
-      return;
-    }
-    
-    onRedeem({
-      benefit: selectedBenefit,
-      pointsSpent: selectedBenefit.pointsCost,
-      date: new Date().toISOString()
-    });
-    
-    setSelectedBenefit(null);
-    onClose();
+    setLoadingBenefits(false);
   };
-  
+
+  const formatCurrency = (v) =>
+    new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v || 0);
+
+  const formatNumber = (v) =>
+    new Intl.NumberFormat('es-CO').format(v || 0);
+
+  const handleRedeem = async () => {
+    if (!selectedBenefit) return;
+    setLoading(true);
+    setError('');
+    const res = await redeemBenefit(userId, selectedBenefit.id, selectedWalletId);
+    if (res.success) {
+      setSuccess(selectedBenefit);
+      if (onRedeem) onRedeem({ benefit: selectedBenefit, pointsSpent: selectedBenefit.pointsCost });
+    } else {
+      setError(res.message || 'Error al canjear el beneficio');
+    }
+    setLoading(false);
+  };
+
   if (!isOpen) return null;
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-rewards" onClick={(e) => e.stopPropagation()}>
+
         <div className="modal-header">
           <div className="rewards-icon-wrapper">
             <span className="rewards-icon">🎁</span>
@@ -112,44 +76,70 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
           <h2>Canjear Beneficios</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="modal-body">
+          {/* Puntos disponibles */}
           <div className="points-available-card">
             <span className="points-label">Tus puntos disponibles</span>
             <span className="points-value">{formatNumber(userPoints)}</span>
             <span className="points-level">Nivel {userLevel}</span>
           </div>
-          
-          <div className="benefits-list-modal">
-            <h3>Beneficios disponibles para ti</h3>
-            <div className="benefits-grid-modal">
-              {filteredBenefits.map(benefit => (
-                <div 
-                  key={benefit.id}
-                  className={`benefit-card ${selectedBenefit?.id === benefit.id ? 'selected' : ''} ${userPoints < benefit.pointsCost ? 'insufficient' : ''}`}
-                  onClick={() => userPoints >= benefit.pointsCost && handleSelectBenefit(benefit)}
-                >
-                  <div className="benefit-icon-modal">{benefit.icon}</div>
-                  <div className="benefit-info-modal">
-                    <div className="benefit-name">{benefit.name}</div>
-                    <div className="benefit-desc-modal">{benefit.description}</div>
-                    <div className="benefit-cost">
-                      <span className="cost-value">{formatNumber(benefit.pointsCost)} pts</span>
-                      {userPoints < benefit.pointsCost && (
-                        <span className="insufficient-tag"> puntos insuficientes</span>
-                      )}
-                    </div>
-                    <div className="benefit-bonus">{benefit.benefits}</div>
-                  </div>
-                  {selectedBenefit?.id === benefit.id && (
-                    <div className="selected-check-modal">✓</div>
-                  )}
-                </div>
-              ))}
+
+          {/* Éxito */}
+          {success && (
+            <div className="benefit-success-card">
+              <div className="benefit-success-icon">✅</div>
+              <div>
+                <strong>¡Beneficio canjeado!</strong>
+                <p>{success.name} — <strong>{formatCurrency(success.moneyValue)}</strong> acreditados a tu billetera</p>
+              </div>
             </div>
-          </div>
-          
-          {selectedBenefit && (
+          )}
+
+          {/* Lista de beneficios */}
+          {!success && (
+            <div className="benefits-list-modal">
+              <h3>Beneficios disponibles</h3>
+              {loadingBenefits ? (
+                <div style={{ textAlign: 'center', padding: 24, color: '#6b7280' }}>Cargando beneficios...</div>
+              ) : benefits.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 24, color: '#6b7280' }}>
+                  No hay beneficios disponibles
+                </div>
+              ) : (
+                <div className="benefits-grid-modal">
+                  {benefits.map(benefit => {
+                    const canAfford = userPoints >= benefit.pointsCost;
+                    const isSelected = selectedBenefit?.id === benefit.id;
+                    return (
+                      <div
+                        key={benefit.id}
+                        className={`benefit-card ${isSelected ? 'selected' : ''} ${!canAfford ? 'insufficient' : ''}`}
+                        onClick={() => canAfford && setSelectedBenefit(benefit)}
+                      >
+                        <div className="benefit-icon-modal">💰</div>
+                        <div className="benefit-info-modal">
+                          <div className="benefit-name">{benefit.name}</div>
+                          <div className="benefit-desc-modal">{benefit.description}</div>
+                          <div className="benefit-money-value">
+                            {formatCurrency(benefit.moneyValue)} en tu billetera
+                          </div>
+                          <div className="benefit-cost">
+                            <span className="cost-value">{formatNumber(benefit.pointsCost)} pts</span>
+                            {!canAfford && <span className="insufficient-tag"> puntos insuficientes</span>}
+                          </div>
+                        </div>
+                        {isSelected && <div className="selected-check-modal">✓</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Resumen */}
+          {selectedBenefit && !success && (
             <div className="redemption-summary">
               <h4>Resumen del canje</h4>
               <div className="summary-row">
@@ -157,30 +147,53 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
                 <strong>{selectedBenefit.name}</strong>
               </div>
               <div className="summary-row">
-                <span>Costo en puntos:</span>
+                <span>Recibirás:</span>
+                <strong style={{ color: '#059669' }}>{formatCurrency(selectedBenefit.moneyValue)}</strong>
+              </div>
+              <div className="summary-row">
+                <span>Costo:</span>
                 <strong className="cost-highlight">{formatNumber(selectedBenefit.pointsCost)} puntos</strong>
               </div>
               <div className="summary-row">
                 <span>Puntos restantes:</span>
                 <span>{formatNumber(userPoints - selectedBenefit.pointsCost)} puntos</span>
               </div>
+              <div className="summary-row" style={{ marginTop: 10 }}>
+                <span>Billetera destino:</span>
+                <select
+                  className="wallet-select-redeem"
+                  value={selectedWalletId}
+                  onChange={e => setSelectedWalletId(e.target.value)}
+                >
+                  {wallets.map(w => (
+                    <option key={w.id} value={w.id}>
+                      {w.name || w.walletType} — Saldo: {formatCurrency(w.balance)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
+
+          {error && <div className="reversal-error"><span>⚠️ {error}</span></div>}
         </div>
-        
+
         <div className="modal-buttons modal-rewards-buttons">
           <button type="button" className="btn-cancel" onClick={onClose}>
-            Cancelar
+            {success ? 'Cerrar' : 'Cancelar'}
           </button>
-          <button 
-            type="button" 
-            className="btn-redeem"
-            onClick={handleRedeem}
-            disabled={!selectedBenefit || userPoints < (selectedBenefit?.pointsCost || 0)}
-          >
-            Canjear Beneficio
-          </button>
+          {!success && (
+            <button
+              type="button"
+              className="btn-redeem"
+              onClick={handleRedeem}
+              disabled={loading || !selectedBenefit}
+            >
+              {loading ? 'Procesando...' : 'Canjear Beneficio'}
+            </button>
+          )}
         </div>
+
       </div>
     </div>
   );

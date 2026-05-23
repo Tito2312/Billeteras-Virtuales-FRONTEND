@@ -1,7 +1,7 @@
 // AdminTransactions.js - Gestión de transacciones para administradores
 
 import React, { useState, useEffect } from 'react';
-import { getAllTransactions, reverseTransaction } from '../../API/admin';
+import { getAllTransactions, getAllUsers, reverseTransaction, reverseTransactionPila } from '../../API/admin';
 import './AdminTransactions.css';
 
 const AdminTransactions = () => {
@@ -12,21 +12,59 @@ const AdminTransactions = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
+  // Pila de reversiones
+  const [users, setUsers] = useState([]);
+  const [pilaUserId, setPilaUserId] = useState('');
+  const [pilaStack, setPilaStack] = useState([]);
+  const [pilaLoading, setPilaLoading] = useState(false);
+  const [pilaResult, setPilaResult] = useState(null);
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
     setLoading(true);
-    const result = await getAllTransactions();
-    console.log('📊 Transacciones obtenidas:', result);
-    
-    if (result.success && result.data) {
-      // Ordenar por fecha descendente (más reciente primero)
-      const sorted = [...result.data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const [txResult, usersResult] = await Promise.all([getAllTransactions(), getAllUsers()]);
+
+    if (txResult.success && txResult.data) {
+      const sorted = [...txResult.data].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setTransactions(sorted);
     }
+    if (usersResult.success && usersResult.data) {
+      setUsers(usersResult.data);
+    }
     setLoading(false);
+  };
+
+  const loadPilaForUser = (userId) => {
+    setPilaUserId(userId);
+    setPilaResult(null);
+    if (!userId) { setPilaStack([]); return; }
+    // Construir la pila localmente: transacciones del usuario ordenadas ASC (bottom→top)
+    const userTx = transactions
+      .filter(t => t.userId === userId && t.status !== 'REVERSED' && t.status !== 'FAILED')
+      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    setPilaStack(userTx);
+  };
+
+  const handleRevertirConPila = async () => {
+    if (!pilaUserId) return;
+    setPilaLoading(true);
+    setPilaResult(null);
+    const result = await reverseTransactionPila(pilaUserId);
+    if (result.success) {
+      setPilaResult({ ok: true, tx: result.data });
+      await loadData();
+      // Reconstruir pila tras revertir
+      const userTx = transactions
+        .filter(t => t.userId === pilaUserId && t.status !== 'REVERSED' && t.status !== 'FAILED' && t.id !== result.data?.id)
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      setPilaStack(userTx);
+    } else {
+      setPilaResult({ ok: false, msg: result.message });
+    }
+    setPilaLoading(false);
   };
 
   const handleReverseTransaction = async (transaction) => {
@@ -256,6 +294,88 @@ const AdminTransactions = () => {
         {filteredTransactions.length === 0 && (
           <div className="empty-transactions">
             <p>No hay transacciones que coincidan con los filtros</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Panel Pila de Reversiones ── */}
+      <div className="pila-panel">
+        <div className="pila-panel-header">
+          <div className="pila-panel-title">
+            <span className="pila-icon">📚</span>
+            <div>
+              <h2>Revertir con Pila (Stack)</h2>
+              <p>Selecciona un usuario para ver su pila de transacciones. El tope (última) será la revertida.</p>
+            </div>
+          </div>
+          <select
+            className="pila-user-select"
+            value={pilaUserId}
+            onChange={(e) => loadPilaForUser(e.target.value)}
+          >
+            <option value="">— Selecciona un usuario —</option>
+            {users.map(u => (
+              <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+            ))}
+          </select>
+        </div>
+
+        {pilaUserId && (
+          <div className="pila-content">
+            <div className="pila-visual">
+              <div className="pila-label-top">▲ TOP (se revertirá)</div>
+              {pilaStack.length === 0 ? (
+                <div className="pila-empty">Sin transacciones reversibles</div>
+              ) : (
+                [...pilaStack].reverse().map((tx, idx) => {
+                  const isTop = idx === 0;
+                  return (
+                    <div key={tx.id} className={`pila-card${isTop ? ' pila-card-top' : ''}`}>
+                      <div className="pila-card-left">
+                        <span className="pila-card-type">
+                          {tx.type === 'RECHARGE' ? '📥' : tx.type === 'WITHDRAWAL' ? '📤' : '🔄'}
+                          {' '}{getTypeLabel(tx.type)}
+                        </span>
+                        <span className="pila-card-date">{formatDate(tx.createdAt)}</span>
+                      </div>
+                      <div className="pila-card-right">
+                        <span className="pila-card-amount">{formatCurrency(tx.originalAmount || tx.amount)}</span>
+                        {isTop && <span className="pila-top-badge">TOPE</span>}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+              <div className="pila-base">▬ BASE</div>
+            </div>
+
+            <div className="pila-action">
+              <div className="pila-info">
+                <span className="pila-count">{pilaStack.length}</span>
+                <span className="pila-count-label">transacción(es) en la pila</span>
+              </div>
+              <button
+                className="pila-btn"
+                onClick={handleRevertirConPila}
+                disabled={pilaLoading || pilaStack.length === 0}
+              >
+                {pilaLoading ? 'Revirtiendo...' : '↩ Revertir tope de pila'}
+              </button>
+
+              {pilaResult && (
+                <div className={`pila-result ${pilaResult.ok ? 'pila-result-ok' : 'pila-result-err'}`}>
+                  {pilaResult.ok ? (
+                    <>
+                      <strong>✅ Revertida exitosamente</strong>
+                      <span>ID: {pilaResult.tx?.id?.substring(0, 16)}...</span>
+                      <span>Monto: {formatCurrency(pilaResult.tx?.originalAmount || pilaResult.tx?.amount)}</span>
+                    </>
+                  ) : (
+                    <><strong>❌ Error</strong><span>{pilaResult.msg}</span></>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
