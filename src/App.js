@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navig
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ForgotPassword from './components/auth/ForgotPassword';
+import ResetPassword from './components/auth/ResetPassword';
 import Dashboard from './components/dashboard/Dashboard';
 import Wallets from './components/wallets/Wallets';
 import Transactions from './components/transactions/Transactions';
@@ -158,6 +159,7 @@ const AppContent = () => {
             />
           } />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         <AssistantBot />

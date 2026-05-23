@@ -163,6 +163,89 @@
 }
 
 /* ============================================
+   BENEFICIOS DEL PERFIL
+   ============================================ */
+
+.profile-benefits {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.profile-benefits h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e1b4b;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.benefits-list-profile {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 12px 16px;
+}
+
+.benefit-item-profile {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.benefit-item-profile:last-child {
+  border-bottom: none;
+}
+
+.benefit-label {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.benefit-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7c3aed;
+}
+
+/* Límite diario con barra de progreso */
+.benefit-item-limit {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.limit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.limit-unit {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.limit-bar-track {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.limit-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease, background 0.3s;
+}
+
+.limit-sub {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* ============================================
    FORMULARIO DEL PERFIL (derecha)
    ============================================ */
 
@@ -333,6 +416,49 @@
 }
 
 /* ============================================
+   CAMBIAR CONTRASEÑA (sección dentro del perfil)
+   ============================================ */
+
+.profile-change-password-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.change-password-form {
+  max-width: 500px;
+}
+
+.btn-change-password {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s;
+}
+
+.btn-change-password:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.password-message {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.password-message.success {
+  color: #10b981;
+}
+
+.password-message.error {
+  color: #ef4444;
+}
+
+/* ============================================
    LOADING
    ============================================ */
 
@@ -409,87 +535,4 @@
     height: 90px;
     font-size: 32px;
   }
-
-  /* ============================================
-   BENEFICIOS DEL PERFIL
-   ============================================ */
-
-.profile-benefits {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.profile-benefits h3 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e1b4b;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.benefits-list-profile {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 16px;
-  padding: 12px 16px;
-}
-
-.benefit-item-profile {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.benefit-item-profile:last-child {
-  border-bottom: none;
-}
-
-.benefit-label {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.benefit-value {
-  font-size: 12px;
-  font-weight: 600;
-  color: #7c3aed;
-}
-
-/* Límite diario con barra de progreso */
-.benefit-item-limit {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-}
-
-.limit-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.limit-unit {
-  font-weight: 400;
-  color: #9ca3af;
-  font-size: 11px;
-}
-
-.limit-bar-track {
-  height: 6px;
-  background: #f1f5f9;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.limit-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.4s ease, background 0.3s;
-}
-
-.limit-sub {
-  font-size: 11px;
-  color: #9ca3af;
-}
 }

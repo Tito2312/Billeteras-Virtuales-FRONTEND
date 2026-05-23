@@ -1,4 +1,4 @@
-/* Scheduled.css - Estilos para operaciones programadas */
+/* Scheduled.css - Estilos para operaciones programadas (completo) */
 
 .scheduled-page {
   padding: 32px;
@@ -6,6 +6,7 @@
   margin: 0 auto;
 }
 
+/* Header y botones (ya lo tienes, pero asegúrate de incluir los nuevos) */
 .scheduled-header {
   display: flex;
   justify-content: space-between;
@@ -14,26 +15,20 @@
   flex-wrap: wrap;
   gap: 20px;
 }
-
 .scheduled-header h1 {
   font-size: 28px;
   color: #1e1b4b;
   margin-bottom: 8px;
 }
-
 .scheduled-header p {
   color: #6b7280;
   font-size: 14px;
 }
-
-/* Header buttons */
 .header-buttons {
   display: flex;
   gap: 12px;
 }
-
-/* Botón Actualizar - Mismo estilo que el de Programar */
-.btn-refresh-scheduled {
+.btn-refresh-scheduled, .btn-create-scheduled {
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   color: white;
   border: none;
@@ -46,33 +41,14 @@
   align-items: center;
   gap: 8px;
 }
-
-.btn-refresh-scheduled:hover:not(:disabled) {
+.btn-refresh-scheduled:hover:not(:disabled), .btn-create-scheduled:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
-
 .btn-refresh-scheduled:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-}
-
-/* Botón Programar */
-.btn-create-scheduled {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.btn-create-scheduled:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
 /* Estadísticas */
@@ -82,21 +58,18 @@
   gap: 20px;
   margin-bottom: 32px;
 }
-
 .stat-card-scheduled {
   background: white;
   border-radius: 20px;
   padding: 20px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   transition: all 0.3s;
 }
-
 .stat-card-scheduled:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
-
 .stat-card-scheduled .stat-value {
   display: block;
   font-size: 32px;
@@ -104,24 +77,13 @@
   color: #7c3aed;
   margin-bottom: 8px;
 }
-
 .stat-card-scheduled .stat-label {
   font-size: 14px;
   color: #6b7280;
 }
-
-/* Stats cards con colores en borde superior */
-.stat-card-scheduled.pending {
-  border-top: 4px solid #f59e0b;
-}
-
-.stat-card-scheduled.executed {
-  border-top: 4px solid #10b981;
-}
-
-.stat-card-scheduled.failed {
-  border-top: 4px solid #ef4444;
-}
+.stat-card-scheduled.pending { border-top: 4px solid #f59e0b; }
+.stat-card-scheduled.executed { border-top: 4px solid #10b981; }
+.stat-card-scheduled.failed { border-top: 4px solid #ef4444; }
 
 /* Filtros */
 .filters-scheduled {
@@ -130,7 +92,6 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
 }
-
 .filter-btn {
   padding: 8px 20px;
   background: white;
@@ -141,12 +102,10 @@
   font-weight: 500;
   transition: all 0.3s;
 }
-
 .filter-btn:hover {
   background: #f3e8ff;
   border-color: #c4b5fd;
 }
-
 .filter-btn.active {
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   color: white;
@@ -159,43 +118,25 @@
   flex-direction: column;
   gap: 16px;
 }
-
 .operation-card {
   background: white;
   border-radius: 20px;
   overflow: hidden;
   transition: all 0.3s;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-
 .operation-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
+/* Prioridades borde izquierdo */
+.operation-card.priority-high { border-left: 4px solid #ef4444; }
+.operation-card.priority-medium { border-left: 4px solid #f59e0b; }
+.operation-card.priority-low { border-left: 4px solid #10b981; }
+.operation-card.priority-overdue { border-left: 4px solid #dc2626; background: #fef2f2; }
+.operation-card.priority-immediate { border-left: 4px solid #ea580c; }
 
-/* Prioridades en borde izquierdo */
-.operation-card.priority-high {
-  border-left: 4px solid #ef4444;
-}
-
-.operation-card.priority-medium {
-  border-left: 4px solid #f59e0b;
-}
-
-.operation-card.priority-low {
-  border-left: 4px solid #10b981;
-}
-
-.operation-card.priority-overdue {
-  border-left: 4px solid #dc2626;
-  background: #fef2f2;
-}
-
-.operation-card.priority-immediate {
-  border-left: 4px solid #ea580c;
-}
-
-/* Badge de prioridad */
+/* Badge prioridad */
 .operation-priority-badge {
   background: #f8fafc;
   padding: 8px 20px;
@@ -204,45 +145,23 @@
   gap: 10px;
   border-bottom: 1px solid #e2e8f0;
 }
-
 .priority-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
 }
-
-.priority-dot.priority-high {
-  background: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
-}
-
-.priority-dot.priority-medium {
-  background: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
-}
-
-.priority-dot.priority-low {
-  background: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-}
-
-.priority-dot.priority-overdue {
-  background: #dc2626;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
-}
-
-.priority-dot.priority-immediate {
-  background: #ea580c;
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2);
-}
-
+.priority-dot.priority-high { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+.priority-dot.priority-medium { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
+.priority-dot.priority-low { background: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+.priority-dot.priority-overdue { background: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.2); }
+.priority-dot.priority-immediate { background: #ea580c; box-shadow: 0 0 0 3px rgba(234,88,12,0.2); }
 .priority-text {
   font-size: 12px;
   font-weight: 600;
   color: #475569;
 }
 
-/* Contenido de la operación */
+/* Contenido de la tarjeta */
 .operation-content {
   padding: 20px;
   display: flex;
@@ -250,7 +169,6 @@
   gap: 20px;
   flex-wrap: wrap;
 }
-
 .operation-icon {
   width: 50px;
   height: 50px;
@@ -261,24 +179,20 @@
   justify-content: center;
   font-size: 24px;
 }
-
 .operation-info {
   flex: 1;
 }
-
 .operation-info h3 {
   font-size: 18px;
   color: #1e1b4b;
   margin-bottom: 4px;
 }
-
 .operation-amount {
   font-size: 20px;
   font-weight: 700;
   color: #7c3aed;
   margin-bottom: 8px;
 }
-
 .operation-details {
   display: flex;
   gap: 20px;
@@ -286,18 +200,51 @@
   color: #64748b;
   flex-wrap: wrap;
 }
-
 .detail-date, .detail-wallets {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
+/* Botones de editar/eliminar (nuevos) */
+.operation-actions {
+  display: flex;
+  gap: 8px;
+  margin: 0 12px;
+}
+.btn-edit, .btn-delete {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn-edit {
+  color: #7c3aed;
+  border: 1px solid #c4b5fd;
+}
+.btn-edit:hover {
+  background: #f3e8ff;
+  transform: translateY(-1px);
+}
+.btn-delete {
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+.btn-delete:hover {
+  background: #fee2e2;
+  transform: translateY(-1px);
+}
+
+/* Estado badge */
 .operation-status-badge {
   min-width: 100px;
   text-align: right;
 }
-
 .status-badge-scheduled {
   display: inline-block;
   padding: 4px 12px;
@@ -305,21 +252,9 @@
   font-size: 12px;
   font-weight: 600;
 }
-
-.status-badge-scheduled.status-pending {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.status-badge-scheduled.status-executed {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.status-badge-scheduled.status-failed {
-  background: #fee2e2;
-  color: #dc2626;
-}
+.status-badge-scheduled.status-pending { background: #fef3c7; color: #d97706; }
+.status-badge-scheduled.status-executed { background: #d1fae5; color: #059669; }
+.status-badge-scheduled.status-failed { background: #fee2e2; color: #dc2626; }
 
 .operation-error {
   background: #fee2e2;
@@ -328,14 +263,11 @@
   color: #dc2626;
   border-top: 1px solid #fecaca;
 }
-
-/* Tarjeta atrasada */
 .operation-card.overdue {
   background: #fef2f2;
   border: 1px solid #fecaca;
 }
 
-/* Empty state */
 .empty-operations {
   text-align: center;
   padding: 60px;
@@ -343,18 +275,15 @@
   border-radius: 20px;
   color: #6b7280;
 }
-
 .empty-operations p {
   font-weight: 600;
   margin-bottom: 8px;
   color: #1e1b4b;
 }
-
 .empty-operations span {
   font-size: 14px;
 }
 
-/* Loading */
 .loading-container-scheduled {
   display: flex;
   flex-direction: column;
@@ -363,7 +292,6 @@
   min-height: 400px;
   color: #6b7280;
 }
-
 .loading-spinner-small {
   width: 40px;
   height: 40px;
@@ -373,13 +301,10 @@
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
 }
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-/* Error text */
 .error-text {
   color: #dc2626;
   font-size: 12px;
@@ -389,38 +314,13 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .scheduled-page {
-    padding: 20px;
-  }
-  
-  .scheduled-header {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .header-buttons {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .scheduled-stats {
-    grid-template-columns: 1fr;
-  }
-  
-  .operation-content {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .operation-details {
-    justify-content: center;
-  }
-  
-  .operation-status-badge {
-    text-align: center;
-  }
-  
-  .filters-scheduled {
-    justify-content: center;
-  }
+  .scheduled-page { padding: 20px; }
+  .scheduled-header { flex-direction: column; text-align: center; }
+  .header-buttons { width: 100%; justify-content: center; }
+  .scheduled-stats { grid-template-columns: 1fr; }
+  .operation-content { flex-direction: column; text-align: center; }
+  .operation-details { justify-content: center; }
+  .operation-status-badge { text-align: center; }
+  .filters-scheduled { justify-content: center; }
+  .operation-actions { justify-content: center; width: 100%; }
 }

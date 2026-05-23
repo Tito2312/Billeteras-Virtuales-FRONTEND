@@ -181,18 +181,18 @@ const Rewards = ({ user }) => {
                         }}>
                           {level.name}
                         </span>
-                      </td>
-                      <td>
+                       </td>
+                       <td>
                         {level.minPoints.toLocaleString('es-CO')}
                         {level.maxPoints !== Infinity ? ` - ${level.maxPoints.toLocaleString('es-CO')}` : '+'}
-                      </td>
-                      <td>
+                       </td>
+                       <td>
                         <ul className="benefits-list">
                           {level.benefits.map((benefit, i) => (
                             <li key={i}>{benefit}</li>
                           ))}
                         </ul>
-                      </td>
+                       </td>
                     </tr>
                   ))}
                 </tbody>

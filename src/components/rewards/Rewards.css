@@ -89,8 +89,9 @@
 
 .progress-bar {
   height: 100%;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   border-radius: 12px;
-  transition: width 0.5s ease;
+  transition: width 0.5s ease; /* Animación suave */
 }
 
 .max-level-badge {
@@ -258,70 +259,6 @@
   color: #7c3aed;
 }
 
-/* Puntos recientes */
-.recent-points-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.recent-point-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: #f8fafc;
-  border-radius: 14px;
-  transition: all 0.3s;
-}
-
-.recent-point-item:hover {
-  background: #f3e8ff;
-  transform: translateX(5px);
-}
-
-.point-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.point-icon {
-  width: 42px;
-  height: 42px;
-  background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-}
-
-.point-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.point-description {
-  font-weight: 600;
-  color: #1e1b4b;
-  margin-bottom: 4px;
-}
-
-.point-date {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-.point-value {
-  font-weight: 700;
-  font-size: 16px;
-}
-
-.point-value.positive {
-  color: #10b981;
-}
-
 /* Beneficios destacados */
 .benefits-showcase {
   display: grid;
@@ -375,73 +312,14 @@
   color: #6b7280;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .rewards-page {
-    padding: 24px;
-  }
-  
-  .rewards-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
+.benefit-money-showcase {
+  font-size: 12px;
+  font-weight: 700;
+  color: #059669;
+  margin-top: 3px;
 }
 
-@media (max-width: 768px) {
-  .rewards-page {
-    padding: 16px;
-  }
-  
-  .level-name {
-    font-size: 36px;
-  }
-  
-  .points-number {
-    font-size: 28px;
-  }
-  
-  .benefits-showcase {
-    grid-template-columns: 1fr;
-  }
-  
-  .levels-table {
-    font-size: 12px;
-  }
-  
-  .levels-table th,
-  .levels-table td {
-    padding: 10px 6px;
-  }
-  
-  .benefits-list li {
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 480px) {
-  .level-card {
-    padding: 20px;
-  }
-  
-  .level-name {
-    font-size: 28px;
-  }
-  
-  .section-card {
-    padding: 16px;
-  }
-  
-  .recent-point-item {
-    flex-direction: column;
-    text-align: center;
-    gap: 10px;
-  }
-  
-  .point-info {
-    flex-direction: column;
-  }
-
-  /* Botón canjear puntos */
+/* Botón de canjear puntos (mejorado) */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -454,63 +332,34 @@
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 12px;
-  font-size: 13px;
+  padding: 10px 20px;
+  border-radius: 40px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-redeem-points::before {
+  content: "🎁";
+  font-size: 16px;
 }
 
 .btn-redeem-points:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
-}
-/* Agregar al final de Rewards.css */
-
-.loading-container-rewards {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: #6b7280;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
 }
 
-.loading-spinner-small {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #e2e8f0;
-  border-top: 3px solid #7c3aed;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+.btn-redeem-points:active {
+  transform: translateY(0);
 }
 
-/* Barra de progreso */
-.progress-bar-container {
-  background: #e2e8f0;
-  border-radius: 12px;
-  height: 10px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-  border-radius: 12px;
-  transition: width 0.5s ease;
-}
-
-}
-.benefit-money-showcase {
-  font-size: 12px;
-  font-weight: 700;
-  color: #059669;
-  margin-top: 3px;
-}
-
-/* ── Historial de canjes ── */
+/* Historial de canjes */
 .redeemed-section {
   margin-top: 28px;
   background: #fff;
@@ -577,3 +426,84 @@
 .redeemed-status-active  { background: #d1fae5; color: #065f46; }
 .redeemed-status-used    { background: #e0e7ff; color: #3730a3; }
 .redeemed-status-expired { background: #fee2e2; color: #991b1b; }
+
+/* Loading */
+.loading-container-rewards {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  color: #6b7280;
+}
+
+.loading-spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .rewards-page {
+    padding: 24px;
+  }
+  .rewards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .rewards-page {
+    padding: 16px;
+  }
+  .level-name {
+    font-size: 36px;
+  }
+  .points-number {
+    font-size: 28px;
+  }
+  .benefits-showcase {
+    grid-template-columns: 1fr;
+  }
+  .levels-table {
+    font-size: 12px;
+  }
+  .levels-table th,
+  .levels-table td {
+    padding: 10px 6px;
+  }
+  .benefits-list li {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .level-card {
+    padding: 20px;
+  }
+  .level-name {
+    font-size: 28px;
+  }
+  .section-card {
+    padding: 16px;
+  }
+  .recent-point-item {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+  .point-info {
+    flex-direction: column;
+  }
+}
