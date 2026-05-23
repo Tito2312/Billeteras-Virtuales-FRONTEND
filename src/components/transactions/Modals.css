@@ -889,3 +889,22 @@
   100% { transform: rotate(360deg); }
 }
 }
+.daily-limit-info {
+  font-size: 12px;
+  color: #6b7280;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 4px;
+}
+
+.limit-reached {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.limit-error {
+  margin-bottom: 12px;
+  font-size: 13px;
+}

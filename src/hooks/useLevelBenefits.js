@@ -38,6 +38,18 @@ const getDailyTransactionLimit = (level) => {
   }
 };
 
+// Límite en cantidad de transferencias por día (igual que el backend)
+const getDailyTransferCount = (level) => {
+  const normalizedLevel = normalizeLevel(level);
+  switch(normalizedLevel) {
+    case 'Bronce': return 10;
+    case 'Plata': return 25;
+    case 'Oro': return 50;
+    case 'Platino': return Infinity;
+    default: return 10;
+  }
+};
+
 const getPointsBonus = (level) => {
   const normalizedLevel = normalizeLevel(level);
   switch(normalizedLevel) {
@@ -64,15 +76,18 @@ export const useLevelBenefits = (level) => {
   const normalizedLevel = normalizeLevel(level);
   const commissionRate = getCommissionRate(level);
   const dailyTransactionLimit = getDailyTransactionLimit(level);
+  const dailyTransferCount = getDailyTransferCount(level);
   const pointsBonus = getPointsBonus(level);
   const processingPriority = getProcessingPriority(level);
   
   return {
     commissionRate,
     dailyTransactionLimit,
+    dailyTransferCount,
     pointsBonus,
     processingPriority,
     level: normalizedLevel,
+    formatTransferCount: () => dailyTransferCount === Infinity ? 'Ilimitadas' : `${dailyTransferCount} transferencias/día`,
     
     // Comisión que se cobra (se descuenta del destinatario)
     calculateCommission: (amount) => amount * commissionRate,

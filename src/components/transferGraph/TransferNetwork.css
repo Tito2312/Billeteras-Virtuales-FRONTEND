@@ -1,0 +1,278 @@
+.tn-page {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    padding-bottom: 40px;
+}
+
+.tn-header h1 { font-size: 26px; color: #1e1b4b; margin-bottom: 6px; }
+.tn-header p  { font-size: 14px; color: #6b7280; }
+
+.tn-loading, .tn-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+    font-size: 15px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+}
+
+/* ── Stats ── */
+.tn-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.tn-stat {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.tn-stat-num   { font-size: 26px; font-weight: 800; color: #7c3aed; }
+.tn-stat-label { font-size: 12px; color: #6b7280; text-align: center; }
+
+.tn-cycle.cycle-yes .tn-stat-num { color: #d97706; }
+.tn-cycle.cycle-no  .tn-stat-num { color: #059669; }
+
+/* ── Card genérica ── */
+.tn-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.tn-card-title {
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e1b4b;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tn-card-desc {
+    padding: 12px 20px 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* ── SVG ── */
+.tn-svg-wrap {
+    padding: 8px;
+    background: #fdfdff;
+}
+
+.tn-svg { width: 100%; height: auto; display: block; }
+
+.tn-legend {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    padding: 12px 20px;
+    border-top: 1px solid #f3f4f6;
+    background: #f9fafb;
+}
+
+.tn-leg-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.tn-leg-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Ciclos ── */
+.tn-cycle-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid;
+}
+
+.tn-cycle-card.cycle-ok    { background: #f0fdf4; border-color: #bbf7d0; }
+.tn-cycle-card.cycle-alert { background: #fffbeb; border-color: #fde68a; }
+
+.tn-cycle-icon  { font-size: 28px; flex-shrink: 0; }
+.tn-cycle-title { font-size: 15px; font-weight: 700; color: #1e1b4b; margin-bottom: 4px; }
+.tn-cycle-desc  { font-size: 13px; color: #6b7280; line-height: 1.5; }
+
+/* ── Rutas frecuentes ── */
+.tn-routes-list { padding: 8px 0; }
+
+.tn-route-row {
+    display: grid;
+    grid-template-columns: 32px 36px 1fr auto 120px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background 0.15s;
+}
+
+.tn-route-row:last-child { border-bottom: none; }
+.tn-route-row:hover { background: #faf5ff; }
+
+.tn-route-rank { font-size: 13px; font-weight: 700; color: #9ca3af; }
+
+.tn-route-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: #7c3aed;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: white;
+    flex-shrink: 0;
+}
+
+.tn-route-info { display: flex; flex-direction: column; gap: 2px; }
+.tn-route-name { font-size: 14px; font-weight: 600; color: #111827; }
+.tn-route-id   { font-size: 11px; color: #9ca3af; font-family: monospace; }
+
+.tn-route-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.tn-route-count { font-size: 12px; color: #7c3aed; font-weight: 600; }
+.tn-route-total { font-size: 13px; color: #1e1b4b; font-weight: 700; }
+
+.tn-route-bar-wrap {
+    height: 6px;
+    background: #f3f4f6;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.tn-route-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #7c3aed, #a855f7);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+
+/* ── Buscar ruta ── */
+.tn-path-form {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px;
+    flex-wrap: wrap;
+}
+
+.tn-path-select {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.tn-path-select:focus { border-color: #7c3aed; }
+
+.tn-path-btn {
+    padding: 10px 22px;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+}
+
+.tn-path-btn:hover    { opacity: 0.88; }
+.tn-path-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.tn-path-error {
+    margin: 0 20px 16px;
+    padding: 10px 14px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    color: #dc2626;
+    font-size: 13px;
+}
+
+.tn-path-result {
+    margin: 0 20px 20px;
+    padding: 16px;
+    background: #f5f3ff;
+    border: 1px solid #e9d5ff;
+    border-radius: 12px;
+}
+
+.tn-path-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #5b21b6;
+    margin-bottom: 14px;
+}
+
+.tn-path-nodes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tn-path-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4c1d95;
+}
+
+.tn-path-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: white;
+}
+
+.tn-path-arrow { font-size: 20px; color: #7c3aed; font-weight: 700; margin: 0 2px; }
+
+/* ── Tooltip ── */
+.tn-tooltip {
+    position: fixed;
+    background: #1e1b4b;
+    color: #fff;
+    border-radius: 10px;
+    padding: 8px 13px;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    max-width: 220px;
+}
+
+.tn-tt-title { font-size: 13px; font-weight: 600; }
+.tn-tt-sub   { font-size: 12px; color: #c7d2fe; margin-top: 3px; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .tn-stats { grid-template-columns: repeat(2, 1fr); }
+    .tn-route-row { grid-template-columns: 28px 32px 1fr auto; }
+    .tn-route-bar-wrap { display: none; }
+}

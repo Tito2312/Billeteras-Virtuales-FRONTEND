@@ -7,6 +7,9 @@ import { getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
 import EditWalletModal from './EditWalletModal';
 import DeleteWalletModal from './DeleteWalletModal';
+import RechargeModal from '../transactions/RechargeModal';
+import WithdrawModal from '../transactions/WithdrawModal';
+import TransferModal from '../transactions/TransferModal';
 import './Wallets.css';
 
 const Wallets = ({ user }) => {
@@ -16,7 +19,11 @@ const Wallets = ({ user }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState(null);
+  const [actionWallet, setActionWallet] = useState(null);
   const [menuOpenId, setMenuOpenId] = useState(null);
   
   const userId = user?.id || getCurrentUser()?.id;
@@ -231,13 +238,13 @@ const Wallets = ({ user }) => {
             </div>
             
             <div className="wallet-actions-full">
-              <button className="wallet-btn recargar" onClick={() => alert(`Recargar ${wallet.name}`)}>
+              <button className="wallet-btn recargar" onClick={() => { setActionWallet(wallet); setShowRechargeModal(true); }}>
                 Recargar
               </button>
-              <button className="wallet-btn transferir" onClick={() => alert(`Transferir desde ${wallet.name}`)}>
+              <button className="wallet-btn transferir" onClick={() => { setActionWallet(wallet); setShowTransferModal(true); }}>
                 Transferir
               </button>
-              <button className="wallet-btn retirar" onClick={() => alert(`Retirar desde ${wallet.name}`)}>
+              <button className="wallet-btn retirar" onClick={() => { setActionWallet(wallet); setShowWithdrawModal(true); }}>
                 Retirar
               </button>
             </div>
@@ -269,7 +276,7 @@ const Wallets = ({ user }) => {
         walletTypes={walletTypes}
       />
       
-      <DeleteWalletModal 
+      <DeleteWalletModal
         isOpen={showDeleteModal}
         onClose={() => {
           setShowDeleteModal(false);
@@ -277,6 +284,28 @@ const Wallets = ({ user }) => {
         }}
         onDelete={handleDeleteWallet}
         wallet={selectedWallet}
+      />
+
+      <RechargeModal
+        isOpen={showRechargeModal}
+        onClose={() => { setShowRechargeModal(false); setActionWallet(null); }}
+        wallets={actionWallet ? [actionWallet, ...wallets.filter(w => w.id !== actionWallet.id)] : wallets}
+        onSuccess={loadWallets}
+      />
+
+      <WithdrawModal
+        isOpen={showWithdrawModal}
+        onClose={() => { setShowWithdrawModal(false); setActionWallet(null); }}
+        wallets={actionWallet ? [actionWallet, ...wallets.filter(w => w.id !== actionWallet.id)] : wallets}
+        onSuccess={loadWallets}
+      />
+
+      <TransferModal
+        isOpen={showTransferModal}
+        onClose={() => { setShowTransferModal(false); setActionWallet(null); }}
+        wallets={wallets}
+        selectedWallet={actionWallet}
+        onSuccess={loadWallets}
       />
     </div>
   );

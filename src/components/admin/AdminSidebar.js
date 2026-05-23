@@ -1,6 +1,7 @@
 // AdminSidebar.js - Menú lateral específico para el panel de administración
 
 import React from 'react';
+import logo from '../../assets/LogoWalletTech.png';
 import './AdminSidebar.css';
 
 const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
@@ -11,7 +12,8 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
     { id: 'reports', label: 'Reportes', icon: '📈', path: '/admin/reports' },
     { id: 'wallets', label: 'Billeteras', icon: '💳', path: '/admin/wallets' },
     { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' },
-    { id: 'graph', label: 'Grafo', icon: '🕸️', path: '/admin/graph' }
+    { id: 'graph', label: 'Grafo', icon: '🕸️', path: '/admin/graph' },
+    { id: 'tree', label: 'Ranking', icon: '🏆', path: '/admin/tree' }
   ];
 
   const handleClick = (item) => {
@@ -25,7 +27,7 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
   return (
     <div className="admin-sidebar">
       <div className="admin-sidebar-logo">
-        <span className="logo-icon">🛡️</span>
+        <img src={logo} alt="FinWallet" style={{ width: '100px', height: '100px', objectFit: 'contain', marginRight: '-20px' }} />
         <h2>FinWallet Admin</h2>
       </div>
       
