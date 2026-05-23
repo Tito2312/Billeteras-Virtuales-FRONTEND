@@ -1,10 +1,12 @@
 // components/scheduled/Scheduled.js
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getUserScheduledOperations, createScheduledOperation } from '../../API/scheduled';
+import { getUserScheduledOperations, createScheduledOperation, updateScheduledOperation, deleteScheduledOperation } from '../../API/scheduled';
 import { getUserWallets } from '../../API/wallets';
 import { getCurrentUser } from '../../API/auth';
 import CreateScheduledModal from './CreateScheduledModal';
+import EditScheduledModal from './EditScheduledModal';
+import CancelScheduledModal from './CancelScheduledModal';
 import './Scheduled.css';
 
 const Scheduled = ({ user }) => {
@@ -15,6 +17,10 @@ const Scheduled = ({ user }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [error, setError] = useState('');
+  
+  // Estados para los modales de edición y cancelación
+  const [editingOperation, setEditingOperation] = useState(null);
+  const [cancelingOperation, setCancelingOperation] = useState(null);
   
   const userId = user?.id || getCurrentUser()?.id;
   
@@ -27,16 +33,11 @@ const Scheduled = ({ user }) => {
       if (result.success && result.data) {
         // Ordenar: Pendientes primero (por fecha más cercana), luego ejecutadas (por fecha más reciente)
         const sorted = [...result.data].sort((a, b) => {
-          // Si una está pendiente y la otra no, la pendiente va primero
           if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
           if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
-          
-          // Si ambas están pendientes, ordenar por fecha (la más cercana primero)
           if (a.status === 'PENDING' && b.status === 'PENDING') {
             return new Date(a.scheduledDate) - new Date(b.scheduledDate);
           }
-          
-          // Si ambas están ejecutadas o fallidas, ordenar por fecha (la más reciente primero)
           return new Date(b.scheduledDate) - new Date(a.scheduledDate);
         });
         
@@ -88,7 +89,6 @@ const Scheduled = ({ user }) => {
     
     loadData();
     
-    // Recargar cada 30 segundos para ver cambios automáticos
     const interval = setInterval(() => {
       loadOperations();
     }, 30000);
@@ -96,6 +96,48 @@ const Scheduled = ({ user }) => {
     return () => clearInterval(interval);
   }, [loadOperations, loadWallets]);
   
+  // ========== FUNCIONES PARA EDITAR Y ELIMINAR (con userId) ==========
+  const handleEdit = (operation) => {
+    setEditingOperation(operation);
+  };
+  
+  const handleUpdate = async (id, operationData) => {
+    try {
+      // Pasamos el userId como tercer argumento (para el header)
+      const result = await updateScheduledOperation(id, operationData, userId);
+      if (result.success) {
+        await loadOperations();
+        alert('✅ Operación actualizada correctamente');
+      } else {
+        alert(`❌ Error al actualizar: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('Error en actualización:', err);
+      alert('❌ Error al actualizar la operación');
+    } finally {
+      setEditingOperation(null);
+    }
+  };
+  
+  const handleDelete = async (id) => {
+    try {
+      // Pasamos el userId como segundo argumento (para el header)
+      const result = await deleteScheduledOperation(id, userId);
+      if (result.success) {
+        await loadOperations();
+        alert('✅ Operación cancelada correctamente');
+      } else {
+        alert(`❌ Error al cancelar: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('Error en cancelación:', err);
+      alert('❌ Error al cancelar la operación');
+    } finally {
+      setCancelingOperation(null);
+    }
+  };
+  
+  // ========== FORMATOS Y UTILIDADES ==========
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
@@ -109,13 +151,11 @@ const Scheduled = ({ user }) => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return '-';
-      
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
       const hours = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
-      
       return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (error) {
       return '-';
@@ -256,28 +296,16 @@ const Scheduled = ({ user }) => {
       </div>
       
       <div className="filters-scheduled">
-        <button 
-          className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
-          onClick={() => setFilterStatus('all')}
-        >
+        <button className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => setFilterStatus('all')}>
           Todas ({operations.length})
         </button>
-        <button 
-          className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
-          onClick={() => setFilterStatus('pending')}
-        >
+        <button className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`} onClick={() => setFilterStatus('pending')}>
           Pendientes ({pendingCount})
         </button>
-        <button 
-          className={`filter-btn ${filterStatus === 'executed' ? 'active' : ''}`}
-          onClick={() => setFilterStatus('executed')}
-        >
+        <button className={`filter-btn ${filterStatus === 'executed' ? 'active' : ''}`} onClick={() => setFilterStatus('executed')}>
           Ejecutadas ({executedCount})
         </button>
-        <button 
-          className={`filter-btn ${filterStatus === 'failed' ? 'active' : ''}`}
-          onClick={() => setFilterStatus('failed')}
-        >
+        <button className={`filter-btn ${filterStatus === 'failed' ? 'active' : ''}`} onClick={() => setFilterStatus('failed')}>
           Fallidas ({failedCount})
         </button>
       </div>
@@ -313,6 +341,14 @@ const Scheduled = ({ user }) => {
                       </span>
                     </div>
                   </div>
+                  <div className="operation-actions">
+                    {op.status === 'PENDING' && (
+                      <>
+                        <button className="btn-edit" onClick={() => handleEdit(op)}>✏️ Editar</button>
+                        <button className="btn-delete" onClick={() => setCancelingOperation(op)}>🗑️ Eliminar</button>
+                      </>
+                    )}
+                  </div>
                   <div className="operation-status-badge">
                     <span className={`status-badge-scheduled ${getStatusClass(op.status)}`}>
                       {getStatusLabel(op.status)}
@@ -335,11 +371,27 @@ const Scheduled = ({ user }) => {
         )}
       </div>
       
+      {/* Modales */}
       <CreateScheduledModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateOperation}
         wallets={wallets}
+      />
+      
+      <EditScheduledModal
+        isOpen={!!editingOperation}
+        onClose={() => setEditingOperation(null)}
+        onEdit={handleUpdate}
+        operation={editingOperation}
+        wallets={wallets}
+      />
+      
+      <CancelScheduledModal
+        isOpen={!!cancelingOperation}
+        onClose={() => setCancelingOperation(null)}
+        onCancel={handleDelete}
+        operation={cancelingOperation}
       />
     </div>
   );
