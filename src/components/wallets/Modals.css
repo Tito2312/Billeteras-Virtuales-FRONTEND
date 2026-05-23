@@ -379,6 +379,189 @@
 }
 
 /* ============================================ */
+/* MODAL ELIMINAR BILLETERA */
+/* ============================================ */
+
+.modal-danger {
+  max-width: 460px;
+}
+
+.modal-danger-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border-bottom: none;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 24px 24px 0 0;
+  position: relative;
+}
+
+.danger-icon-wrapper {
+  width: 52px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.danger-icon {
+  font-size: 26px;
+}
+
+.modal-danger-header h2 {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-danger-header .modal-close {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 8px;
+}
+
+.modal-danger-header .modal-close:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tarjeta de advertencia */
+.delete-warning-card {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.warning-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 8px;
+}
+
+.warning-message {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Tarjeta de info de la billetera */
+.delete-info-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.delete-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.delete-info-row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.info-value.highlight {
+  color: #ef4444;
+  font-size: 15px;
+}
+
+/* Consecuencias */
+.delete-consequences {
+  background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+
+.consequences-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc2626;
+  margin-bottom: 10px;
+}
+
+.consequences-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.consequences-list li {
+  font-size: 13px;
+  color: #7f1d1d;
+  line-height: 1.4;
+}
+
+/* Botones del modal danger */
+.modal-danger-buttons {
+  padding: 16px 24px 24px;
+  background: #fafafa;
+  border-radius: 0 0 24px 24px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 0;
+}
+
+.modal-danger-buttons .btn-cancel {
+  padding: 11px 22px;
+  font-size: 14px;
+}
+
+.modal-danger-buttons .btn-delete {
+  padding: 11px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.modal-danger-buttons .btn-delete:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+  transform: translateY(-2px);
+}
+
+/* ============================================ */
 /* ESTILOS PARA TARJETAS DE SELECCIÓN (TransferModal) */
 /* ============================================ */
 

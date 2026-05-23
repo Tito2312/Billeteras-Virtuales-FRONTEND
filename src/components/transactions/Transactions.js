@@ -41,6 +41,7 @@ const Transactions = ({ user }) => {
         return dateB - dateA;
       });
       setTransactions(sorted);
+      console.log('📋 Transacciones cargadas:', sorted);
     }
   }, [userId]);
   
@@ -72,17 +73,11 @@ const Transactions = ({ user }) => {
     }).format(value || 0);
   };
   
-  // Formatear fecha solo con el valor del backend, sin fallback
   const formatDate = (dateString) => {
-    if (!dateString) {
-      return '-';
-    }
-    
+    if (!dateString) return '-';
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return '-';
-      }
+      if (isNaN(date.getTime())) return '-';
       
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -130,7 +125,94 @@ const Transactions = ({ user }) => {
     }
   };
   
+  // 🔧 CORREGIDO: Determinar si el usuario es el remitente o receptor
+  const isUserSender = (transaction) => {
+    return transaction.userId === userId;
+  };
+  
+  const isUserReceiver = (transaction) => {
+    return transaction.receiverUserId === userId;
+  };
+  
+  // 🔧 CORREGIDO: Obtener la descripción según el rol del usuario
+  const getTransactionDescription = (transaction) => {
+    if (transaction.type === 'RECHARGE') {
+      return 'Recarga a billetera';
+    } else if (transaction.type === 'WITHDRAWAL') {
+      return 'Retiro de billetera';
+    } else if (transaction.type === 'TRANSFER') {
+      if (isUserSender(transaction)) {
+        return `Transferencia enviada a ${transaction.targetWallet?.substring(0, 10)}...`;
+      } else if (isUserReceiver(transaction)) {
+        return `Transferencia recibida de ${transaction.sourceWallet?.substring(0, 10)}...`;
+      }
+    }
+    return 'Transacción';
+  };
+  
+  // 🔧 CORREGIDO: Obtener el monto a mostrar según el rol del usuario
+  const getDisplayAmount = (transaction) => {
+    if (transaction.type === 'RECHARGE') {
+      return transaction.amount;
+    } else if (transaction.type === 'WITHDRAWAL') {
+      return transaction.amount;
+    } else if (transaction.type === 'TRANSFER') {
+      if (isUserSender(transaction)) {
+        // El remitente ve el monto original que envió
+        return transaction.originalAmount || transaction.amount;
+      } else if (isUserReceiver(transaction)) {
+        // El receptor ve el monto real que recibió (con comisión descontada)
+        return transaction.amount;
+      }
+    }
+    return transaction.amount;
+  };
+  
+  // 🔧 CORREGIDO: Determinar si la transacción es positiva o negativa para el usuario
+  const isPositiveTransaction = (transaction) => {
+    if (transaction.type === 'RECHARGE') return true;
+    if (transaction.type === 'WITHDRAWAL') return false;
+    if (transaction.type === 'TRANSFER') {
+      if (isUserSender(transaction)) return false;  // Envía → negativo
+      if (isUserReceiver(transaction)) return true; // Recibe → positivo
+    }
+    return false;
+  };
+  
+  // 🔧 CORREGIDO: Obtener el origen (quién envía)
+  const getOriginDisplay = (transaction) => {
+    if (transaction.type === 'RECHARGE') {
+      return 'Tarjeta/Cuenta externa';
+    } else if (transaction.type === 'WITHDRAWAL') {
+      return transaction.sourceWallet?.substring(0, 12) + '...' || '-';
+    } else if (transaction.type === 'TRANSFER') {
+      if (isUserSender(transaction)) {
+        return transaction.sourceWallet?.substring(0, 12) + '...' || '-';
+      } else if (isUserReceiver(transaction)) {
+        return transaction.sourceWallet?.substring(0, 12) + '...' || '-';
+      }
+    }
+    return '-';
+  };
+  
+  // 🔧 CORREGIDO: Obtener el destino
+  const getDestinationDisplay = (transaction) => {
+    if (transaction.type === 'RECHARGE') {
+      return transaction.targetWallet?.substring(0, 12) + '...' || '-';
+    } else if (transaction.type === 'WITHDRAWAL') {
+      return 'Cuenta bancaria';
+    } else if (transaction.type === 'TRANSFER') {
+      if (isUserSender(transaction)) {
+        return transaction.targetWallet?.substring(0, 12) + '...' || '-';
+      } else if (isUserReceiver(transaction)) {
+        return `Mi billetera`;
+      }
+    }
+    return '-';
+  };
+  
   const canReverse = (transaction) => {
+    // Solo el remitente puede revertir transferencias completadas y no reversadas
     return transaction.type === 'TRANSFER' && 
            transaction.userId === userId &&
            transaction.status === 'COMPLETED' && 
@@ -247,6 +329,7 @@ const Transactions = ({ user }) => {
               <tr>
                 <th>Fecha</th>
                 <th>Tipo</th>
+                <th>Descripción</th>
                 <th>Origen</th>
                 <th>Destino</th>
                 <th>Monto</th>
@@ -257,41 +340,52 @@ const Transactions = ({ user }) => {
             </thead>
             <tbody>
               {paginatedTransactions.length > 0 ? (
-                paginatedTransactions.map(t => (
-                  <tr key={t.id}>
-                    <td className="date-cell">{formatDate(t.createdAt)}</td>
-                    <td>
-                      <span className="type-badge">
-                        {getTypeIcon(t.type)} {getTypeLabel(t.type)}
-                      </span>
-                    </td>
-                    <td>{t.sourceWallet ? t.sourceWallet.substring(0, 12) + '...' : '-'}</td>
-                    <td>{t.targetWallet ? t.targetWallet.substring(0, 12) + '...' : (t.receiverUserId ? `Usuario: ${t.receiverUserId.substring(0, 8)}...` : '-')}</td>
-                    <td className="amount-cell">{formatCurrency(t.amount)}</td>
-                    <td>
-                      <span className={`status-badge ${getStatusClass(t.status)}`}>
-                        {getStatusLabel(t.status)}
-                      </span>
-                    </td>
-                    <td className={t.points > 0 ? 'points-positive' : 'points-zero'}>
-                      {t.points > 0 ? `+${t.points}` : t.points}
-                    </td>
-                    <td>
-                      {canReverse(t) && (
-                        <button 
-                          className="btn-reverse-small"
-                          onClick={() => openReversalModal(t)}
-                          title="Revertir transferencia"
-                        >
-                          ↩️
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                paginatedTransactions.map(t => {
+                  const isPositive = isPositiveTransaction(t);
+                  const displayAmount = getDisplayAmount(t);
+                  const description = getTransactionDescription(t);
+                  const origin = getOriginDisplay(t);
+                  const destination = getDestinationDisplay(t);
+                  
+                  return (
+                    <tr key={t.id}>
+                      <td className="date-cell">{formatDate(t.createdAt)}</td>
+                      <td>
+                        <span className="type-badge">
+                          {getTypeIcon(t.type)} {getTypeLabel(t.type)}
+                        </span>
+                      </td>
+                      <td>{description}</td>
+                      <td>{origin}</td>
+                      <td>{destination}</td>
+                      <td className={`amount-cell ${isPositive ? 'positive' : 'negative'}`}>
+                        {isPositive ? '+' : '-'}{formatCurrency(displayAmount)}
+                      </td>
+                      <td>
+                        <span className={`status-badge ${getStatusClass(t.status)}`}>
+                          {getStatusLabel(t.status)}
+                        </span>
+                      </td>
+                      <td className={t.points > 0 ? 'points-positive' : 'points-zero'}>
+                        {t.points > 0 ? `+${t.points}` : t.points}
+                      </td>
+                      <td>
+                        {canReverse(t) && (
+                          <button 
+                            className="btn-reverse-small"
+                            onClick={() => openReversalModal(t)}
+                            title="Revertir transferencia"
+                          >
+                            ↩️
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan="8" className="empty-table">
+                  <td colSpan="9" className="empty-table">
                     No hay transacciones que coincidan con los filtros
                   </td>
                 </tr>
@@ -386,7 +480,7 @@ const Transactions = ({ user }) => {
           setSelectedTransaction(null);
         }}
         transactionId={selectedTransaction?.id}
-        transactionAmount={selectedTransaction?.amount}
+        transactionAmount={selectedTransaction?.originalAmount || selectedTransaction?.amount}
         transactionPoints={selectedTransaction?.points}
         sourceWallet={selectedTransaction?.sourceWallet}
         targetWallet={selectedTransaction?.targetWallet}

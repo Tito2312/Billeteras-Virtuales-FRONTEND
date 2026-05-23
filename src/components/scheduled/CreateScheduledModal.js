@@ -1,4 +1,4 @@
-// CreateScheduledModal.js - Modal para crear operación programada
+// components/scheduled/CreateScheduledModal.js
 
 import React, { useState } from 'react';
 import { getCurrentUser } from '../../API/auth';
@@ -8,10 +8,9 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
   const [formData, setFormData] = useState({
     type: 'RECHARGE',
     sourceWalletId: '',
-    destinationType: 'misWallets', // 'misWallets' o 'otroUsuario'
+    destinationType: 'misWallets',
     targetWalletId: '',
-    targetUserId: '',
-    targetWalletIdOther: '',
+    transferKey: '',
     amount: '',
     scheduledDate: '',
     scheduledTime: '12:00'
@@ -19,20 +18,53 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
   
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [destinationInfo, setDestinationInfo] = useState(null);
   
   if (!isOpen) return null;
   
   const transactionTypes = [
-    { value: 'RECHARGE', label: 'Recarga automática', icon: '📥' },
-    { value: 'WITHDRAWAL', label: 'Retiro programado', icon: '📤' },
-    { value: 'TRANSFER', label: 'Transferencia programada', icon: '🔄' }
+    { value: 'RECHARGE', label: 'Recarga automática', icon: '📥', requiresSource: false, requiresTarget: true },
+    { value: 'WITHDRAWAL', label: 'Retiro programado', icon: '📤', requiresSource: true, requiresTarget: false },
+    { value: 'TRANSFER', label: 'Transferencia programada', icon: '🔄', requiresSource: true, requiresTarget: false, requiresKey: true }
   ];
+  
+  const selectedType = transactionTypes.find(t => t.value === formData.type);
+  
+  // Verificar transferKey
+  const handleTransferKeyChange = async (key) => {
+    setFormData({...formData, transferKey: key});
+    setDestinationInfo(null);
+    
+    if (key.length > 5) {
+      setVerifying(true);
+      try {
+        const { getWalletByKey } = await import('../../API/transactions');
+        const result = await getWalletByKey(key);
+        if (result.success && result.data) {
+          setDestinationInfo({
+            name: result.data.name,
+            exists: true,
+            walletId: result.data.id
+          });
+        } else {
+          setDestinationInfo({ 
+            exists: false, 
+            message: result.message || 'Clave no válida o billetera no encontrada' 
+          });
+        }
+      } catch (error) {
+        console.error('Error verificando clave:', error);
+        setDestinationInfo({ exists: false, message: 'Error al verificar la clave' });
+      }
+      setVerifying(false);
+    }
+  };
   
   const validate = () => {
     const newErrors = {};
     if (!formData.type) newErrors.type = 'Selecciona un tipo de operación';
     
-    // TRANSFERENCIA
     if (formData.type === 'TRANSFER') {
       if (!formData.sourceWalletId) newErrors.sourceWalletId = 'Selecciona billetera origen';
       
@@ -42,28 +74,21 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
           newErrors.targetWalletId = 'No puedes transferir a la misma billetera';
         }
       } else {
-        if (!formData.targetUserId) newErrors.targetUserId = 'Ingresa el ID del usuario destino';
-        if (!formData.targetWalletIdOther) newErrors.targetWalletIdOther = 'Ingresa el ID de la billetera destino';
+        if (!formData.transferKey) newErrors.transferKey = 'Ingresa la clave de la billetera destino';
+        if (!destinationInfo?.exists) newErrors.transferKey = 'Clave de billetera no válida';
       }
     }
     
-    // RETIRO
     if (formData.type === 'WITHDRAWAL') {
       if (!formData.sourceWalletId) newErrors.sourceWalletId = 'Selecciona billetera origen';
     }
     
-    // RECARGA
     if (formData.type === 'RECHARGE') {
       if (!formData.targetWalletId) newErrors.targetWalletId = 'Selecciona billetera destino';
     }
     
-    if (!formData.amount) {
-      newErrors.amount = 'Ingresa un monto válido';
-    } else {
-      const amountNum = parseFloat(formData.amount);
-      if (isNaN(amountNum) || amountNum <= 0) {
-        newErrors.amount = 'Ingresa un monto válido mayor a 0';
-      }
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      newErrors.amount = 'Ingresa un monto válido mayor a 0';
     }
     
     if (!formData.scheduledDate) {
@@ -85,13 +110,13 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
       sourceWalletId: '',
       destinationType: 'misWallets',
       targetWalletId: '',
-      targetUserId: '',
-      targetWalletIdOther: '',
+      transferKey: '',
       amount: '',
       scheduledDate: '',
       scheduledTime: '12:00'
     });
     setErrors({});
+    setDestinationInfo(null);
   };
   
   const handleSubmit = async (e) => {
@@ -109,20 +134,15 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
       const currentUser = getCurrentUser();
       const userId = currentUser?.id;
       
-      if (!userId) {
-        throw new Error('No se encontró el usuario');
-      }
+      if (!userId) throw new Error('No se encontró el usuario');
       
       const [year, month, day] = formData.scheduledDate.split('-');
       const [hour, minute] = formData.scheduledTime.split(':');
       const scheduledDateTime = new Date(year, month - 1, day, hour, minute);
       
-      if (isNaN(scheduledDateTime.getTime())) {
-        throw new Error('Fecha inválida');
-      }
+      const amountNum = parseFloat(formData.amount);
       
       let operationData = {};
-      const amountNum = parseFloat(formData.amount);
       
       switch (formData.type) {
         case 'RECHARGE':
@@ -159,8 +179,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             operationData = {
               userId: userId,
               sourceWalletId: formData.sourceWalletId,
-              targetUserId: formData.targetUserId,
-              targetWalletId: formData.targetWalletIdOther,
+              transferKey: formData.transferKey,
               type: formData.type,
               amount: amountNum,
               scheduledDate: scheduledDateTime.toISOString()
@@ -172,7 +191,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
           throw new Error('Tipo de operación no válido');
       }
       
-      console.log('📤 Enviando al backend:', operationData);
+      console.log('📤 Enviando operación programada:', operationData);
       await onCreate(operationData);
       
       resetForm();
@@ -200,13 +219,11 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
   
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
+      style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value || 0);
   };
   
-  // Obtener billeteras destino (todas excepto la seleccionada como origen)
   const getDestinationWallets = () => {
     if (!formData.sourceWalletId) return wallets;
     return wallets.filter(w => w.id !== formData.sourceWalletId);
@@ -230,8 +247,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                 type: e.target.value,
                 sourceWalletId: '',
                 targetWalletId: '',
-                targetUserId: '',
-                targetWalletIdOther: ''
+                transferKey: ''
               })}
               disabled={loading}
             >
@@ -242,7 +258,6 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             {errors.type && <span className="error-text">{errors.type}</span>}
           </div>
           
-          {/* TRANSFERENCIA PROGRAMADA */}
           {formData.type === 'TRANSFER' && (
             <>
               <div className="form-group">
@@ -263,15 +278,14 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
               </div>
               
               <div className="form-group">
-                <label>Tipo de destino</label>
+                <label className="section-label">Tipo de destino</label>
                 <div className="destination-cards">
                   <div 
                     className={`destination-card ${formData.destinationType === 'misWallets' ? 'selected' : ''}`}
                     onClick={() => setFormData({
                       ...formData, 
                       destinationType: 'misWallets',
-                      targetUserId: '',
-                      targetWalletIdOther: ''
+                      transferKey: ''
                     })}
                   >
                     <div className="destination-icon">💳</div>
@@ -294,10 +308,10 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                       targetWalletId: ''
                     })}
                   >
-                    <div className="destination-icon">👤</div>
+                    <div className="destination-icon">🔑</div>
                     <div className="destination-info">
-                      <h4>Otro usuario</h4>
-                      <p>Transferencia a otro usuario de FinWallet</p>
+                      <h4>Por clave de billetera</h4>
+                      <p>Transferir usando la clave única de la billetera destino</p>
                     </div>
                     <div className="destination-radio">
                       <div className={`custom-radio ${formData.destinationType === 'otroUsuario' ? 'checked' : ''}`}>
@@ -328,38 +342,37 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
               )}
               
               {formData.destinationType === 'otroUsuario' && (
-                <>
-                  <div className="form-group">
-                    <label>ID del usuario destino *</label>
+                <div className="form-group">
+                  <label>Clave de la billetera destino *</label>
+                  <div className="input-with-icon">
                     <input
                       type="text"
-                      value={formData.targetUserId}
-                      onChange={(e) => setFormData({...formData, targetUserId: e.target.value})}
-                      placeholder="Ej: 6a0518699b62c391703c0bf5"
+                      value={formData.transferKey}
+                      onChange={(e) => handleTransferKeyChange(e.target.value)}
+                      placeholder="Ej: principal1091203166"
                       disabled={loading}
                     />
-                    <small className="field-hint">Pídele su ID de usuario a la persona (aparece en su perfil)</small>
-                    {errors.targetUserId && <span className="error-text">{errors.targetUserId}</span>}
+                    {verifying && <span className="verifying-spinner">⏳ Verificando...</span>}
                   </div>
-                  
-                  <div className="form-group">
-                    <label>ID de la billetera destino *</label>
-                    <input
-                      type="text"
-                      value={formData.targetWalletIdOther}
-                      onChange={(e) => setFormData({...formData, targetWalletIdOther: e.target.value})}
-                      placeholder="Ej: 6a0518699b62c391703c0bf6"
-                      disabled={loading}
-                    />
-                    <small className="field-hint">Pídele el ID de su billetera a la persona</small>
-                    {errors.targetWalletIdOther && <span className="error-text">{errors.targetWalletIdOther}</span>}
-                  </div>
-                </>
+                  {errors.transferKey && <span className="error-text">{errors.transferKey}</span>}
+                  {destinationInfo && destinationInfo.exists && (
+                    <div className="destination-info success">
+                      ✅ Billetera: <strong>{destinationInfo.name}</strong>
+                    </div>
+                  )}
+                  {destinationInfo && !destinationInfo.exists && (
+                    <div className="destination-info error">
+                      ❌ {destinationInfo.message}
+                    </div>
+                  )}
+                  <small className="field-hint">
+                    La clave aparece en la tarjeta de cada billetera. Pídesela a la persona.
+                  </small>
+                </div>
               )}
             </>
           )}
           
-          {/* RETIRO: Solo billetera origen */}
           {formData.type === 'WITHDRAWAL' && (
             <div className="form-group">
               <label>Billetera origen *</label>
@@ -380,7 +393,6 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             </div>
           )}
           
-          {/* RECARGA: Solo billetera destino */}
           {formData.type === 'RECHARGE' && (
             <div className="form-group">
               <label>Billetera destino *</label>
@@ -412,7 +424,6 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                 disabled={loading}
               />
               {errors.scheduledDate && <span className="error-text">{errors.scheduledDate}</span>}
-              <small className="field-hint">Puedes programar para hoy o cualquier día futuro</small>
             </div>
             <div className="form-group">
               <label>Hora</label>

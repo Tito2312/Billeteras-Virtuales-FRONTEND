@@ -81,15 +81,16 @@ const WalletCarousel = ({ wallets, onRecharge, onTransfer, onWithdraw }) => {
         <div className="carousel-grid">
           {currentWallets.map((wallet) => (
             <div key={wallet.id} className="carousel-grid-item">
-              <WalletCard
-                name={wallet.name}
-                type={wallet.type}
-                balance={wallet.balance}
-                transferKey={wallet.transferKey}
-                onRecharge={() => onRecharge && onRecharge(wallet)}
-                onTransfer={() => onTransfer && onTransfer(wallet)}
-                onWithdraw={() => onWithdraw && onWithdraw(wallet)}
-              />
+<WalletCard
+  key={wallet.id}
+  name={wallet.name}
+  type={wallet.type}
+  balance={wallet.balance}
+  transferKey={wallet.transferKey}
+  onRecharge={() => onRecharge && onRecharge(wallet)}
+  onTransfer={() => onTransfer && onTransfer(wallet)}
+  onWithdraw={() => onWithdraw && onWithdraw(wallet)}
+/>
             </div>
           ))}
           

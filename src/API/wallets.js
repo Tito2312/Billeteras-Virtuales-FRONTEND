@@ -207,6 +207,32 @@ export const deactivateWallet = async (id, userId) => {
 };
 
 /**
+ * Eliminar billetera
+ * GET /api/wallets/deleteWallet?walletId={walletId}&userId={userId}
+ */
+export const deleteWallet = async (walletId, userId) => {
+  try {
+    const url = `${BASE_URL}/wallets/deleteWallet?walletId=${walletId}&userId=${userId}`;
+    const token = localStorage.getItem('auth_token');
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw { message: text || 'Error al eliminar la billetera' };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error al eliminar billetera:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+/**
  * Obtener balance de billetera
  * POST /api/wallets/{id}/balance?userId={userId}
  */

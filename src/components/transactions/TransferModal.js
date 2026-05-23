@@ -1,150 +1,165 @@
 // TransferModal.js - Modal para transferir dinero
+// Opción B: La comisión la paga el destinatario (se descuenta de lo que recibe)
 
 import React, { useState } from 'react';
-import { transferToOwnWallet, transferToUser, transferByKey, getWalletByKey } from '../../API/transactions';
+import { transferToUser, getWalletByKey } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Modals.css';
 
-const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
+const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) => {
   const currentUser = getCurrentUser();
+  const userId = currentUser?.id;
   const userLevel = currentUser?.nivel || 'Bronce';
   const benefits = useLevelBenefits(userLevel);
-  
+
   const [formData, setFormData] = useState({
-    fromWalletId: wallets[0]?.id || '',
-    destinationType: 'own', // 'own', 'user', 'key'
-    toWalletId: '',
-    toUserId: '',
-    toUserWalletId: '',
+    sourceWalletId: selectedWallet?.id || wallets[0]?.id || '',
+    destinationType: 'key',
+    targetWalletId: '',
     transferKey: '',
     amount: '',
     description: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [destinationInfo, setDestinationInfo] = useState(null);
   const [verifying, setVerifying] = useState(false);
-  
+
   if (!isOpen) return null;
-  
-  const selectedWallet = wallets.find(w => w.id === formData.fromWalletId);
+
+  const selectedSourceWallet = wallets.find(w => w.id === formData.sourceWalletId);
   const amount = parseFloat(formData.amount) || 0;
   const commissionAmount = benefits.calculateCommission(amount);
-  const totalAmount = amount + commissionAmount;
-  
+  const receiverAmount = amount - commissionAmount;
+  const totalDebit = amount;
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value);
   };
-  
-  // Verificar la transferKey mientras el usuario escribe
+
   const handleTransferKeyChange = async (key) => {
     setFormData({...formData, transferKey: key});
     setDestinationInfo(null);
-    
+
     if (key.length > 5) {
       setVerifying(true);
-      const result = await getWalletByKey(key);
-      if (result.success && result.data) {
-        setDestinationInfo({
-          name: result.data.name,
-          owner: result.data.userId?.substring(0, 12) + '...',
-          exists: true
-        });
-      } else {
-        setDestinationInfo({ exists: false, message: 'Clave no válida o billetera no encontrada' });
+      try {
+        const result = await getWalletByKey(key);
+        if (result.success && result.data) {
+          setDestinationInfo({
+            name: result.data.name,
+            exists: true,
+            walletId: result.data.id
+          });
+        } else {
+          setDestinationInfo({
+            exists: false,
+            message: result.message || 'Clave no válida o billetera no encontrada'
+          });
+        }
+      } catch (error) {
+        console.error('Error verificando clave:', error);
+        setDestinationInfo({ exists: false, message: 'Error al verificar la clave' });
       }
       setVerifying(false);
     }
   };
-  
+
   const validate = () => {
     const newErrors = {};
-    if (!formData.fromWalletId) newErrors.fromWalletId = 'Selecciona billetera origen';
-    
-    if (formData.destinationType === 'own' && !formData.toWalletId) {
-      newErrors.toWalletId = 'Selecciona una billetera destino';
+    if (!formData.sourceWalletId) {
+      newErrors.sourceWalletId = 'Selecciona billetera origen';
     }
-    
-    if (formData.destinationType === 'user') {
-      if (!formData.toUserId) newErrors.toUserId = 'Ingresa el ID del usuario destino';
-      if (!formData.toUserWalletId) newErrors.toUserWalletId = 'Ingresa el ID de la billetera destino';
+
+    if (formData.destinationType === 'own') {
+      if (!formData.targetWalletId) {
+        newErrors.targetWalletId = 'Selecciona una billetera destino';
+      }
+      if (formData.sourceWalletId === formData.targetWalletId) {
+        newErrors.targetWalletId = 'No puedes transferir a la misma billetera';
+      }
     }
-    
+
     if (formData.destinationType === 'key') {
-      if (!formData.transferKey) newErrors.transferKey = 'Ingresa la clave de la billetera destino';
-      if (!destinationInfo?.exists) newErrors.transferKey = 'Clave de billetera no válida';
+      if (!formData.transferKey) {
+        newErrors.transferKey = 'Ingresa la clave de la billetera destino';
+      } else if (!destinationInfo?.exists) {
+        newErrors.transferKey = destinationInfo?.message || 'Clave de billetera no válida';
+      }
     }
-    
-    if (!amount || amount <= 0) newErrors.amount = 'Ingresa un monto válido';
-    if (amount > selectedWallet?.balance) newErrors.amount = 'Monto excede el balance disponible';
-    
+
+    if (!amount || amount <= 0) {
+      newErrors.amount = 'Ingresa un monto válido';
+    } else if (amount > selectedSourceWallet?.balance) {
+      newErrors.amount = `Monto excede el balance disponible (${formatCurrency(selectedSourceWallet?.balance)})`;
+    }
+
     return newErrors;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setLoading(true);
-    const userId = getCurrentUser()?.id;
     let result;
-    
-    if (formData.destinationType === 'own') {
-      result = await transferToOwnWallet(
-        userId,
-        formData.fromWalletId,
-        formData.toWalletId,
-        amount
-      );
-    } else if (formData.destinationType === 'user') {
+
+    try {
+      let transferKey;
+
+      if (formData.destinationType === 'own') {
+        const targetWallet = wallets.find(w => w.id === formData.targetWalletId);
+        if (!targetWallet?.transferKey) {
+          alert('❌ La billetera destino no tiene clave de transferencia configurada');
+          setLoading(false);
+          return;
+        }
+        transferKey = targetWallet.transferKey;
+      } else {
+        transferKey = formData.transferKey;
+      }
+
       result = await transferToUser(
         userId,
-        formData.toUserId,
-        formData.fromWalletId,
-        formData.toUserWalletId,
+        formData.sourceWalletId,
+        transferKey,
         amount
       );
-    } else {
-      // Transferencia por clave (transferKey)
-      result = await transferByKey(
-        userId,
-        formData.fromWalletId,
-        formData.transferKey,
-        amount,
-        formData.description
-      );
+
+      if (result.success) {
+        alert(`✅ Transferencia exitosa: ${formatCurrency(amount)}\n\n💰 Comisión aplicada: ${formatCurrency(commissionAmount)} (${benefits.formatCommissionRate()})\n📦 El destinatario recibe: ${formatCurrency(receiverAmount)}\n💳 Total debitado de tu cuenta: ${formatCurrency(totalDebit)}`);
+        if (onSuccess) await onSuccess();
+        onClose();
+        setFormData({
+          sourceWalletId: wallets[0]?.id || '',
+          destinationType: 'key',
+          targetWalletId: '',
+          transferKey: '',
+          amount: '',
+          description: ''
+        });
+        setDestinationInfo(null);
+      } else {
+        alert(`❌ Error al transferir: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Error en transferencia:', error);
+      alert(`❌ Error al transferir: ${error.message || 'Error desconocido'}`);
+    } finally {
+      setLoading(false);
     }
-    
-    if (result.success) {
-      alert(`✅ Transferencia exitosa: ${formatCurrency(amount)}\n\n💰 Comisión aplicada: ${formatCurrency(commissionAmount)} (${benefits.formatCommissionRate()})\n📊 Total debitado: ${formatCurrency(totalAmount)}`);
-      if (onSuccess) onSuccess();
-      onClose();
-      setFormData({
-        fromWalletId: wallets[0]?.id || '',
-        destinationType: 'own',
-        toWalletId: '',
-        toUserId: '',
-        toUserWalletId: '',
-        transferKey: '',
-        amount: '',
-        description: ''
-      });
-      setDestinationInfo(null);
-    } else {
-      alert(`❌ Error al transferir: ${result.message}`);
-    }
-    setLoading(false);
   };
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -152,13 +167,13 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
           <h2>Transferir Dinero</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Desde billetera</label>
-            <select 
-              value={formData.fromWalletId} 
-              onChange={(e) => setFormData({...formData, fromWalletId: e.target.value})}
+            <label>Desde billetera *</label>
+            <select
+              value={formData.sourceWalletId}
+              onChange={(e) => setFormData({...formData, sourceWalletId: e.target.value})}
             >
               <option value="">Selecciona una billetera</option>
               {wallets.map(w => (
@@ -167,64 +182,15 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
                 </option>
               ))}
             </select>
-            {errors.fromWalletId && <span className="error-text">{errors.fromWalletId}</span>}
+            {errors.sourceWalletId && <span className="error-text">{errors.sourceWalletId}</span>}
           </div>
-          
+
           <div className="form-group">
             <label className="section-label">Tipo de destino</label>
             <div className="destination-cards">
-              <div 
-                className={`destination-card ${formData.destinationType === 'own' ? 'selected' : ''}`}
-                onClick={() => setFormData({
-                  ...formData, 
-                  destinationType: 'own', 
-                  toUserId: '', 
-                  toUserWalletId: '',
-                  transferKey: ''
-                })}
-              >
-                <div className="destination-icon">💳</div>
-                <div className="destination-info">
-                  <h4>Mis billeteras</h4>
-                  <p>Transferencia entre tus propias billeteras</p>
-                </div>
-                <div className="destination-radio">
-                  <div className={`custom-radio ${formData.destinationType === 'own' ? 'checked' : ''}`}>
-                    {formData.destinationType === 'own' && <span>✓</span>}
-                  </div>
-                </div>
-              </div>
-              
-              <div 
-                className={`destination-card ${formData.destinationType === 'user' ? 'selected' : ''}`}
-                onClick={() => setFormData({
-                  ...formData, 
-                  destinationType: 'user', 
-                  toWalletId: '',
-                  transferKey: ''
-                })}
-              >
-                <div className="destination-icon">👤</div>
-                <div className="destination-info">
-                  <h4>Otro usuario</h4>
-                  <p>Transferencia a otro usuario de FinWallet</p>
-                </div>
-                <div className="destination-radio">
-                  <div className={`custom-radio ${formData.destinationType === 'user' ? 'checked' : ''}`}>
-                    {formData.destinationType === 'user' && <span>✓</span>}
-                  </div>
-                </div>
-              </div>
-              
-              <div 
+              <div
                 className={`destination-card ${formData.destinationType === 'key' ? 'selected' : ''}`}
-                onClick={() => setFormData({
-                  ...formData, 
-                  destinationType: 'key', 
-                  toWalletId: '',
-                  toUserId: '',
-                  toUserWalletId: ''
-                })}
+                onClick={() => setFormData({...formData, destinationType: 'key', targetWalletId: ''})}
               >
                 <div className="destination-icon">🔑</div>
                 <div className="destination-info">
@@ -237,63 +203,25 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
                   </div>
                 </div>
               </div>
+
+              <div
+                className={`destination-card ${formData.destinationType === 'own' ? 'selected' : ''}`}
+                onClick={() => setFormData({...formData, destinationType: 'own', transferKey: ''})}
+              >
+                <div className="destination-icon">💳</div>
+                <div className="destination-info">
+                  <h4>Mis billeteras</h4>
+                  <p>Transferencia entre tus propias billeteras</p>
+                </div>
+                <div className="destination-radio">
+                  <div className={`custom-radio ${formData.destinationType === 'own' ? 'checked' : ''}`}>
+                    {formData.destinationType === 'own' && <span>✓</span>}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          
-          {formData.destinationType === 'own' && (
-            <div className="form-group">
-              <label>Billetera destino</label>
-              <select 
-                value={formData.toWalletId} 
-                onChange={(e) => setFormData({...formData, toWalletId: e.target.value})}
-              >
-                <option value="">Selecciona una billetera...</option>
-                {wallets.filter(w => w.id !== formData.fromWalletId).map(w => (
-                  <option key={w.id} value={w.id}>
-                    {w.name} - {formatCurrency(w.balance)}
-                  </option>
-                ))}
-              </select>
-              {errors.toWalletId && <span className="error-text">{errors.toWalletId}</span>}
-            </div>
-          )}
-          
-          {formData.destinationType === 'user' && (
-            <>
-              <div className="form-group">
-                <label>ID del usuario destino</label>
-                <div className="input-with-icon">
-                  <input
-                    type="text"
-                    value={formData.toUserId}
-                    onChange={(e) => setFormData({...formData, toUserId: e.target.value})}
-                    placeholder="Ej: 6a0518699b62c391703c0bf5"
-                  />
-                </div>
-                {errors.toUserId && <span className="error-text">{errors.toUserId}</span>}
-                <small className="field-hint">
-                  Pídele su ID de usuario a la persona (aparece en su perfil)
-                </small>
-              </div>
-              
-              <div className="form-group">
-                <label>ID de la billetera destino</label>
-                <div className="input-with-icon">
-                  <input
-                    type="text"
-                    value={formData.toUserWalletId}
-                    onChange={(e) => setFormData({...formData, toUserWalletId: e.target.value})}
-                    placeholder="Ej: 6a0518699b62c391703c0bf6"
-                  />
-                </div>
-                {errors.toUserWalletId && <span className="error-text">{errors.toUserWalletId}</span>}
-                <small className="field-hint">
-                  Pídele el ID de su billetera a la persona (aparece en su lista de billeteras)
-                </small>
-              </div>
-            </>
-          )}
-          
+
           {formData.destinationType === 'key' && (
             <div className="form-group">
               <label>Clave de la billetera destino *</label>
@@ -302,45 +230,53 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
                   type="text"
                   value={formData.transferKey}
                   onChange={(e) => handleTransferKeyChange(e.target.value)}
-                  placeholder="Ej: principal12345678"
+                  placeholder="Ej: principal1091203166"
+                  autoComplete="off"
                 />
-                {verifying && <span className="verifying-spinner">⏳</span>}
+                {verifying && <span className="verifying-spinner">⏳ Verificando...</span>}
               </div>
               {errors.transferKey && <span className="error-text">{errors.transferKey}</span>}
               {destinationInfo && destinationInfo.exists && (
                 <div className="destination-info success">
                   ✅ Billetera: <strong>{destinationInfo.name}</strong>
-                  <br />
-                  <small>Propietario: {destinationInfo.owner}</small>
                 </div>
               )}
-              {destinationInfo && !destinationInfo.exists && (
-                <div className="destination-info error">
-                  ❌ {destinationInfo.message}
-                </div>
-              )}
-              <small className="field-hint">
-                La clave aparece en la tarjeta de cada billetera. Pídesela a la persona.
-              </small>
+              <small className="field-hint">La clave aparece en la tarjeta de cada billetera.</small>
             </div>
           )}
-          
-          <div className="form-group">
-            <label>Monto a transferir</label>
-            <div className="input-with-icon">
-              <input
-                type="number"
-                value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                placeholder="0.00"
-                step="0.01"
-              />
+
+          {formData.destinationType === 'own' && (
+            <div className="form-group">
+              <label>Billetera destino *</label>
+              <select
+                value={formData.targetWalletId}
+                onChange={(e) => setFormData({...formData, targetWalletId: e.target.value})}
+              >
+                <option value="">Selecciona una billetera...</option>
+                {wallets.filter(w => w.id !== formData.sourceWalletId).map(w => (
+                  <option key={w.id} value={w.id}>
+                    {w.name} - {formatCurrency(w.balance)}
+                  </option>
+                ))}
+              </select>
+              {errors.targetWalletId && <span className="error-text">{errors.targetWalletId}</span>}
             </div>
+          )}
+
+          <div className="form-group">
+            <label>Monto a transferir *</label>
+            <input
+              type="number"
+              value={formData.amount}
+              onChange={(e) => setFormData({...formData, amount: e.target.value})}
+              placeholder="0.00"
+              step="0.01"
+              min="0.01"
+            />
             {errors.amount && <span className="error-text">{errors.amount}</span>}
           </div>
-          
-          {/* INFORMACIÓN DE COMISIÓN */}
-          {amount > 0 && selectedWallet && (
+
+          {amount > 0 && selectedSourceWallet && (
             <div className="commission-info-box">
               <div className="commission-row">
                 <span>Monto a transferir:</span>
@@ -348,32 +284,31 @@ const TransferModal = ({ isOpen, onClose, wallets, onSuccess }) => {
               </div>
               <div className="commission-row">
                 <span>Comisión ({benefits.formatCommissionRate()}):</span>
-                <span>{formatCurrency(commissionAmount)}</span>
+                <span className="commission-value">{formatCurrency(commissionAmount)}</span>
+              </div>
+              <div className="commission-row receiver">
+                <span>El destinatario recibe:</span>
+                <span className="receiver-value">{formatCurrency(receiverAmount)}</span>
               </div>
               <div className="commission-row total">
-                <span>Total a debitar:</span>
-                <span>{formatCurrency(totalAmount)}</span>
-              </div>
-              <div className="commission-note">
-                <small>⚠️ La comisión se aplica según tu nivel ({userLevel})</small>
+                <span>Total a debitar de tu cuenta:</span>
+                <span>{formatCurrency(totalDebit)}</span>
               </div>
             </div>
           )}
-          
+
           <div className="form-group">
             <label>Concepto (opcional)</label>
-            <div className="input-with-icon">
-              <input
-                type="text"
-                value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
-                placeholder="Descripción de la transferencia"
-              />
-            </div>
+            <input
+              type="text"
+              value={formData.description}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              placeholder="Descripción de la transferencia"
+            />
           </div>
-          
+
           <div className="modal-buttons">
-            <button type="button" className="btn-cancel" onClick={onClose}>
+            <button type="button" className="btn-cancel" onClick={onClose} disabled={loading}>
               Cancelar
             </button>
             <button type="submit" className="btn-confirm" disabled={loading}>

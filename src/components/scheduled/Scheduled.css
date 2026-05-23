@@ -26,6 +26,39 @@
   font-size: 14px;
 }
 
+/* Header buttons */
+.header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+/* Botón Actualizar - Mismo estilo que el de Programar */
+.btn-refresh-scheduled {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-refresh-scheduled:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.btn-refresh-scheduled:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Botón Programar */
 .btn-create-scheduled {
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   color: white;
@@ -56,6 +89,12 @@
   padding: 20px;
   text-align: center;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.stat-card-scheduled:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card-scheduled .stat-value {
@@ -69,6 +108,19 @@
 .stat-card-scheduled .stat-label {
   font-size: 14px;
   color: #6b7280;
+}
+
+/* Stats cards con colores en borde superior */
+.stat-card-scheduled.pending {
+  border-top: 4px solid #f59e0b;
+}
+
+.stat-card-scheduled.executed {
+  border-top: 4px solid #10b981;
+}
+
+.stat-card-scheduled.failed {
+  border-top: 4px solid #ef4444;
 }
 
 /* Filtros */
@@ -121,6 +173,7 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
+/* Prioridades en borde izquierdo */
 .operation-card.priority-high {
   border-left: 4px solid #ef4444;
 }
@@ -133,6 +186,16 @@
   border-left: 4px solid #10b981;
 }
 
+.operation-card.priority-overdue {
+  border-left: 4px solid #dc2626;
+  background: #fef2f2;
+}
+
+.operation-card.priority-immediate {
+  border-left: 4px solid #ea580c;
+}
+
+/* Badge de prioridad */
 .operation-priority-badge {
   background: #f8fafc;
   padding: 8px 20px;
@@ -163,12 +226,23 @@
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
+.priority-dot.priority-overdue {
+  background: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+.priority-dot.priority-immediate {
+  background: #ea580c;
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2);
+}
+
 .priority-text {
   font-size: 12px;
   font-weight: 600;
   color: #475569;
 }
 
+/* Contenido de la operación */
 .operation-content {
   padding: 20px;
   display: flex;
@@ -255,6 +329,12 @@
   border-top: 1px solid #fecaca;
 }
 
+/* Tarjeta atrasada */
+.operation-card.overdue {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
 /* Empty state */
 .empty-operations {
   text-align: center;
@@ -268,6 +348,10 @@
   font-weight: 600;
   margin-bottom: 8px;
   color: #1e1b4b;
+}
+
+.empty-operations span {
+  font-size: 14px;
 }
 
 /* Loading */
@@ -295,6 +379,14 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Error text */
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .scheduled-page {
@@ -304,6 +396,11 @@
   .scheduled-header {
     flex-direction: column;
     text-align: center;
+  }
+  
+  .header-buttons {
+    width: 100%;
+    justify-content: center;
   }
   
   .scheduled-stats {
@@ -321,5 +418,9 @@
   
   .operation-status-badge {
     text-align: center;
+  }
+  
+  .filters-scheduled {
+    justify-content: center;
   }
 }

@@ -1,4 +1,5 @@
 // useLevelBenefits.js - Hook para obtener beneficios según nivel
+// Opción B: La comisión la paga el destinatario (se descuenta de lo que recibe)
 
 // Función para normalizar el nivel (inglés o español)
 const normalizeLevel = (level) => {
@@ -73,7 +74,14 @@ export const useLevelBenefits = (level) => {
     processingPriority,
     level: normalizedLevel,
     
+    // Comisión que se cobra (se descuenta del destinatario)
     calculateCommission: (amount) => amount * commissionRate,
+    
+    // Lo que realmente recibe el destinatario
+    calculateReceiverAmount: (amount) => amount - (amount * commissionRate),
+    
+    // Total que se debita de la billetera origen (solo el monto, la comisión no la paga el origen)
+    calculateTotalDebit: (amount) => amount,
     
     calculatePointsWithBonus: (basePoints) => {
       return Math.floor(basePoints * (1 + pointsBonus));

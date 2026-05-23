@@ -9,6 +9,7 @@ import AdminReports from './AdminReports';
 import AdminWallets from './AdminWallets';
 import { getAdminStats } from '../../API/admin';
 import AdminTransactions from './AdminTransactions';
+import AdminGraph from './AdminGraph';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -22,6 +23,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (path === '/admin/reports') return 'reports';
     if (path === '/admin/wallets') return 'wallets';
     if (path === '/admin/transactions') return 'transactions';
+    if (path === '/admin/graph') return 'graph';
     return 'dashboard';
   };
   
@@ -68,6 +70,8 @@ const AdminDashboard = ({ user, onLogout }) => {
       window.location.href = '/admin/wallets';
     } else if (tab === 'transactions') {
       window.location.href = '/admin/transactions';
+    } else if (tab === 'graph') {
+      window.location.href = '/admin/graph';
     }
   };
 
@@ -82,15 +86,9 @@ const AdminDashboard = ({ user, onLogout }) => {
       case 'wallets':
         return <AdminWallets />;
       case 'transactions':
-        case 'transactions':
-  return <AdminTransactions />;
-        return (
-          <div className="admin-placeholder">
-            <div className="placeholder-icon">🔄</div>
-            <h2>Transacciones</h2>
-            <p>Próximamente: Monitoreo de todas las transacciones</p>
-          </div>
-        );
+        return <AdminTransactions />;
+      case 'graph':
+        return <AdminGraph />;
       default:
         return (
           <div className="admin-dashboard-content">

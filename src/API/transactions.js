@@ -28,7 +28,6 @@ const handleResponse = async (response) => {
 
 // ============================================
 // RECARGAR BILLETERA
-// POST /api/transactions/recharge?userId={userId}&targetWallet={targetWallet}&amount={amount}
 // ============================================
 
 export const rechargeWallet = async (userId, targetWallet, amount) => {
@@ -55,7 +54,6 @@ export const rechargeWallet = async (userId, targetWallet, amount) => {
 
 // ============================================
 // RETIRAR DINERO
-// POST /api/transactions/withdrawal?userId={userId}&sourceWallet={sourceWallet}&amount={amount}
 // ============================================
 
 export const withdrawMoney = async (userId, sourceWallet, amount) => {
@@ -82,7 +80,6 @@ export const withdrawMoney = async (userId, sourceWallet, amount) => {
 
 // ============================================
 // TRANSFERIR ENTRE MIS PROPIAS BILLETERAS
-// POST /api/transactions/transfer?userId={userId}&sourceWallet={sourceWallet}&targetWallet={targetWallet}&amount={amount}
 // ============================================
 
 export const transferToOwnWallet = async (userId, sourceWallet, targetWallet, amount) => {
@@ -108,13 +105,12 @@ export const transferToOwnWallet = async (userId, sourceWallet, targetWallet, am
 };
 
 // ============================================
-// TRANSFERIR A OTRO USUARIO
-// POST /api/transactions/transfer-to-user?userId={userId}&receiverUserId={receiverUserId}&sourceWallet={sourceWallet}&targetWallet={targetWallet}&amount={amount}
+// TRANSFERIR A OTRO USUARIO POR CLAVE
 // ============================================
 
-export const transferToUser = async (userId, receiverUserId, sourceWallet, targetWallet, amount) => {
+export const transferToUser = async (userId, sourceWallet, transferKey, amount) => {
   try {
-    const url = `${BASE_URL}/transactions/transfer-to-user?userId=${userId}&receiverUserId=${receiverUserId}&sourceWallet=${sourceWallet}&targetWallet=${targetWallet}&amount=${amount}`;
+    const url = `${BASE_URL}/transactions/transfer-to-user?userId=${userId}&sourceWallet=${sourceWallet}&transferkey=${transferKey}&amount=${amount}`;
     const token = getAuthToken();
     
     const params = {
@@ -124,19 +120,18 @@ export const transferToUser = async (userId, receiverUserId, sourceWallet, targe
       }
     };
     
-    console.log('👤 Transfiriendo a usuario:', url);
+    console.log('🔑 Transfiriendo por clave:', url);
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
-    console.error('Error al transferir a usuario:', error);
+    console.error('Error al transferir por clave:', error);
     return { success: false, message: error.message };
   }
 };
 
 // ============================================
 // REVERTIR TRANSACCIÓN
-// PUT /api/transactions/reverseTransaction?userId={userId}&transactionId={transactionId}
 // ============================================
 
 export const reverseTransaction = async (userId, transactionId) => {
@@ -163,7 +158,6 @@ export const reverseTransaction = async (userId, transactionId) => {
 
 // ============================================
 // OBTENER HISTORIAL DE TRANSACCIONES POR USUARIO
-// GET /api/transactions/user/{userId}?userId={userId}
 // ============================================
 
 export const getUserTransactions = async (userId) => {
@@ -211,7 +205,6 @@ export const getUserTransactions = async (userId) => {
 
 // ============================================
 // OBTENER HISTORIAL DE TRANSACCIONES POR BILLETERA
-// GET /api/transactions/wallet/{walletId}?walletId={walletId}
 // ============================================
 
 export const getWalletTransactions = async (walletId) => {
@@ -237,16 +230,13 @@ export const getWalletTransactions = async (walletId) => {
 };
 
 // ============================================
-// NUEVAS FUNCIONES: TRANSFERENCIA POR TRANSFERKEY
+// OBTENER BILLETERA POR CLAVE (transferKey)
+// ✅ URL CORREGIDA: /by-transfer-key
 // ============================================
 
-/**
- * Obtener información de una billetera por su transferKey
- * GET /api/wallets/by-key/{transferKey}
- */
 export const getWalletByKey = async (transferKey) => {
   try {
-    const url = `${BASE_URL}/wallets/by-key/${transferKey}`;
+    const url = `${BASE_URL}/wallets/by-transfer-key?transferKey=${transferKey}`;
     const token = getAuthToken();
     
     const params = {
@@ -258,38 +248,13 @@ export const getWalletByKey = async (transferKey) => {
     };
     
     console.log('🔑 Verificando clave:', transferKey);
+    console.log('📤 URL:', url);
+    
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
     console.error('Error al obtener billetera por clave:', error);
-    return { success: false, message: error.message };
-  }
-};
-
-/**
- * Transferir dinero usando transferKey (clave de la billetera destino)
- * NOTA: Este endpoint debe ser agregado por los del backend
- * POST /api/transactions/transfer-by-key
- */
-export const transferByKey = async (userId, sourceWalletId, transferKey, amount, description = '') => {
-  try {
-    const url = `${BASE_URL}/transactions/transfer-by-key?userId=${userId}&sourceWalletId=${sourceWalletId}&transferKey=${transferKey}&amount=${amount}&description=${encodeURIComponent(description)}`;
-    const token = getAuthToken();
-    
-    const params = {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    console.log('🔑 Transfiriendo por clave:', url);
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('Error al transferir por clave:', error);
     return { success: false, message: error.message };
   }
 };
