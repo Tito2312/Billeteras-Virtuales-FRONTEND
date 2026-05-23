@@ -80,6 +80,8 @@ const AppContent = () => {
         setActiveTab('admin');
       } else if (path === '/admin/transactions') {
         setActiveTab('admin');
+      } else if (path === '/admin/graph') {
+        setActiveTab('admin');
       } else {
         setActiveTab('dashboard');
       }
@@ -190,6 +192,9 @@ const AppContent = () => {
             <AdminDashboard user={user} onLogout={handleLogout} />
           } />
           <Route path="/admin/transactions" element={
+            <AdminDashboard user={user} onLogout={handleLogout} />
+          } />
+          <Route path="/admin/graph" element={
             <AdminDashboard user={user} onLogout={handleLogout} />
           } />
           <Route path="*" element={<Navigate to="/admin" replace />} />

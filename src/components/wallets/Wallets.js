@@ -2,7 +2,7 @@
 // Sin emojis, ahora con transferKey (clave) sin ID visible
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getUserWallets, createWallet, updateWallet } from '../../API/wallets';
+import { getUserWallets, createWallet, updateWallet, deleteWallet } from '../../API/wallets';
 import { getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
 import EditWalletModal from './EditWalletModal';
@@ -97,8 +97,21 @@ const Wallets = ({ user }) => {
     setSelectedWallet(null);
   };
   
-  const handleDeleteWallet = () => {
-    alert(`🗑️ Eliminar billetera "${selectedWallet?.name}"\n\n⚠️ El backend aún no tiene endpoint DELETE.`);
+  const handleDeleteWallet = async () => {
+    if (!selectedWallet) return;
+
+    console.log('Wallet a eliminar:', selectedWallet);
+    console.log('walletId:', selectedWallet.id, '| userId:', userId);
+
+    const result = await deleteWallet(selectedWallet.id, userId);
+
+    if (result.success) {
+      alert(`✅ Billetera "${selectedWallet.name}" eliminada exitosamente`);
+      await loadWallets();
+    } else {
+      alert(`❌ ${result.message || 'No se pudo eliminar la billetera'}`);
+    }
+
     setShowDeleteModal(false);
     setSelectedWallet(null);
   };

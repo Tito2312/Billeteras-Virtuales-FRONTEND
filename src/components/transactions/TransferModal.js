@@ -2,7 +2,7 @@
 // Opción B: La comisión la paga el destinatario (se descuenta de lo que recibe)
 
 import React, { useState } from 'react';
-import { transferToOwnWallet, transferToUser, getWalletByKey } from '../../API/transactions';
+import { transferToUser, getWalletByKey } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Modals.css';
@@ -12,7 +12,7 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
   const userId = currentUser?.id;
   const userLevel = currentUser?.nivel || 'Bronce';
   const benefits = useLevelBenefits(userLevel);
-  
+
   const [formData, setFormData] = useState({
     sourceWalletId: selectedWallet?.id || wallets[0]?.id || '',
     destinationType: 'key',
@@ -21,63 +21,61 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
     amount: '',
     description: ''
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [destinationInfo, setDestinationInfo] = useState(null);
   const [verifying, setVerifying] = useState(false);
-  
+
   if (!isOpen) return null;
-  
+
   const selectedSourceWallet = wallets.find(w => w.id === formData.sourceWalletId);
   const amount = parseFloat(formData.amount) || 0;
   const commissionAmount = benefits.calculateCommission(amount);
-  const receiverAmount = amount - commissionAmount; // Lo que realmente recibe el destino
-  const totalDebit = amount; // Solo se debita el monto, la comisión no la paga el emisor
-  
+  const receiverAmount = amount - commissionAmount;
+  const totalDebit = amount;
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value);
   };
-  
-  // Verificar la transferKey mientras el usuario escribe
-const handleTransferKeyChange = async (key) => {
-  setFormData({...formData, transferKey: key});
-  setDestinationInfo(null);
-  
-  if (key.length > 5) {
-    setVerifying(true);
-    try {
-      const result = await getWalletByKey(key);
-      if (result.success && result.data) {
-        setDestinationInfo({
-          name: result.data.name,
-          exists: true,
-          walletId: result.data.id
-          // ❌ owner eliminado
-        });
-      } else {
-        setDestinationInfo({ 
-          exists: false, 
-          message: result.message || 'Clave no válida o billetera no encontrada' 
-        });
+
+  const handleTransferKeyChange = async (key) => {
+    setFormData({...formData, transferKey: key});
+    setDestinationInfo(null);
+
+    if (key.length > 5) {
+      setVerifying(true);
+      try {
+        const result = await getWalletByKey(key);
+        if (result.success && result.data) {
+          setDestinationInfo({
+            name: result.data.name,
+            exists: true,
+            walletId: result.data.id
+          });
+        } else {
+          setDestinationInfo({
+            exists: false,
+            message: result.message || 'Clave no válida o billetera no encontrada'
+          });
+        }
+      } catch (error) {
+        console.error('Error verificando clave:', error);
+        setDestinationInfo({ exists: false, message: 'Error al verificar la clave' });
       }
-    } catch (error) {
-      console.error('Error verificando clave:', error);
-      setDestinationInfo({ exists: false, message: 'Error al verificar la clave' });
+      setVerifying(false);
     }
-    setVerifying(false);
-  }
-};
-  
+  };
+
   const validate = () => {
     const newErrors = {};
     if (!formData.sourceWalletId) {
       newErrors.sourceWalletId = 'Selecciona billetera origen';
     }
-    
+
     if (formData.destinationType === 'own') {
       if (!formData.targetWalletId) {
         newErrors.targetWalletId = 'Selecciona una billetera destino';
@@ -86,7 +84,7 @@ const handleTransferKeyChange = async (key) => {
         newErrors.targetWalletId = 'No puedes transferir a la misma billetera';
       }
     }
-    
+
     if (formData.destinationType === 'key') {
       if (!formData.transferKey) {
         newErrors.transferKey = 'Ingresa la clave de la billetera destino';
@@ -94,45 +92,50 @@ const handleTransferKeyChange = async (key) => {
         newErrors.transferKey = destinationInfo?.message || 'Clave de billetera no válida';
       }
     }
-    
+
     if (!amount || amount <= 0) {
       newErrors.amount = 'Ingresa un monto válido';
     } else if (amount > selectedSourceWallet?.balance) {
       newErrors.amount = `Monto excede el balance disponible (${formatCurrency(selectedSourceWallet?.balance)})`;
     }
-    
+
     return newErrors;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setLoading(true);
     let result;
-    
+
     try {
+      let transferKey;
+
       if (formData.destinationType === 'own') {
-        result = await transferToOwnWallet(
-          userId,
-          formData.sourceWalletId,
-          formData.targetWalletId,
-          amount
-        );
+        const targetWallet = wallets.find(w => w.id === formData.targetWalletId);
+        if (!targetWallet?.transferKey) {
+          alert('❌ La billetera destino no tiene clave de transferencia configurada');
+          setLoading(false);
+          return;
+        }
+        transferKey = targetWallet.transferKey;
       } else {
-        result = await transferToUser(
-          userId,
-          formData.sourceWalletId,
-          formData.transferKey,
-          amount
-        );
+        transferKey = formData.transferKey;
       }
-      
+
+      result = await transferToUser(
+        userId,
+        formData.sourceWalletId,
+        transferKey,
+        amount
+      );
+
       if (result.success) {
         alert(`✅ Transferencia exitosa: ${formatCurrency(amount)}\n\n💰 Comisión aplicada: ${formatCurrency(commissionAmount)} (${benefits.formatCommissionRate()})\n📦 El destinatario recibe: ${formatCurrency(receiverAmount)}\n💳 Total debitado de tu cuenta: ${formatCurrency(totalDebit)}`);
         if (onSuccess) await onSuccess();
@@ -156,7 +159,7 @@ const handleTransferKeyChange = async (key) => {
       setLoading(false);
     }
   };
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -164,12 +167,12 @@ const handleTransferKeyChange = async (key) => {
           <h2>Transferir Dinero</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Desde billetera *</label>
-            <select 
-              value={formData.sourceWalletId} 
+            <select
+              value={formData.sourceWalletId}
               onChange={(e) => setFormData({...formData, sourceWalletId: e.target.value})}
             >
               <option value="">Selecciona una billetera</option>
@@ -181,11 +184,11 @@ const handleTransferKeyChange = async (key) => {
             </select>
             {errors.sourceWalletId && <span className="error-text">{errors.sourceWalletId}</span>}
           </div>
-          
+
           <div className="form-group">
             <label className="section-label">Tipo de destino</label>
             <div className="destination-cards">
-              <div 
+              <div
                 className={`destination-card ${formData.destinationType === 'key' ? 'selected' : ''}`}
                 onClick={() => setFormData({...formData, destinationType: 'key', targetWalletId: ''})}
               >
@@ -200,8 +203,8 @@ const handleTransferKeyChange = async (key) => {
                   </div>
                 </div>
               </div>
-              
-              <div 
+
+              <div
                 className={`destination-card ${formData.destinationType === 'own' ? 'selected' : ''}`}
                 onClick={() => setFormData({...formData, destinationType: 'own', transferKey: ''})}
               >
@@ -218,7 +221,7 @@ const handleTransferKeyChange = async (key) => {
               </div>
             </div>
           </div>
-          
+
           {formData.destinationType === 'key' && (
             <div className="form-group">
               <label>Clave de la billetera destino *</label>
@@ -233,30 +236,20 @@ const handleTransferKeyChange = async (key) => {
                 {verifying && <span className="verifying-spinner">⏳ Verificando...</span>}
               </div>
               {errors.transferKey && <span className="error-text">{errors.transferKey}</span>}
-              // ANTES (mostraba el propietario)
-{destinationInfo && destinationInfo.exists && (
-  <div className="destination-info success">
-    ✅ Billetera: <strong>{destinationInfo.name}</strong>
-    <br />
-    <small>Propietario: {destinationInfo.owner}</small>
-  </div>
-)}
-
-// DESPUÉS (solo muestra la billetera, sin propietario)
-{destinationInfo && destinationInfo.exists && (
-  <div className="destination-info success">
-    ✅ Billetera: <strong>{destinationInfo.name}</strong>
-  </div>
-)}
+              {destinationInfo && destinationInfo.exists && (
+                <div className="destination-info success">
+                  ✅ Billetera: <strong>{destinationInfo.name}</strong>
+                </div>
+              )}
               <small className="field-hint">La clave aparece en la tarjeta de cada billetera.</small>
             </div>
           )}
-          
+
           {formData.destinationType === 'own' && (
             <div className="form-group">
               <label>Billetera destino *</label>
-              <select 
-                value={formData.targetWalletId} 
+              <select
+                value={formData.targetWalletId}
                 onChange={(e) => setFormData({...formData, targetWalletId: e.target.value})}
               >
                 <option value="">Selecciona una billetera...</option>
@@ -269,7 +262,7 @@ const handleTransferKeyChange = async (key) => {
               {errors.targetWalletId && <span className="error-text">{errors.targetWalletId}</span>}
             </div>
           )}
-          
+
           <div className="form-group">
             <label>Monto a transferir *</label>
             <input
@@ -282,8 +275,7 @@ const handleTransferKeyChange = async (key) => {
             />
             {errors.amount && <span className="error-text">{errors.amount}</span>}
           </div>
-          
-          {/* INFORMACIÓN DE COMISIÓN - Opción B */}
+
           {amount > 0 && selectedSourceWallet && (
             <div className="commission-info-box">
               <div className="commission-row">
@@ -304,7 +296,7 @@ const handleTransferKeyChange = async (key) => {
               </div>
             </div>
           )}
-          
+
           <div className="form-group">
             <label>Concepto (opcional)</label>
             <input
@@ -314,7 +306,7 @@ const handleTransferKeyChange = async (key) => {
               placeholder="Descripción de la transferencia"
             />
           </div>
-          
+
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose} disabled={loading}>
               Cancelar

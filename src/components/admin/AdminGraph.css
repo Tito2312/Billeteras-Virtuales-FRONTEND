@@ -1,0 +1,120 @@
+/* AdminGraph.css - Grafo de transferencias */
+
+.admin-graph-container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.admin-graph-header {
+  margin-bottom: 24px;
+}
+
+.admin-graph-header h1 {
+  font-size: 28px;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.admin-graph-header p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* Stats bar */
+.graph-stats-bar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.graph-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.graph-stat-num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #7c3aed;
+}
+
+.graph-stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.graph-clear-btn {
+  margin-left: auto;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.graph-clear-btn:hover {
+  background: #e5e7eb;
+}
+
+/* SVG wrapper */
+.graph-svg-wrapper {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.graph-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Tooltip */
+.graph-tooltip {
+  position: fixed;
+  background: #1e1b4b;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 260px;
+}
+
+.tooltip-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tooltip-sub {
+  font-size: 12px;
+  color: #c4b5fd;
+  margin-top: 3px;
+}
+
+/* Loading / empty states */
+.graph-loading,
+.graph-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+  font-size: 15px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}

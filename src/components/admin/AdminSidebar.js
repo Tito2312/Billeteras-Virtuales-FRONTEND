@@ -10,7 +10,8 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
     { id: 'audit', label: 'Auditoría', icon: '📋', path: '/admin/audit' },
     { id: 'reports', label: 'Reportes', icon: '📈', path: '/admin/reports' },
     { id: 'wallets', label: 'Billeteras', icon: '💳', path: '/admin/wallets' },
-    { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' }
+    { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' },
+    { id: 'graph', label: 'Grafo', icon: '🕸️', path: '/admin/graph' }
   ];
 
   const handleClick = (item) => {
