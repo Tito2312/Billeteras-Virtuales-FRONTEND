@@ -548,16 +548,22 @@
 }
 
 .modal-danger-buttons .btn-delete {
-  padding: 11px 24px;
+  padding: 12px 28px;
   font-size: 14px;
-  font-weight: 600;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  font-weight: 700;
+  color: #ffffff;
+  background: #dc2626;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  min-width: 160px;
+  white-space: nowrap;
 }
 
 .modal-danger-buttons .btn-delete:hover {
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.45);
+  background: #b91c1c;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(185, 28, 28, 0.5);
   transform: translateY(-2px);
 }
 

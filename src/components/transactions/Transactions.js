@@ -125,6 +125,12 @@ const Transactions = ({ user }) => {
     }
   };
   
+  const getWalletName = (walletId) => {
+    if (!walletId) return '-';
+    const found = wallets.find(w => w.id === walletId);
+    return found ? found.name : null;
+  };
+
   // 🔧 CORREGIDO: Determinar si el usuario es el remitente o receptor
   const isUserSender = (transaction) => {
     return transaction.userId === userId;
@@ -137,14 +143,18 @@ const Transactions = ({ user }) => {
   // 🔧 CORREGIDO: Obtener la descripción según el rol del usuario
   const getTransactionDescription = (transaction) => {
     if (transaction.type === 'RECHARGE') {
-      return 'Recarga a billetera';
+      const dest = getWalletName(transaction.targetWallet) || 'billetera';
+      return `Recarga a ${dest}`;
     } else if (transaction.type === 'WITHDRAWAL') {
-      return 'Retiro de billetera';
+      const src = getWalletName(transaction.sourceWallet) || 'billetera';
+      return `Retiro de ${src}`;
     } else if (transaction.type === 'TRANSFER') {
       if (isUserSender(transaction)) {
-        return `Transferencia enviada a ${transaction.targetWallet?.substring(0, 10)}...`;
+        const dest = getWalletName(transaction.targetWallet) || 'billetera externa';
+        return `Transferencia enviada a ${dest}`;
       } else if (isUserReceiver(transaction)) {
-        return `Transferencia recibida de ${transaction.sourceWallet?.substring(0, 10)}...`;
+        const src = getWalletName(transaction.sourceWallet) || 'billetera externa';
+        return `Transferencia recibida de ${src}`;
       }
     }
     return 'Transacción';
@@ -182,30 +192,26 @@ const Transactions = ({ user }) => {
   // 🔧 CORREGIDO: Obtener el origen (quién envía)
   const getOriginDisplay = (transaction) => {
     if (transaction.type === 'RECHARGE') {
-      return 'Tarjeta/Cuenta externa';
+      return 'Cuenta externa';
     } else if (transaction.type === 'WITHDRAWAL') {
-      return transaction.sourceWallet?.substring(0, 12) + '...' || '-';
+      return getWalletName(transaction.sourceWallet) || 'Mi billetera';
     } else if (transaction.type === 'TRANSFER') {
-      if (isUserSender(transaction)) {
-        return transaction.sourceWallet?.substring(0, 12) + '...' || '-';
-      } else if (isUserReceiver(transaction)) {
-        return transaction.sourceWallet?.substring(0, 12) + '...' || '-';
-      }
+      return getWalletName(transaction.sourceWallet) || 'Billetera externa';
     }
     return '-';
   };
-  
+
   // 🔧 CORREGIDO: Obtener el destino
   const getDestinationDisplay = (transaction) => {
     if (transaction.type === 'RECHARGE') {
-      return transaction.targetWallet?.substring(0, 12) + '...' || '-';
+      return getWalletName(transaction.targetWallet) || 'Mi billetera';
     } else if (transaction.type === 'WITHDRAWAL') {
       return 'Cuenta bancaria';
     } else if (transaction.type === 'TRANSFER') {
       if (isUserSender(transaction)) {
-        return transaction.targetWallet?.substring(0, 12) + '...' || '-';
+        return getWalletName(transaction.targetWallet) || 'Billetera externa';
       } else if (isUserReceiver(transaction)) {
-        return `Mi billetera`;
+        return getWalletName(transaction.targetWallet) || 'Mi billetera';
       }
     }
     return '-';
