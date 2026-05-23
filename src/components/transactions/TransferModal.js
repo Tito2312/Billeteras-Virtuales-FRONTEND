@@ -10,7 +10,7 @@ import './Modals.css';
 const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) => {
   const currentUser = getCurrentUser();
   const userId = currentUser?.id;
-  const userLevel = currentUser?.nivel || 'Bronce';
+  const userLevel = currentUser?.nivel || currentUser?.level || 'Bronce';
   const benefits = useLevelBenefits(userLevel);
 
   const [formData, setFormData] = useState({
