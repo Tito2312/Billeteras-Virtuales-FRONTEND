@@ -298,7 +298,6 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           <div className="stat-info">
             <h3>Balance Total</h3>
             <p className="stat-value">{formatCurrency(totalBalance)}</p>
-            <span className="stat-change positive">+12.5% este mes</span>
           </div>
         </div>
         <div className="stat-card">

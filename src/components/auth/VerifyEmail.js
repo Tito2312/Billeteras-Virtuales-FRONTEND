@@ -66,7 +66,7 @@ const VerifyEmail = () => {
           <p className="verify-info-title">✅ Ya puedes disfrutar de FinWallet</p>
           <ul className="benefits-list-verify">
             <li>💰 Gestiona tus billeteras digitales</li>
-            <li>🔄 Realiza transferencias sin comisiones</li>
+            <li>🔄 Realiza transferencias</li>
             <li>⭐ Acumula puntos y sube de nivel</li>
             <li>🔒 Seguridad avanzada en tus transacciones</li>
           </ul>
