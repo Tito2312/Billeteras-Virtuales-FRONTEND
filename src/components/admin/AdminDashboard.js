@@ -1,5 +1,4 @@
-// AdminDashboard.js - Panel de administración
-
+// AdminDashboard.js - Panel de administración (versión completa)
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
@@ -9,6 +8,7 @@ import AdminReports from './AdminReports';
 import AdminWallets from './AdminWallets';
 import { getAdminStats } from '../../API/admin';
 import AdminTransactions from './AdminTransactions';
+import AdminGraphs from './AdminGraphs';   // ← NUEVO
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -22,6 +22,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (path === '/admin/reports') return 'reports';
     if (path === '/admin/wallets') return 'wallets';
     if (path === '/admin/transactions') return 'transactions';
+    if (path === '/admin/graphs') return 'graphs';   // ← NUEVO
     return 'dashboard';
   };
   
@@ -36,7 +37,6 @@ const AdminDashboard = ({ user, onLogout }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Sincronizar activeTab con la URL cuando cambia
   useEffect(() => {
     setActiveTab(getTabFromPath());
   }, [location.pathname]);
@@ -55,7 +55,6 @@ const AdminDashboard = ({ user, onLogout }) => {
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Navegar a la ruta correspondiente
     if (tab === 'dashboard') {
       window.location.href = '/admin';
     } else if (tab === 'users') {
@@ -68,6 +67,8 @@ const AdminDashboard = ({ user, onLogout }) => {
       window.location.href = '/admin/wallets';
     } else if (tab === 'transactions') {
       window.location.href = '/admin/transactions';
+    } else if (tab === 'graphs') {        // ← NUEVO
+      window.location.href = '/admin/graphs';
     }
   };
 
@@ -82,15 +83,9 @@ const AdminDashboard = ({ user, onLogout }) => {
       case 'wallets':
         return <AdminWallets />;
       case 'transactions':
-        case 'transactions':
-  return <AdminTransactions />;
-        return (
-          <div className="admin-placeholder">
-            <div className="placeholder-icon">🔄</div>
-            <h2>Transacciones</h2>
-            <p>Próximamente: Monitoreo de todas las transacciones</p>
-          </div>
-        );
+        return <AdminTransactions />;
+      case 'graphs':                       // ← NUEVO
+        return <AdminGraphs />;
       default:
         return (
           <div className="admin-dashboard-content">

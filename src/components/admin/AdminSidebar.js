@@ -1,54 +1,59 @@
-// AdminSidebar.js - Menú lateral específico para el panel de administración
-
+// components/admin/AdminSidebar.js
 import React from 'react';
 import './AdminSidebar.css';
 
 const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/admin' },
-    { id: 'users', label: 'Usuarios', icon: '👥', path: '/admin/users' },
-    { id: 'audit', label: 'Auditoría', icon: '📋', path: '/admin/audit' },
-    { id: 'reports', label: 'Reportes', icon: '📈', path: '/admin/reports' },
-    { id: 'wallets', label: 'Billeteras', icon: '💳', path: '/admin/wallets' },
-    { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' }
-  ];
+    { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/admin' },
+    { id: 'users', icon: '👥', label: 'Usuarios', path: '/admin/users' },
+    { id: 'wallets', icon: '💳', label: 'Billeteras', path: '/admin/wallets' },
+    { id: 'transactions', icon: '🔄', label: 'Transacciones', path: '/admin/transactions' },
 
-  const handleClick = (item) => {
-    if (item.id === 'dashboard') {
-      window.location.href = '/admin';
-    } else {
-      window.location.href = item.path;
-    }
-  };
+{ id: 'graphs', icon: '📈', label: 'Grafos Financieros', path: '/admin/graphs' },
+    { id: 'audit', icon: '📋', label: 'Auditoría', path: '/admin/audit' },
+    { id: 'reports', icon: '📄', label: 'Reportes', path: '/admin/reports' },
+  ];
 
   return (
     <div className="admin-sidebar">
-      <div className="admin-sidebar-logo">
-        <span className="logo-icon">🛡️</span>
-        <h2>FinWallet Admin</h2>
+      <div className="admin-sidebar-header">
+        <div className="admin-logo">
+          <span className="logo-icon">🏦</span>
+          <span className="logo-text">FinWallet</span>
+        </div>
+        <div className="admin-role-badge">
+          <span className="role-icon">👑</span>
+          <span className="role-text">Administrador</span>
+        </div>
       </div>
-      
+
       <nav className="admin-sidebar-nav">
-        {menuItems.map(item => (
+        {menuItems.map((item) => (
           <button
             key={item.id}
-            className={`admin-sidebar-item ${activeTab === item.id ? 'active' : ''}`}
-            onClick={() => handleClick(item)}
+            className={`admin-nav-item ${activeTab === item.id ? 'active' : ''}`}
+            onClick={() => onTabChange(item.id)}
           >
-            <span className="admin-sidebar-icon">{item.icon}</span>
-            <span className="admin-sidebar-label">{item.label}</span>
+            <span className="nav-icon">{item.icon}</span>
+            <span className="nav-label">{item.label}</span>
           </button>
         ))}
       </nav>
-      
+
       <div className="admin-sidebar-footer">
         <div className="admin-user-info">
-          <span className="admin-user-name">{userName || 'Admin'}</span>
-          <button className="admin-logout-btn" onClick={onLogout}>
-            🚪 Cerrar Sesión
-          </button>
+          <div className="user-avatar">
+            {userName ? userName.charAt(0).toUpperCase() : 'A'}
+          </div>
+          <div className="user-details">
+            <span className="user-name">{userName || 'Administrador'}</span>
+            <span className="user-role">Admin</span>
+          </div>
         </div>
-        <div className="admin-version">v1.0.0</div>
+        <button className="admin-logout-btn" onClick={onLogout}>
+          <span className="logout-icon">🚪</span>
+          <span className="logout-text">Cerrar Sesión</span>
+        </button>
       </div>
     </div>
   );
