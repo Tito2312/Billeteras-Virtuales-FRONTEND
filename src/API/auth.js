@@ -1,5 +1,5 @@
-// auth.js - Servicio de autenticación
-// Solo login, registro, gestión de sesión y verificación de email
+// API/auth.js - Servicio de autenticación
+// Incluye login, registro, verificación de email, recuperación y cambio de contraseña
 
 const BASE_URL = 'http://localhost:8080/api';
 
@@ -8,45 +8,46 @@ const BASE_URL = 'http://localhost:8080/api';
 // ============================================
 
 const getHeaders = (requiresAuth = false) => {
-  const headers = {
-    'Content-Type': 'application/json',
-  };
-  
+  const headers = { 'Content-Type': 'application/json' };
   if (requiresAuth) {
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+    if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  
   return headers;
 };
 
 const handleResponse = async (response) => {
-  // Primero leer como texto para evitar errores de parsing
   const textResponse = await response.text();
   
-  if (!textResponse || textResponse.trim() === '') {
-    throw {
-      status: response.status,
-      message: 'El servidor no respondió correctamente'
-    };
+  // Si es una respuesta exitosa y no hay contenido (204 No Content)
+  if (response.status === 204) {
+    return { success: true, message: 'Operación exitosa' };
   }
   
+  // Si la respuesta está vacía
+  if (!textResponse || textResponse.trim() === '') {
+    if (response.ok) return { success: true };
+    throw { status: response.status, message: 'El servidor no respondió correctamente' };
+  }
+  
+  // Intentar parsear como JSON
   let data;
   try {
     data = JSON.parse(textResponse);
   } catch (e) {
-    throw {
-      status: response.status,
-      message: `Error en la respuesta del servidor: ${textResponse.substring(0, 100)}`
-    };
+    // No es JSON, es texto plano → asumir que es un mensaje de éxito o error
+    if (response.ok) {
+      // Éxito: devolver el texto como mensaje
+      return { success: true, message: textResponse };
+    } else {
+      throw { status: response.status, message: textResponse };
+    }
   }
   
   if (!response.ok) {
     throw {
       status: response.status,
-      message: data.message || data.error || 'Error en la petición',
+      message: data.message || data.error || 'Error en la petición'
     };
   }
   
@@ -60,7 +61,6 @@ const handleResponse = async (response) => {
 export const register = async (userData) => {
   try {
     const url = `${BASE_URL}/auth/register`;
-    
     const body = {
       name: userData.nombre,
       email: userData.email,
@@ -68,20 +68,13 @@ export const register = async (userData) => {
       phone: userData.telefono || '',
       documentNumber: userData.documento || ''
     };
-    
     console.log('📝 Registrando usuario:', { email: body.email, name: body.name });
-    
-    const params = {
+    const response = await fetch(url, {
       method: 'POST',
       headers: getHeaders(false),
       body: JSON.stringify(body)
-    };
-    
-    const response = await fetch(url, params);
+    });
     const result = await handleResponse(response);
-    
-    console.log('✅ Registro exitoso:', result);
-    
     return { 
       success: true, 
       message: '¡Registro exitoso! Revisa tu correo electrónico para verificar tu cuenta.',
@@ -89,9 +82,7 @@ export const register = async (userData) => {
     };
   } catch (error) {
     console.error('❌ Error en registro:', error);
-    
     let userMessage = 'Error al registrar usuario';
-    
     if (error.message?.includes('correo electronico ya esta en uso') || 
         error.message?.includes('email already in use')) {
       userMessage = 'Este correo electrónico ya está registrado. ¿Deseas iniciar sesión?';
@@ -100,44 +91,26 @@ export const register = async (userData) => {
     } else if (error.message) {
       userMessage = error.message;
     }
-    
-    return { 
-      success: false, 
-      message: userMessage,
-      error: error
-    };
+    return { success: false, message: userMessage, error };
   }
 };
 
 export const login = async (email, password) => {
   try {
     const url = `${BASE_URL}/auth/login`;
-    
-    const body = { email, password };
-    
-    const params = {
+    const response = await fetch(url, {
       method: 'POST',
       headers: getHeaders(false),
-      body: JSON.stringify(body)
-    };
-    
-    const response = await fetch(url, params);
+      body: JSON.stringify({ email, password })
+    });
     const result = await handleResponse(response);
-    
     console.log('🔍 Resultado del login:', result);
-    console.log('🔍 Role recibido del backend:', result.role);
-    
     if (result.token) {
-      // Normalizar el role: el backend puede devolver "ROLE_ADMIN", "ADMIN", "admin", etc.
       let userRole = 'USER';
       if (result.role) {
         const roleUpper = result.role.toUpperCase();
-        // Aceptar "ROLE_ADMIN" o "ADMIN" como administrador
-        if (roleUpper === 'ROLE_ADMIN' || roleUpper === 'ADMIN') {
-          userRole = 'ROLE_ADMIN';
-        }
+        if (roleUpper === 'ROLE_ADMIN' || roleUpper === 'ADMIN') userRole = 'ROLE_ADMIN';
       }
-      
       localStorage.setItem('auth_token', result.token);
       localStorage.setItem('user', JSON.stringify({
         id: result.userId,
@@ -148,18 +121,11 @@ export const login = async (email, password) => {
         role: userRole,
         token: result.token
       }));
-      
       console.log('👤 Usuario guardado con role:', userRole);
     }
-    
-    return { 
-      success: true, 
-      user: getCurrentUser(),
-      token: result.token 
-    };
+    return { success: true, user: getCurrentUser(), token: result.token };
   } catch (error) {
     console.error('Error en login:', error);
-    
     let userMessage = 'Credenciales incorrectas';
     if (error.message?.includes('Account is disabled') || error.message?.includes('cuenta no verificada')) {
       userMessage = 'Cuenta no verificada. Revisa tu correo para activar tu cuenta.';
@@ -168,11 +134,7 @@ export const login = async (email, password) => {
     } else if (error.message) {
       userMessage = error.message;
     }
-    
-    return { 
-      success: false, 
-      message: userMessage 
-    };
+    return { success: false, message: userMessage };
   }
 };
 
@@ -182,41 +144,13 @@ export const logout = () => {
   return { success: true };
 };
 
-export const resetPassword = async (email) => {
-  try {
-    const url = `${BASE_URL}/auth/reset-password`;
-    
-    const params = {
-      method: 'POST',
-      headers: getHeaders(false),
-      body: JSON.stringify({ email })
-    };
-    
-    const response = await fetch(url, params);
-    const result = await handleResponse(response);
-    
-    return { success: true, message: result.message || `Se ha enviado un enlace a ${email}` };
-  } catch (error) {
-    console.warn('Endpoint reset-password no disponible:', error);
-    return { 
-      success: true, 
-      message: `Se ha enviado un enlace de restablecimiento a ${email}` 
-    };
-  }
-};
-
 export const getCurrentUser = () => {
   const user = localStorage.getItem('user');
   return user ? JSON.parse(user) : null;
 };
 
-export const isAuthenticated = () => {
-  return !!localStorage.getItem('auth_token');
-};
-
-export const getToken = () => {
-  return localStorage.getItem('auth_token');
-};
+export const isAuthenticated = () => !!localStorage.getItem('auth_token');
+export const getToken = () => localStorage.getItem('auth_token');
 
 // ============================================
 // VERIFICACIÓN DE EMAIL
@@ -225,47 +159,67 @@ export const getToken = () => {
 export const verifyEmail = async (token) => {
   try {
     const url = `${BASE_URL}/auth/verify-email?token=${token}`;
-    
-    const params = {
-      method: 'GET',
-      headers: getHeaders(false)
-    };
-    
-    const response = await fetch(url, params);
-    
-    const textResponse = await response.text();
-    console.log('Respuesta del backend:', textResponse);
-    
-    if (response.ok) {
-      let result;
-      try {
-        result = JSON.parse(textResponse);
-      } catch (e) {
-        result = { message: textResponse || 'Cuenta verificada exitosamente' };
-      }
-      
-      return { 
-        success: true, 
-        message: result.message || result || '¡Cuenta verificada exitosamente!'
-      };
+    const response = await fetch(url, { method: 'GET', headers: getHeaders(false) });
+    const result = await handleResponse(response);
+    if (result.success) {
+      return { success: true, message: result.message || '¡Cuenta verificada exitosamente!' };
     }
-    
-    let errorMessage = 'Error al verificar la cuenta';
-    try {
-      const errorJson = JSON.parse(textResponse);
-      errorMessage = errorJson.message || errorJson.error || errorMessage;
-    } catch (e) {
-      if (textResponse) errorMessage = textResponse;
-    }
-    
-    throw new Error(errorMessage);
-    
+    return { success: false, message: result.message || 'Error al verificar la cuenta' };
   } catch (error) {
     console.error('Error en verifyEmail:', error);
-    return { 
-      success: false, 
-      message: error.message || 'Error al verificar la cuenta. El enlace puede haber expirado.'
-    };
+    return { success: false, message: error.message || 'El enlace puede haber expirado' };
+  }
+};
+
+// ============================================
+// RECUPERACIÓN Y CAMBIO DE CONTRASEÑA
+// ============================================
+
+export const resetPassword = async (email) => {
+  try {
+    const url = `${BASE_URL}/auth/forgot-password`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const result = await handleResponse(response);
+    return { success: true, message: result.message || `Se ha enviado un enlace a ${email}` };
+  } catch (error) {
+    console.error('Error al solicitar reset:', error);
+    return { success: false, message: error.message || 'Error al procesar la solicitud' };
+  }
+};
+
+export const changePasswordWithToken = async (token, newPassword) => {
+  try {
+    const url = `${BASE_URL}/auth/reset-password`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword })
+    });
+    const result = await handleResponse(response);
+    return { success: true, message: result.message || 'Contraseña actualizada exitosamente' };
+  } catch (error) {
+    console.error('Error al restablecer contraseña:', error);
+    return { success: false, message: error.message };
+  }
+};
+
+export const changePasswordLogged = async (currentPassword, newPassword, confirmPassword) => {
+  try {
+    const url = `${BASE_URL}/auth/change-password`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+    });
+    const result = await handleResponse(response);
+    return { success: true, message: result.message || 'Contraseña cambiada exitosamente' };
+  } catch (error) {
+    console.error('Error al cambiar contraseña:', error);
+    return { success: false, message: error.message };
   }
 };
 
@@ -277,16 +231,10 @@ export const getUserById = async (id) => {
   try {
     const url = `${BASE_URL}/users/${id}`;
     const token = getToken();
-    
-    const params = {
+    const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    });
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
@@ -299,34 +247,21 @@ export const updateUser = async (id, userData) => {
   try {
     const url = `${BASE_URL}/users/${id}`;
     const token = getToken();
-    
-    const params = {
+    const response = await fetch(url, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({
         name: userData.name || userData.nombre,
         email: userData.email,
         phoneNumber: userData.phoneNumber || userData.telefono
       })
-    };
-    
-    const response = await fetch(url, params);
+    });
     const result = await handleResponse(response);
-    
     const currentUser = getCurrentUser();
     if (currentUser && currentUser.id === id) {
-      const updatedUser = {
-        ...currentUser,
-        nombre: result.name,
-        email: result.email,
-        telefono: result.phoneNumber
-      };
+      const updatedUser = { ...currentUser, nombre: result.name, email: result.email, telefono: result.phoneNumber };
       localStorage.setItem('user', JSON.stringify(updatedUser));
     }
-    
     return { success: true, data: result };
   } catch (error) {
     console.error('Error al actualizar usuario:', error);
@@ -342,16 +277,10 @@ export const getUserWallets = async (userId) => {
   try {
     const url = `${BASE_URL}/wallets/user/${userId}`;
     const token = getToken();
-    
-    const params = {
+    const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-    
-    const response = await fetch(url, params);
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+    });
     const result = await handleResponse(response);
     return { success: true, data: result };
   } catch (error) {
@@ -364,13 +293,8 @@ export const getUserWallets = async (userId) => {
 // ADMIN
 // ============================================
 
-/**
- * Verificar si el usuario actual es administrador
- * El backend usa "ROLE_ADMIN" como valor del enum
- */
 export const isAdmin = () => {
   const user = getCurrentUser();
   const role = user?.role;
-  // Aceptar "ROLE_ADMIN" o "ADMIN" como administrador
   return role === 'ROLE_ADMIN' || role === 'ADMIN';
 };

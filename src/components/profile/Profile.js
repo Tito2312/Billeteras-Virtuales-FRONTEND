@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getCurrentUser } from '../../API/auth';
-import { getUserById, updateUser } from '../../API/auth';
+import { getUserById, updateUser, changePasswordLogged } from '../../API/auth';
 import { useLevelBenefits } from '../../hooks/useLevelBenefits';
 import './Profile.css';
 
@@ -26,6 +26,13 @@ const Profile = ({ user, onUpdateUser }) => {
   
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
+  
+  // Estados para el cambio de contraseña
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState({ text: '', type: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
   
   // Función para convertir nivel de inglés a español para mostrar
   const translateLevel = (level) => {
@@ -59,7 +66,6 @@ const Profile = ({ user, onUpdateUser }) => {
   
   const loadUserData = async (userId) => {
     setIsLoading(true);
-
     const result = await getUserById(userId);
     
     if (result.success && result.data) {
@@ -111,6 +117,11 @@ const Profile = ({ user, onUpdateUser }) => {
     } else {
       setIsLoading(false);
     }
+    // Limpiar estados de contraseña al montar
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordMessage({ text: '', type: '' });
   }, [user?.id]);
   
   const validateForm = () => {
@@ -173,6 +184,40 @@ const Profile = ({ user, onUpdateUser }) => {
       case 'Oro': return '#ffd700';
       case 'Plata': return '#c0c0c0';
       default: return '#cd7f32';
+    }
+  };
+  
+  // ========== CAMBIO DE CONTRASEÑA ==========
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordMessage({ text: '❌ Todos los campos son obligatorios', type: 'error' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordMessage({ text: '❌ La nueva contraseña debe tener al menos 6 caracteres', type: 'error' });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({ text: '❌ Las contraseñas nuevas no coinciden', type: 'error' });
+      return;
+    }
+    
+    setChangingPassword(true);
+    try {
+      const result = await changePasswordLogged(currentPassword, newPassword, confirmPassword);
+      if (result.success) {
+        setPasswordMessage({ text: '✅ Contraseña cambiada exitosamente', type: 'success' });
+        // Limpiar campos
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setPasswordMessage({ text: `❌ ${result.message}`, type: 'error' });
+      }
+    } catch (err) {
+      setPasswordMessage({ text: '❌ Error al cambiar la contraseña', type: 'error' });
+    } finally {
+      setChangingPassword(false);
     }
   };
   
@@ -337,6 +382,54 @@ const Profile = ({ user, onUpdateUser }) => {
                 </button>
               </div>
             )}
+          </div>
+          
+          {/* ========== SECCIÓN CAMBIAR CONTRASEÑA ========== */}
+          <div className="profile-change-password-section">
+            <h3>🔒 Cambiar Contraseña</h3>
+            <div className="change-password-form">
+              <div className="form-group">
+                <label>Contraseña actual</label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="••••••"
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Nueva contraseña</label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Confirmar nueva contraseña</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repite la nueva"
+                  />
+                </div>
+              </div>
+              <button
+                className="btn-change-password"
+                onClick={handleChangePassword}
+                disabled={changingPassword}
+              >
+                {changingPassword ? 'Actualizando...' : 'Actualizar contraseña'}
+              </button>
+              {passwordMessage.text && (
+                <div className={`password-message ${passwordMessage.type}`}>
+                  {passwordMessage.text}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
