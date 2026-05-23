@@ -42,7 +42,11 @@ const AdminGraph = () => {
             involvedIds.add(t.receiverUserId);
         });
 
-        const involvedUsers = usersData.filter(u => involvedIds.has(u.id));
+        const involvedUsers = [
+            ...new Map(
+                usersData.filter(u => involvedIds.has(u.id)).map(u => [u.id, u])
+            ).values()
+        ];
 
         // Agrupar edges: sumar montos entre mismos pares
         const edgeMap = {};
@@ -73,6 +77,16 @@ const AdminGraph = () => {
             };
         });
         return positions;
+    };
+
+    const NODE_COLORS = [
+        '#7c3aed', '#059669', '#dc2626', '#d97706', '#2563eb',
+        '#db2777', '#0891b2', '#65a30d', '#9333ea', '#ea580c',
+    ];
+
+    const getUserColor = (userId) => {
+        const idx = users.findIndex(u => u.id === userId);
+        return NODE_COLORS[idx % NODE_COLORS.length];
     };
 
     const formatCurrency = (v) =>
@@ -168,9 +182,12 @@ const AdminGraph = () => {
             <div className="graph-svg-wrapper">
                 <svg ref={svgRef} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="graph-svg">
                     <defs>
-                        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-                            <path d="M0,0 L0,6 L8,3 z" fill="#7c3aed" />
-                        </marker>
+                        {users.map((u) => (
+                            <marker key={u.id} id={`arrow-${u.id}`}
+                                markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                                <path d="M0,0 L0,6 L8,3 z" fill={getUserColor(u.id)} />
+                            </marker>
+                        ))}
                         <marker id="arrow-dim" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
                             <path d="M0,0 L0,6 L8,3 z" fill="#d1d5db" />
                         </marker>
@@ -190,35 +207,47 @@ const AdminGraph = () => {
 
                         return (
                             <g key={i}>
-                                <path
-                                    d={edgeData.path}
-                                    fill="none"
-                                    stroke={highlighted ? '#7c3aed' : '#e5e7eb'}
-                                    strokeWidth={highlighted ? Math.min(1 + edge.count, 5) : 1}
-                                    markerEnd={highlighted ? 'url(#arrow)' : 'url(#arrow-dim)'}
-                                    opacity={highlighted ? 0.85 : 0.3}
-                                    style={{ cursor: 'pointer' }}
-                                    onMouseEnter={(e) => setTooltip({
-                                        x: e.clientX, y: e.clientY,
-                                        text: `${positions[edge.from]?.name} → ${positions[edge.to]?.name}`,
-                                        sub: `${edge.count} transferencia(s) · ${formatCurrency(edge.total)}`
-                                    })}
-                                    onMouseLeave={() => setTooltip(null)}
-                                />
-                                {highlighted && (
-                                    <g>
-                                        <rect
-                                            x={edgeData.labelX - 30} y={edgeData.labelY - 8}
-                                            width={60} height={16}
-                                            rx={4} fill="white" opacity={0.85}
-                                        />
-                                        <text x={edgeData.labelX} y={edgeData.labelY + 1}
-                                            textAnchor="middle" dominantBaseline="middle"
-                                            fontSize="10" fill="#7c3aed" fontWeight="700">
-                                            {formatCurrency(edge.total)}
-                                        </text>
-                                    </g>
-                                )}
+                                {(() => {
+                                    const color = getUserColor(edge.from);
+                                    return (
+                                        <>
+                                            <path
+                                                d={edgeData.path}
+                                                fill="none"
+                                                stroke={highlighted ? color : '#e5e7eb'}
+                                                strokeWidth={highlighted ? Math.min(1.5 + edge.count, 5) : 1}
+                                                markerEnd={highlighted ? `url(#arrow-${edge.from})` : 'url(#arrow-dim)'}
+                                                opacity={highlighted ? 0.9 : 0.25}
+                                                style={{ cursor: 'pointer' }}
+                                                onMouseEnter={(e) => setTooltip({
+                                                    x: e.clientX, y: e.clientY,
+                                                    text: `${positions[edge.from]?.name} → ${positions[edge.to]?.name}`,
+                                                    sub: `${edge.count} transferencia(s) · ${formatCurrency(edge.total)}`
+                                                })}
+                                                onMouseLeave={() => setTooltip(null)}
+                                            />
+                                            {highlighted && (
+                                                <g>
+                                                    <rect
+                                                        x={edgeData.labelX - 32} y={edgeData.labelY - 9}
+                                                        width={64} height={18}
+                                                        rx={5} fill={color} opacity={0.15}
+                                                    />
+                                                    <rect
+                                                        x={edgeData.labelX - 32} y={edgeData.labelY - 9}
+                                                        width={64} height={18}
+                                                        rx={5} fill="white" opacity={0.75}
+                                                    />
+                                                    <text x={edgeData.labelX} y={edgeData.labelY + 1}
+                                                        textAnchor="middle" dominantBaseline="middle"
+                                                        fontSize="10" fill={color} fontWeight="800">
+                                                        {formatCurrency(edge.total)}
+                                                    </text>
+                                                </g>
+                                            )}
+                                        </>
+                                    );
+                                })()}
                             </g>
                         );
                     })}
@@ -230,6 +259,8 @@ const AdminGraph = () => {
                         const isSelected = selectedNode === u.id;
                         const connectedEdges = edges.filter(e => e.from === u.id || e.to === u.id);
                         const totalInvolved = connectedEdges.reduce((s, e) => s + e.total, 0);
+                        const color = getUserColor(u.id);
+                        const dim = !selectedNode || isSelected;
 
                         return (
                             <g key={u.id} style={{ cursor: 'pointer' }}
@@ -241,23 +272,21 @@ const AdminGraph = () => {
                                 })}
                                 onMouseLeave={() => setTooltip(null)}
                             >
-                                <circle
-                                    cx={pos.x} cy={pos.y} r={NODE_R + 3}
-                                    fill={isSelected ? '#5b21b6' : '#7c3aed'}
-                                    opacity={!selectedNode || isSelected ? 1 : 0.4}
-                                />
-                                <circle
-                                    cx={pos.x} cy={pos.y} r={NODE_R}
-                                    fill={isSelected ? '#4c1d95' : '#8b5cf6'}
-                                    opacity={!selectedNode || isSelected ? 1 : 0.4}
-                                />
+                                <circle cx={pos.x} cy={pos.y} r={NODE_R + 6}
+                                    fill={color} opacity={isSelected ? 0.35 : (dim ? 0.15 : 0.08)} />
+                                <circle cx={pos.x} cy={pos.y} r={NODE_R + 2}
+                                    fill="none" stroke={color}
+                                    strokeWidth={isSelected ? 3 : 1.5}
+                                    opacity={dim ? 1 : 0.3} />
+                                <circle cx={pos.x} cy={pos.y} r={NODE_R}
+                                    fill={color} opacity={dim ? 1 : 0.3} />
                                 <text x={pos.x} y={pos.y + 1} textAnchor="middle"
                                     dominantBaseline="middle" fontSize="12"
-                                    fontWeight="bold" fill="white">
+                                    fontWeight="bold" fill="white" opacity={dim ? 1 : 0.4}>
                                     {pos.initials}
                                 </text>
-                                <text x={pos.x} y={pos.y + NODE_R + 14} textAnchor="middle"
-                                    fontSize="11" fill="#374151" fontWeight="500">
+                                <text x={pos.x} y={pos.y + NODE_R + 15} textAnchor="middle"
+                                    fontSize="11" fill={color} fontWeight="700" opacity={dim ? 1 : 0.4}>
                                     {u.name?.split(' ')[0]}
                                 </text>
                             </g>

@@ -12,7 +12,8 @@ const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
     { id: 'wallets', label: 'Billeteras', icon: '💳', path: '/admin/wallets' },
     { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' },
     { id: 'graph', label: 'Grafo', icon: '🕸️', path: '/admin/graph' },
-    { id: 'tree', label: 'Ranking', icon: '🏆', path: '/admin/tree' }
+    { id: 'tree', label: 'Ranking', icon: '🏆', path: '/admin/tree' },
+    { id: 'benefits', label: 'Beneficios', icon: '🎁', path: '/admin/benefits' }
   ];
 
   return (

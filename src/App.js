@@ -180,6 +180,7 @@ const AppContent = () => {
           <Route path="/admin/graphs" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
           <Route path="/admin/graph" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
           <Route path="/admin/tree" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/benefits" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
         <AssistantBot />

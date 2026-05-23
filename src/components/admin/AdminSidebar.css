@@ -17,6 +17,11 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.admin-sidebar-logo h2 {
+    color: #c4b5fd;
+    font-weight: 700;
+}
+
 .admin-logo {
     display: flex;
     align-items: center;
