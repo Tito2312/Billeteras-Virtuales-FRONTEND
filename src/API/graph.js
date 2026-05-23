@@ -36,10 +36,10 @@ export const hasCycles = async () => {
             headers: getHeaders()
         });
         const result = await handleResponse(response);
-        return { success: true, hasCycle: result };
+        return { success: true, data: result };
     } catch (error) {
         console.error('Error al detectar ciclos:', error);
-        return { success: false, hasCycle: false, message: error.message };
+        return { success: false, data: false, message: error.message };
     }
 };
 
@@ -80,10 +80,10 @@ export const getTransfersFromUser = async (userId) => {
             headers: getHeaders()
         });
         const result = await handleResponse(response);
-        return { success: true, transfers: result };
+        return { success: true, data: result };
     } catch (error) {
         console.error('Error al obtener transferencias:', error);
-        return { success: false, transfers: [], message: error.message };
+        return { success: false, data: [], message: error.message };
     }
 };
 
@@ -95,10 +95,10 @@ export const findPath = async (sourceUserId, targetUserId) => {
             headers: getHeaders()
         });
         const result = await handleResponse(response);
-        return { success: true, path: result };
+        return { success: true, data: result };
     } catch (error) {
         console.error('Error al encontrar ruta:', error);
-        return { success: false, path: [], message: error.message };
+        return { success: false, data: [], message: error.message };
     }
 };
 

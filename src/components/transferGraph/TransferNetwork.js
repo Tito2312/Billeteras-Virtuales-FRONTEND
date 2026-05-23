@@ -52,18 +52,30 @@ const TransferNetwork = ({ user }) => {
     const loadAll = async () => {
         setLoading(true);
 
-        const [edgesRes, cycleRes, txRes] = await Promise.all([
-            getTransfersFrom(userId),
+        const [cycleRes, txRes] = await Promise.all([
             hasCycle(),
             getUserTransactions(userId),
         ]);
 
-        const out = edgesRes.success ? edgesRes.data : [];
         if (cycleRes.success) setCycleExists(cycleRes.data);
 
-        // Identificar aristas entrantes desde historial de transacciones
         const txList = txRes.success ? (Array.isArray(txRes.data) ? txRes.data : txRes.data?.content || []) : [];
-        const incomingTx = txList.filter(t => t.type === 'TRANSFER' && t.receiverUserId === userId && t.userId !== userId);
+
+        // Aristas salientes: transferencias que YO envié
+        const outgoingTx = txList.filter(t =>
+            t.type === 'TRANSFER' && t.userId === userId && t.receiverUserId && t.userId !== t.receiverUserId
+        );
+        const out = outgoingTx.map(t => ({
+            sourceUserId: userId,
+            targetUserId: t.receiverUserId,
+            amount: t.originalAmount || t.amount,
+            transactionId: t.id,
+        }));
+
+        // Aristas entrantes: transferencias que RECIBÍ de otros
+        const incomingTx = txList.filter(t =>
+            t.type === 'TRANSFER' && t.receiverUserId === userId && t.userId !== userId
+        );
         const inc = incomingTx.map(t => ({
             sourceUserId: t.userId,
             targetUserId: userId,

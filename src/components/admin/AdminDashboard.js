@@ -8,9 +8,10 @@ import AdminReports from './AdminReports';
 import AdminWallets from './AdminWallets';
 import { getAdminStats } from '../../API/admin';
 import AdminTransactions from './AdminTransactions';
-import AdminGraphs from './AdminGraphs';      // Para /admin/graphs
-import AdminGraph from './AdminGraph';        // Para /admin/graph
-import AdminUserTree from './AdminUserTree';  // Para /admin/tree
+import AdminGraphs from './AdminGraphs';
+import AdminGraph from './AdminGraph';
+import AdminUserTree from './AdminUserTree';
+import AdminBenefits from './AdminBenefits';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -27,6 +28,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (path === '/admin/graphs') return 'graphs';
     if (path === '/admin/graph') return 'graph';
     if (path === '/admin/tree') return 'tree';
+    if (path === '/admin/benefits') return 'benefits';
     return 'dashboard';
   };
   
@@ -77,6 +79,8 @@ const AdminDashboard = ({ user, onLogout }) => {
       window.location.href = '/admin/graph';
     } else if (tab === 'tree') {
       window.location.href = '/admin/tree';
+    } else if (tab === 'benefits') {
+      window.location.href = '/admin/benefits';
     }
   };
 
@@ -98,6 +102,8 @@ const AdminDashboard = ({ user, onLogout }) => {
         return <AdminGraph />;
       case 'tree':
         return <AdminUserTree />;
+      case 'benefits':
+        return <AdminBenefits />;
       default:
         return (
           <div className="admin-dashboard-content">
