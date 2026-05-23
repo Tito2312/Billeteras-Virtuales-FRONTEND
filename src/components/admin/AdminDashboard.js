@@ -1,4 +1,4 @@
-// AdminDashboard.js - Panel de administración (versión completa)
+// AdminDashboard.js - Panel de administración (versión completa sin conflictos)
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
@@ -8,7 +8,9 @@ import AdminReports from './AdminReports';
 import AdminWallets from './AdminWallets';
 import { getAdminStats } from '../../API/admin';
 import AdminTransactions from './AdminTransactions';
-import AdminGraphs from './AdminGraphs';   // ← NUEVO
+import AdminGraphs from './AdminGraphs';      // Para /admin/graphs
+import AdminGraph from './AdminGraph';        // Para /admin/graph
+import AdminUserTree from './AdminUserTree';  // Para /admin/tree
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -22,7 +24,9 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (path === '/admin/reports') return 'reports';
     if (path === '/admin/wallets') return 'wallets';
     if (path === '/admin/transactions') return 'transactions';
-    if (path === '/admin/graphs') return 'graphs';   // ← NUEVO
+    if (path === '/admin/graphs') return 'graphs';
+    if (path === '/admin/graph') return 'graph';
+    if (path === '/admin/tree') return 'tree';
     return 'dashboard';
   };
   
@@ -67,8 +71,12 @@ const AdminDashboard = ({ user, onLogout }) => {
       window.location.href = '/admin/wallets';
     } else if (tab === 'transactions') {
       window.location.href = '/admin/transactions';
-    } else if (tab === 'graphs') {        // ← NUEVO
+    } else if (tab === 'graphs') {
       window.location.href = '/admin/graphs';
+    } else if (tab === 'graph') {
+      window.location.href = '/admin/graph';
+    } else if (tab === 'tree') {
+      window.location.href = '/admin/tree';
     }
   };
 
@@ -84,8 +92,12 @@ const AdminDashboard = ({ user, onLogout }) => {
         return <AdminWallets />;
       case 'transactions':
         return <AdminTransactions />;
-      case 'graphs':                       // ← NUEVO
+      case 'graphs':
         return <AdminGraphs />;
+      case 'graph':
+        return <AdminGraph />;
+      case 'tree':
+        return <AdminUserTree />;
       default:
         return (
           <div className="admin-dashboard-content">

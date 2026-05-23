@@ -1,77 +1,31 @@
 // API/assistant.js
-const OLLAMA_URL = 'http://localhost:11434';
+const BASE_URL = 'http://localhost:8080';
 
-// Contexto financiero para el asistente
-const getSystemPrompt = () => {
-    return `Eres un asistente financiero experto de FinWallet. Responde SIEMPRE en español, de manera clara y amigable. 
-Tu especialidad son billeteras digitales, transacciones, recargas, transferencias, retiros, programación de operaciones, puntos de recompensa y niveles de usuario (Bronce, Plata, Oro, Platino).
+const getAuthToken = () => localStorage.getItem('auth_token');
 
-Reglas importantes:
-1. SIEMPRE responde en español
-2. Sé conciso pero útil
-3. Si no sabes algo, di "No tengo información sobre eso"
-4. Ofrece ayuda relacionada con finanzas y billeteras digitales
-
-Pregunta del usuario: `;
-};
-
-export const sendMessageToAssistant = async (prompt, model = 'tinyllama') => {
+export const sendMessageToAssistant = async (prompt) => {
     try {
-        // Prompt con instrucciones en español
-        const fullPrompt = getSystemPrompt() + prompt;
-        
-        const response = await fetch(`${OLLAMA_URL}/api/generate`, {
+        const token = getAuthToken();
+        const response = await fetch(`${BASE_URL}/chatGpt`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                model: model,
-                prompt: fullPrompt,
-                stream: false,
-                options: {
-                    temperature: 0.5,  // Más bajo = más consistente
-                    num_predict: 300,   // Respuestas más cortas
-                    top_k: 40,
-                    top_p: 0.9
-                }
-            })
+            body: JSON.stringify(prompt)
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Error del servidor: ${response.status}`);
         }
 
-        const data = await response.json();
-        
-        let responseText = data.response || 'Lo siento, no pude procesar tu solicitud.';
-        
-        // Limpiar respuesta
-        responseText = responseText.replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
-        
-        return { 
-            success: true, 
-            message: responseText
-        };
+        const text = await response.text();
+        return { success: true, message: text };
     } catch (error) {
-        console.error('Error al conectar con Ollama:', error);
-        return { 
-            success: false, 
-            message: '❌ Error de conexión. Asegúrate que Ollama esté ejecutándose (ollama serve)'
+        console.error('Error al conectar con el asistente:', error);
+        return {
+            success: false,
+            message: '❌ Error de conexión con el servidor. Asegúrate que el backend esté ejecutándose.'
         };
-    }
-};
-
-export const getAvailableModels = async () => {
-    try {
-        const response = await fetch(`${OLLAMA_URL}/api/tags`);
-        if (!response.ok) return ['tinyllama', 'mistral', 'phi'];
-        const data = await response.json();
-        if (data.models && data.models.length > 0) {
-            return data.models.map(m => m.name);
-        }
-        return ['tinyllama', 'mistral', 'phi'];
-    } catch (error) {
-        return ['tinyllama', 'mistral', 'phi'];
     }
 };

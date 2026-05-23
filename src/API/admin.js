@@ -376,3 +376,46 @@ export const deactivateWallet = async (walletId, userId) => {
     return { success: false, message: error.message };
   }
 };
+// ============================================
+// ÁRBOL BINARIO DE USUARIOS
+// ============================================
+
+export const getOrderedUsers = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/tree/users/ordered`, { headers: getHeaders() });
+    const result = await handleResponse(response);
+    return { success: true, data: Array.isArray(result) ? result : [] };
+  } catch (error) {
+    return { success: false, data: [], message: error.message };
+  }
+};
+
+export const getUsersByRange = async (min, max) => {
+  try {
+    const response = await fetch(`${BASE_URL}/tree/users/range?min=${min}&max=${max}`, { headers: getHeaders() });
+    const result = await handleResponse(response);
+    return { success: true, data: Array.isArray(result) ? result : [] };
+  } catch (error) {
+    return { success: false, data: [], message: error.message };
+  }
+};
+
+export const getTopUser = async () => {
+  try {
+    const response = await fetch(`${BASE_URL}/tree/users/top`, { headers: getHeaders() });
+    const result = await handleResponse(response);
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, data: null, message: error.message };
+  }
+};
+
+export const getUsersByLevel = async (level) => {
+  try {
+    const response = await fetch(`${BASE_URL}/tree/users/level/${level}`, { headers: getHeaders() });
+    const result = await handleResponse(response);
+    return { success: true, data: Array.isArray(result) ? result : [] };
+  } catch (error) {
+    return { success: false, data: [], message: error.message };
+  }
+};

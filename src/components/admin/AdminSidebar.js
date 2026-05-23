@@ -1,30 +1,26 @@
 // components/admin/AdminSidebar.js
 import React from 'react';
+import logo from '../../assets/LogoWalletTech.png';
 import './AdminSidebar.css';
 
 const AdminSidebar = ({ activeTab, onTabChange, onLogout, userName }) => {
   const menuItems = [
-    { id: 'dashboard', icon: '📊', label: 'Dashboard', path: '/admin' },
-    { id: 'users', icon: '👥', label: 'Usuarios', path: '/admin/users' },
-    { id: 'wallets', icon: '💳', label: 'Billeteras', path: '/admin/wallets' },
-    { id: 'transactions', icon: '🔄', label: 'Transacciones', path: '/admin/transactions' },
-
-{ id: 'graphs', icon: '📈', label: 'Grafos Financieros', path: '/admin/graphs' },
-    { id: 'audit', icon: '📋', label: 'Auditoría', path: '/admin/audit' },
-    { id: 'reports', icon: '📄', label: 'Reportes', path: '/admin/reports' },
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/admin' },
+    { id: 'users', label: 'Usuarios', icon: '👥', path: '/admin/users' },
+    { id: 'audit', label: 'Auditoría', icon: '📋', path: '/admin/audit' },
+    { id: 'reports', label: 'Reportes', icon: '📈', path: '/admin/reports' },
+    { id: 'wallets', label: 'Billeteras', icon: '💳', path: '/admin/wallets' },
+    { id: 'transactions', label: 'Transacciones', icon: '🔄', path: '/admin/transactions' },
+    { id: 'graph', label: 'Grafo', icon: '🕸️', path: '/admin/graph' },
+    { id: 'tree', label: 'Ranking', icon: '🏆', path: '/admin/tree' },
+    { id: 'graphs', label: 'Grafos Financieros', icon: '📈', path: '/admin/graphs' }
   ];
 
   return (
     <div className="admin-sidebar">
-      <div className="admin-sidebar-header">
-        <div className="admin-logo">
-          <span className="logo-icon">🏦</span>
-          <span className="logo-text">FinWallet</span>
-        </div>
-        <div className="admin-role-badge">
-          <span className="role-icon">👑</span>
-          <span className="role-text">Administrador</span>
-        </div>
+      <div className="admin-sidebar-logo">
+        <img src={logo} alt="FinWallet" style={{ width: '100px', height: '100px', objectFit: 'contain', marginRight: '-20px' }} />
+        <h2>FinWallet Admin</h2>
       </div>
 
       <nav className="admin-sidebar-nav">

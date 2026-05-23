@@ -59,7 +59,7 @@ const Profile = ({ user, onUpdateUser }) => {
   
   const loadUserData = async (userId) => {
     setIsLoading(true);
-    
+
     const result = await getUserById(userId);
     
     if (result.success && result.data) {
@@ -219,7 +219,9 @@ const Profile = ({ user, onUpdateUser }) => {
               </div>
               <div className="benefit-item-profile">
                 <span className="benefit-label">Límite diario:</span>
-                <span className="benefit-value">{benefits.formatLimit()}</span>
+                <span className="benefit-value">
+                  {benefits.dailyTransferCount === Infinity ? 'Ilimitado' : `${benefits.dailyTransferCount} transferencias`}
+                </span>
               </div>
               <div className="benefit-item-profile">
                 <span className="benefit-label">Bono de puntos:</span>

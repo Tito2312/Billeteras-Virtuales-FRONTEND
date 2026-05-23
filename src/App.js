@@ -17,6 +17,7 @@ import Notifications from './components/notifications/Notifications';
 import Analytics from './components/analytics/Analytics';
 import VerifyEmail from './components/auth/VerifyEmail';
 import AdminDashboard from './components/admin/AdminDashboard';
+import TransferNetwork from './components/transferGraph/TransferNetwork';
 import AssistantBot from './components/assistant/AssistantBot';
 import './App.css';
 
@@ -68,19 +69,9 @@ const AppContent = () => {
         setActiveTab('notifications');
       } else if (path === '/analytics') {
         setActiveTab('analytics');
-      } else if (path === '/admin') {
-        setActiveTab('admin');
-      } else if (path === '/admin/users') {
-        setActiveTab('admin');
-      } else if (path === '/admin/audit') {
-        setActiveTab('admin');
-      } else if (path === '/admin/reports') {
-        setActiveTab('admin');
-      } else if (path === '/admin/wallets') {
-        setActiveTab('admin');
-      } else if (path === '/admin/transactions') {
-        setActiveTab('admin');
-      } else if (path === '/admin/graphs') {
+      } else if (path === '/network') {
+        setActiveTab('network');
+      } else if (path === '/admin' || path.startsWith('/admin/')) {
         setActiveTab('admin');
       } else {
         setActiveTab('dashboard');
@@ -128,6 +119,8 @@ const AppContent = () => {
       navigate('/notifications');
     } else if (tab === 'analytics') {
       navigate('/analytics');
+    } else if (tab === 'network') {
+      navigate('/network');
     } else if (tab === 'admin') {
       navigate('/admin');
     }
@@ -176,27 +169,15 @@ const AppContent = () => {
     return (
       <>
         <Routes>
-          <Route path="/admin" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/users" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/audit" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/reports" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/wallets" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/transactions" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
-          <Route path="/admin/graphs" element={
-            <AdminDashboard user={user} onLogout={handleLogout} />
-          } />
+          <Route path="/admin" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/users" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/audit" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/reports" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/wallets" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/transactions" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/graphs" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/graph" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
+          <Route path="/admin/tree" element={<AdminDashboard user={user} onLogout={handleLogout} />} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
         <AssistantBot />
@@ -277,6 +258,14 @@ const AppContent = () => {
             <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
             <div className="app-main-content">
               <Analytics user={user} />
+            </div>
+          </div>
+        } />
+        <Route path="/network" element={
+          <div className="app-layout">
+            <Sidebar activeTab={activeTab} onTabChange={handleTabChange} />
+            <div className="app-main-content">
+              <TransferNetwork user={user} />
             </div>
           </div>
         } />

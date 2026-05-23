@@ -1,5 +1,6 @@
 import React from 'react';
 import { isAdmin } from '../../../API/auth';
+import logo from '../../../assets/LogoWalletTech.png';
 import './Sidebar.css';
 
 const Sidebar = ({ activeTab, onTabChange }) => {
@@ -10,6 +11,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     { id: 'scheduled', label: 'Operaciones Programadas', icon: '⏰' },
     { id: 'rewards', label: 'Recompensas', icon: '🎁' },
     { id: 'analytics', label: 'Analítica', icon: '📈' },
+    { id: 'network', label: 'Mi Red', icon: '🕸️' },
     { id: 'notifications', label: 'Notificaciones', icon: '🔔' }
   ];
   
@@ -21,7 +23,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        <span className="logo-icon">💜</span>
+        <img src={logo} alt="FinWallet" className="logo-icon" style={{ width: '100px', height: '100px', objectFit: 'contain', marginRight: '-20px' }} />
         <h2>FinWallet</h2>
       </div>
       <nav className="sidebar-nav">

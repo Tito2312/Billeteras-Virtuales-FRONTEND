@@ -455,4 +455,41 @@
   font-weight: 600;
   color: #7c3aed;
 }
+
+/* Límite diario con barra de progreso */
+.benefit-item-limit {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.limit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.limit-unit {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+.limit-bar-track {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.limit-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease, background 0.3s;
+}
+
+.limit-sub {
+  font-size: 11px;
+  color: #9ca3af;
+}
 }
