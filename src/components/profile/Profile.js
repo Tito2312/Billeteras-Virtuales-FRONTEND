@@ -55,7 +55,10 @@ const Profile = ({ user, onUpdateUser }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'No disponible';
     try {
-      const date = new Date(dateString);
+      // Date-only strings (YYYY-MM-DD) are parsed as UTC by JS → shift day in COT
+      // Appending T12:00:00 makes it local noon so the day stays correct
+      const normalized = dateString.includes('T') ? dateString : dateString + 'T12:00:00';
+      const date = new Date(normalized);
       return date.toLocaleDateString('es-ES', {
         year: 'numeric', month: 'long', day: 'numeric'
       });

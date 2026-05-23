@@ -187,38 +187,21 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
 
           <div className="form-group">
             <label className="section-label">Tipo de destino</label>
-            <div className="destination-cards">
-              <div
-                className={`destination-card ${formData.destinationType === 'key' ? 'selected' : ''}`}
+            <div className="destination-tabs">
+              <button
+                type="button"
+                className={`destination-tab ${formData.destinationType === 'key' ? 'active' : ''}`}
                 onClick={() => setFormData({...formData, destinationType: 'key', targetWalletId: ''})}
               >
-                <div className="destination-icon">🔑</div>
-                <div className="destination-info">
-                  <h4>Por clave de billetera</h4>
-                  <p>Transferir usando la clave única de la billetera destino</p>
-                </div>
-                <div className="destination-radio">
-                  <div className={`custom-radio ${formData.destinationType === 'key' ? 'checked' : ''}`}>
-                    {formData.destinationType === 'key' && <span>✓</span>}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className={`destination-card ${formData.destinationType === 'own' ? 'selected' : ''}`}
+                🔑 Por clave de billetera
+              </button>
+              <button
+                type="button"
+                className={`destination-tab ${formData.destinationType === 'own' ? 'active' : ''}`}
                 onClick={() => setFormData({...formData, destinationType: 'own', transferKey: ''})}
               >
-                <div className="destination-icon">💳</div>
-                <div className="destination-info">
-                  <h4>Mis billeteras</h4>
-                  <p>Transferencia entre tus propias billeteras</p>
-                </div>
-                <div className="destination-radio">
-                  <div className={`custom-radio ${formData.destinationType === 'own' ? 'checked' : ''}`}>
-                    {formData.destinationType === 'own' && <span>✓</span>}
-                  </div>
-                </div>
-              </div>
+                💳 Mis billeteras
+              </button>
             </div>
           </div>
 
@@ -277,28 +260,50 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
           </div>
 
           {amount > 0 && selectedSourceWallet && (
-            <div className="commission-info-box">
-              <div className="commission-row">
-                <span>Monto a transferir:</span>
-                <span>{formatCurrency(amount)}</span>
-              </div>
-              <div className="commission-row">
-                <span>Comisión ({benefits.formatCommissionRate()}):</span>
-                <span className="commission-value">{formatCurrency(commissionAmount)}</span>
-              </div>
-              <div className="commission-row receiver">
-                <span>El destinatario recibe:</span>
-                <span className="receiver-value">{formatCurrency(receiverAmount)}</span>
-              </div>
-              <div className="commission-row total">
-                <span>Total a debitar de tu cuenta:</span>
-                <span>{formatCurrency(totalDebit)}</span>
+            <div style={{
+              background: '#f0fdf4',
+              border: '1px solid #86efac',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              margin: '4px 0 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0'
+            }}>
+              {[
+                { label: 'Monto enviado', value: formatCurrency(amount), color: '#111827' },
+                { label: `Comisión (${benefits.formatCommissionRate()})`, value: formatCurrency(commissionAmount), color: '#d97706' },
+                { label: 'El destinatario recibe', value: formatCurrency(receiverAmount), color: '#059669', bold: true },
+              ].map(({ label, value, color, bold }, i, arr) => (
+                <div key={i} style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '7px 0',
+                  borderBottom: i < arr.length - 1 ? '1px solid #dcfce7' : 'none',
+                  fontSize: '13px'
+                }}>
+                  <span style={{ color: '#6b7280' }}>{label}</span>
+                  <span style={{ color, fontWeight: bold ? 700 : 600, fontSize: bold ? '15px' : '13px' }}>{value}</span>
+                </div>
+              ))}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '9px 0 2px',
+                borderTop: '2px solid #86efac',
+                marginTop: '4px',
+                fontSize: '13px'
+              }}>
+                <span style={{ color: '#374151', fontWeight: 600 }}>Total debitado</span>
+                <span style={{ color: '#1e1b4b', fontWeight: 700, fontSize: '16px' }}>{formatCurrency(totalDebit)}</span>
               </div>
             </div>
           )}
 
-          <div className="form-group">
-            <label>Concepto (opcional)</label>
+          <div className="form-group" style={{ marginTop: '4px' }}>
+            <label>Concepto <span style={{ fontWeight: 400, color: '#9ca3af' }}>(opcional)</span></label>
             <input
               type="text"
               value={formData.description}

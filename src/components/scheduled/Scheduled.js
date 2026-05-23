@@ -36,9 +36,9 @@ const Scheduled = ({ user }) => {
           if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
           if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
           if (a.status === 'PENDING' && b.status === 'PENDING') {
-            return new Date(a.scheduledDate) - new Date(b.scheduledDate);
+            return new Date(a.scheduledDate + 'Z') - new Date(b.scheduledDate + 'Z');
           }
-          return new Date(b.scheduledDate) - new Date(a.scheduledDate);
+          return new Date(b.scheduledDate + 'Z') - new Date(a.scheduledDate + 'Z');
         });
         
         setOperations(sorted);
@@ -146,11 +146,17 @@ const Scheduled = ({ user }) => {
     }).format(value || 0);
   };
   
+  const parseAsUTC = (dateString) => {
+    if (!dateString) return null;
+    const utc = dateString.endsWith('Z') ? dateString : dateString + 'Z';
+    return new Date(utc);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return '-';
+      const date = parseAsUTC(dateString);
+      if (!date || isNaN(date.getTime())) return '-';
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
@@ -198,7 +204,7 @@ const Scheduled = ({ user }) => {
   
   const getPriority = (scheduledDate, status) => {
     const now = new Date();
-    const date = new Date(scheduledDate);
+    const date = parseAsUTC(scheduledDate);
     const diffHours = (date - now) / (1000 * 60 * 60);
     
     if (status === 'EXECUTED') return { label: 'Ejecutada', class: 'priority-executed' };
@@ -314,7 +320,7 @@ const Scheduled = ({ user }) => {
         {filteredOperations.length > 0 ? (
           filteredOperations.map(op => {
             const priority = getPriority(op.scheduledDate, op.status);
-            const isOverdue = op.status === 'PENDING' && new Date(op.scheduledDate) < new Date();
+            const isOverdue = op.status === 'PENDING' && parseAsUTC(op.scheduledDate) < new Date();
             
             return (
               <div key={op.id} className={`operation-card ${priority.class} ${isOverdue ? 'overdue' : ''}`}>

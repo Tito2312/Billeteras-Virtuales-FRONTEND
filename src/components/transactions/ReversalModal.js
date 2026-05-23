@@ -29,12 +29,17 @@ const ReversalModal = ({ isOpen, onClose, onSuccess }) => {
     try {
       const result = await getUserTransactions(userId);
       if (result.success && result.data) {
-        const reversible = result.data.filter(t =>
-          t.type === 'TRANSFER' &&
-          t.userId === userId &&
-          t.status === 'COMPLETED' &&
-          !t.reversed
-        );
+        const seen = new Set();
+        const reversible = result.data.filter(t => {
+          if (seen.has(t.id)) return false;
+          seen.add(t.id);
+          return (
+            t.type === 'TRANSFER' &&
+            t.userId === userId &&
+            t.status === 'COMPLETED' &&
+            !t.reversed
+          );
+        });
         setTransactions(reversible);
       } else {
         setError('No se pudieron cargar las transferencias');
