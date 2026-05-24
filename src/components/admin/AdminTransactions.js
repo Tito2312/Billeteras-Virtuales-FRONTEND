@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { appConfirm } from '../../utils/confirm';
+import { toast } from '../../utils/toast';
 import { getAllTransactions, getAllUsers, reverseTransaction, reverseTransactionPila } from '../../API/admin';
 import './AdminTransactions.css';
 
@@ -65,17 +67,16 @@ const AdminTransactions = () => {
   };
 
   const handleReverseTransaction = async (transaction) => {
-    if (!window.confirm(`¿Estás seguro de que deseas revertir esta transacción?\n\nID: ${transaction.id}\nMonto: ${formatCurrency(transaction.amount)}\n\nEsta acción no se puede deshacer.`)) {
-      return;
-    }
+    const ok = await appConfirm(`ID: ${transaction.id}\nMonto: ${formatCurrency(transaction.amount)}\n\nEsta acción no se puede deshacer.`, '¿Revertir transacción?');
+    if (!ok) return;
 
     const result = await reverseTransaction(transaction.userId, transaction.id);
 
     if (result.success) {
-      alert(`✅ Transacción revertida exitosamente`);
+      toast.success('Transacción revertida exitosamente');
       loadData();
     } else {
-      alert(`❌ Error al revertir transacción: ${result.message}`);
+      toast.error(`Error al revertir transacción: ${result.message}`);
     }
   };
 

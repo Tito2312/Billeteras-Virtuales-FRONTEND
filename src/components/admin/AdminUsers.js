@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { getAllUsers, activateUser, deactivateUser } from '../../API/admin';
 import './AdminUsers.css';
 
@@ -26,10 +27,10 @@ const AdminUsers = () => {
     const result = isActive ? await activateUser(userId) : await deactivateUser(userId);
 
     if (result.success) {
-      alert(`✅ Usuario ${isActive ? 'activado' : 'desactivado'} exitosamente`);
+      toast.success(`Usuario ${isActive ? 'activado' : 'desactivado'} exitosamente`);
       loadUsers();
     } else {
-      alert(`❌ Error al ${isActive ? 'activar' : 'desactivar'} usuario: ${result.message}`);
+      toast.error(`Error al ${isActive ? 'activar' : 'desactivar'} usuario: ${result.message}`);
     }
   };
 

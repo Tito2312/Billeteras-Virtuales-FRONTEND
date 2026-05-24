@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { getAllWallets, activateWallet, deactivateWallet } from '../../API/admin';
 import './AdminWallets.css';
 
@@ -28,10 +29,10 @@ const AdminWallets = () => {
     const result = isActive ? await deactivateWallet(walletId, userId) : await activateWallet(walletId, userId);
 
     if (result.success) {
-      alert(`✅ Billetera ${isActive ? 'desactivada' : 'activada'} exitosamente`);
+      toast.success(`Billetera ${isActive ? 'desactivada' : 'activada'} exitosamente`);
       loadData();
     } else {
-      alert(`❌ Error al ${isActive ? 'desactivar' : 'activar'} billetera: ${result.message}`);
+      toast.error(`Error al ${isActive ? 'desactivar' : 'activar'} billetera: ${result.message}`);
     }
   };
 

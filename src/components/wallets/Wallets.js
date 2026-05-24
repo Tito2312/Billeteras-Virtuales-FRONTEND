@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../utils/toast';
 import { getUserWallets, createWallet, updateWallet, deleteWallet } from '../../API/wallets';
 import { getCurrentUser } from '../../API/auth';
 import CreateWalletModal from './CreateWalletModal';
@@ -66,7 +67,7 @@ const Wallets = ({ user }) => {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
-    alert('✅ Clave copiada al portapapeles');
+    toast.success('Clave copiada al portapapeles');
   };
 
   const handleCreateWallet = async (walletData) => {
@@ -78,9 +79,9 @@ const Wallets = ({ user }) => {
 
     if (result.success) {
       await loadWallets();
-      alert(`✅ Billetera "${walletData.name}" creada exitosamente`);
+      toast.success(`Billetera "${walletData.name}" creada exitosamente`);
     } else {
-      alert(`❌ Error al crear: ${result.message}`);
+      toast.error(`Error al crear: ${result.message}`);
     }
     setShowCreateModal(false);
   };
@@ -93,9 +94,9 @@ const Wallets = ({ user }) => {
 
     if (result.success) {
       await loadWallets();
-      alert(`✅ Billetera actualizada exitosamente`);
+      toast.success('Billetera actualizada exitosamente');
     } else {
-      alert(`❌ Error al actualizar: ${result.message}`);
+      toast.error(`Error al actualizar: ${result.message}`);
     }
     setShowEditModal(false);
     setSelectedWallet(null);
@@ -110,10 +111,10 @@ const Wallets = ({ user }) => {
     const result = await deleteWallet(selectedWallet.id, userId);
 
     if (result.success) {
-      alert(`✅ Billetera "${selectedWallet.name}" eliminada exitosamente`);
+      toast.success(`Billetera "${selectedWallet.name}" eliminada exitosamente`);
       await loadWallets();
     } else {
-      alert(`❌ ${result.message || 'No se pudo eliminar la billetera'}`);
+      toast.error(result.message || 'No se pudo eliminar la billetera');
     }
 
     setShowDeleteModal(false);

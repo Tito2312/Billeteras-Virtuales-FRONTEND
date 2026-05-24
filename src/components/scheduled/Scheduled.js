@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../utils/toast';
 import { getUserScheduledOperations, createScheduledOperation, updateScheduledOperation, deleteScheduledOperation } from '../../API/scheduled';
 import { getUserWallets } from '../../API/wallets';
 import { getCurrentUser } from '../../API/auth';
@@ -100,13 +101,13 @@ const Scheduled = ({ user }) => {
       const result = await updateScheduledOperation(id, operationData, userId);
       if (result.success) {
         await loadOperations();
-        alert('✅ Operación actualizada correctamente');
+        toast.success('Operación actualizada correctamente');
       } else {
-        alert(`❌ Error al actualizar: ${result.message}`);
+        toast.error(`Error al actualizar: ${result.message}`);
       }
     } catch (err) {
       console.error('Error en actualización:', err);
-      alert('❌ Error al actualizar la operación');
+      toast.error('Error al actualizar la operación');
     } finally {
       setEditingOperation(null);
     }
@@ -118,13 +119,13 @@ const Scheduled = ({ user }) => {
       const result = await deleteScheduledOperation(id, userId);
       if (result.success) {
         await loadOperations();
-        alert('✅ Operación cancelada correctamente');
+        toast.success('Operación cancelada correctamente');
       } else {
-        alert(`❌ Error al cancelar: ${result.message}`);
+        toast.error(`Error al cancelar: ${result.message}`);
       }
     } catch (err) {
       console.error('Error en cancelación:', err);
-      alert('❌ Error al cancelar la operación');
+      toast.error('Error al cancelar la operación');
     } finally {
       setCancelingOperation(null);
     }
@@ -239,14 +240,14 @@ const Scheduled = ({ user }) => {
 
       if (result.success) {
         await loadOperations();
-        alert('✅ Operación programada exitosamente');
+        toast.success('Operación programada exitosamente');
         setShowCreateModal(false);
       } else {
-        alert(`❌ Error al programar: ${result.message}`);
+        toast.error(`Error al programar: ${result.message}`);
       }
     } catch (err) {
       console.error('🔍 Error capturado:', err);
-      alert('❌ Error al programar la operación');
+      toast.error('Error al programar la operación');
     }
   };
 

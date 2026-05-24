@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080';
+import { SERVER_URL as BASE_URL } from './config';
 
 const getAuthToken = () => localStorage.getItem('auth_token');
 
