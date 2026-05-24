@@ -1,4 +1,3 @@
-// components/admin/AdminSidebar.js
 import React from 'react';
 import logo from '../../assets/LogoWalletTech.png';
 import './AdminSidebar.css';

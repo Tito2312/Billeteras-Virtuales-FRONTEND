@@ -14,7 +14,7 @@ const Sidebar = ({ activeTab, onTabChange }) => {
     { id: 'network', label: 'Mi Red', icon: '🕸️' },
     { id: 'notifications', label: 'Notificaciones', icon: '🔔' }
   ];
-  
+
   const menuItems = [...baseMenuItems];
   if (isAdmin()) {
     menuItems.unshift({ id: 'admin', label: 'Admin Panel', icon: '🛡️' });

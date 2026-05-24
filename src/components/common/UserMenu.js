@@ -1,5 +1,3 @@
-// UserMenu.js - Menú desplegable del usuario
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './UserMenu.css';
@@ -57,7 +55,7 @@ const UserMenu = ({ user, onLogout }) => {
         <span className="avatar-initials">{getInitials()}</span>
         <span className="avatar-level" style={{ backgroundColor: getLevelColor() }}></span>
       </button>
-      
+
       {isOpen && (
         <div className="user-dropdown">
           <div className="dropdown-header">

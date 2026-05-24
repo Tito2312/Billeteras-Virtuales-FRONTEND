@@ -1,5 +1,3 @@
-/* AdminReports.css - Estilos para reportes */
-
 .admin-reports-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -141,7 +139,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .reports-grid {
     grid-template-columns: 1fr;
@@ -154,31 +151,31 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .date-inputs button {
     width: 100%;
   }
-  
+
   .date-range-result {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .report-card {
     padding: 16px;
   }
-  
+
   .report-card h2 {
     font-size: 16px;
   }
-  
+
   .report-table th,
   .report-table td {
     padding: 8px 6px;
     font-size: 12px;
   }
 }
-/* ── Period tabs ── */
+
 .period-tabs {
   display: flex;
   gap: 8px;
@@ -209,7 +206,6 @@
   color: white;
 }
 
-/* ── Top transacciones por monto ── */
 .report-card-full {
   grid-column: 1 / -1;
 }

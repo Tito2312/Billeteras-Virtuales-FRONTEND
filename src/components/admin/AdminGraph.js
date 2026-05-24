@@ -1,5 +1,3 @@
-// AdminGraph.js - Grafo de transferencias entre usuarios
-
 import React, { useState, useEffect, useRef } from 'react';
 import { getAllTransactions, getAllUsers } from '../../API/admin';
 import AdminGraphs from './AdminGraphs';
@@ -35,7 +33,6 @@ const AdminGraph = () => {
             t.type === 'TRANSFER' && t.status === 'COMPLETED' && t.receiverUserId
         );
 
-        // Solo usuarios que participaron en transferencias
         const involvedIds = new Set();
         transfers.forEach(t => {
             involvedIds.add(t.userId);
@@ -48,7 +45,6 @@ const AdminGraph = () => {
             ).values()
         ];
 
-        // Agrupar edges: sumar montos entre mismos pares
         const edgeMap = {};
         transfers.forEach(t => {
             const key = `${t.userId}__${t.receiverUserId}`;
@@ -64,7 +60,6 @@ const AdminGraph = () => {
         setLoading(false);
     };
 
-    // Posicionar nodos en círculo
     const getNodePositions = () => {
         const positions = {};
         users.forEach((u, i) => {
@@ -94,14 +89,11 @@ const AdminGraph = () => {
 
     const positions = getNodePositions();
 
-    // Set de pares con arista en ambas direcciones
     const biDirSet = new Set(
         edges.filter(e => edges.some(e2 => e2.from === e.to && e2.to === e.from))
              .map(e => `${e.from}__${e.to}`)
     );
 
-    // Flecha curva entre dos nodos
-    // side: 1 = curva hacia la izquierda, -1 = derecha (para bidireccionales)
     const getEdgeData = (from, to, side = 1, isBiDir = false) => {
         const dx = to.x - from.x;
         const dy = to.y - from.y;
@@ -118,7 +110,6 @@ const AdminGraph = () => {
         const cx = (sx + ex) / 2 - uy * curveOffset * side;
         const cy = (sy + ey) / 2 + ux * curveOffset * side;
 
-        // Punto medio real de la curva bezier (t=0.5)
         const lx = 0.25 * sx + 0.5 * cx + 0.25 * ex;
         const ly = 0.25 * sy + 0.5 * cy + 0.25 * ey;
 
@@ -193,7 +184,6 @@ const AdminGraph = () => {
                         </marker>
                     </defs>
 
-                    {/* Edges */}
                     {edges.map((edge, i) => {
                         const from = positions[edge.from];
                         const to = positions[edge.to];
@@ -252,7 +242,6 @@ const AdminGraph = () => {
                         );
                     })}
 
-                    {/* Nodes */}
                     {users.map((u) => {
                         const pos = positions[u.id];
                         if (!pos) return null;

@@ -1,12 +1,10 @@
-// WalletCard.js - Tarjeta de billetera para el Dashboard
-
 import React, { useState } from 'react';
 import './WalletCard.css';
 
 const WalletCard = ({ name, type, balance, color = 'purple', walletId, transferKey, onRecharge, onTransfer, onWithdraw }) => {
-  
+
   const [copied, setCopied] = useState(false);
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
@@ -43,7 +41,6 @@ const WalletCard = ({ name, type, balance, color = 'purple', walletId, transferK
     if (onWithdraw) onWithdraw();
   };
 
-  // Si no hay transferKey, no mostrar la sección
   const hasTransferKey = transferKey && transferKey !== 'null' && transferKey !== '';
 
   return (
@@ -57,8 +54,7 @@ const WalletCard = ({ name, type, balance, color = 'purple', walletId, transferK
           <p className="wallet-type">{type}</p>
         </div>
       </div>
-      
-      {/* CLAVE DE LA BILLETERA - MEJORADA */}
+
       {hasTransferKey && (
         <div className="wallet-transfer-key">
           <div className="key-header">
@@ -76,7 +72,7 @@ const WalletCard = ({ name, type, balance, color = 'purple', walletId, transferK
           </div>
         </div>
       )}
-      
+
       <div className="wallet-balance">
         <span className="balance-label">BALANCE DISPONIBLE</span>
         <span className="balance-value">{formatCurrency(balance)}</span>

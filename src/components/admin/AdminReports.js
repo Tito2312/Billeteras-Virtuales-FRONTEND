@@ -1,5 +1,3 @@
-// AdminReports.js - Reportes financieros para admin (con enriquecimiento de datos)
-
 import React, { useState, useEffect } from 'react';
 import {
   getMostUsedWallets,
@@ -32,38 +30,33 @@ const AdminReports = () => {
 
   const loadData = async () => {
     setLoading(true);
-    
+
     try {
-      // Cargar usuarios
+
       const usersResult = await getAllUsers();
       let usersList = [];
       if (usersResult.success && usersResult.data) {
         usersList = usersResult.data;
         setUsers(usersList);
       }
-      
-      // Cargar billeteras más usadas
+
       const walletsRes = await getMostUsedWallets(10);
       let walletsList = [];
       if (walletsRes.success && walletsRes.data) {
         walletsList = walletsRes.data;
-        
-        // Enriquecer las billeteras con el nombre del usuario
+
         const enrichedWallets = walletsList.map(wallet => {
-          // Buscar el usuario por el userId (si el backend lo devuelve)
-          // O si no, intentar obtenerlo de alguna otra manera
+
           let ownerName = 'Desconocido';
-          
-          // Si el wallet tiene userId
+
           if (wallet.userId) {
             const user = usersList.find(u => u.id === wallet.userId);
             ownerName = user ? user.name : 'Desconocido';
           } else {
-            // Si no tiene userId, intentar buscar por walletName (no es ideal pero es temporal)
-            // Esta es una solución temporal mientras el backend no envía userId
+
             console.log('Billetera sin userId:', wallet);
           }
-          
+
           return {
             ...wallet,
             ownerName: ownerName
@@ -72,7 +65,7 @@ const AdminReports = () => {
         setWalletsWithOwner(enrichedWallets);
         setMostUsedWallets(walletsList);
       }
-      
+
       const [usersRes, categoriesRes, frequencyRes, topAmountRes] = await Promise.all([
         getUsersWithMostTransfers(5),
         getMostActiveCategories(),
@@ -95,7 +88,7 @@ const AdminReports = () => {
     } catch (error) {
       console.error('Error cargando reportes:', error);
     }
-    
+
     setLoading(false);
   };
 
@@ -206,7 +199,7 @@ const AdminReports = () => {
       </div>
 
       <div className="reports-grid">
-        {/* Billeteras más usadas */}
+
         <div className="report-card">
           <h2>🏆 Billeteras más usadas</h2>
           <div className="report-table-container">
@@ -240,7 +233,6 @@ const AdminReports = () => {
           </div>
         </div>
 
-        {/* Usuarios con más transferencias */}
         <div className="report-card">
           <h2>👥 Usuarios con más transferencias</h2>
           <div className="period-tabs">
@@ -287,7 +279,6 @@ const AdminReports = () => {
           </div>
         </div>
 
-        {/* Categorías más activas */}
         <div className="report-card">
           <h2>📊 Categorías más activas</h2>
           <div className="report-table-container">
@@ -320,7 +311,6 @@ const AdminReports = () => {
           </div>
         </div>
 
-        {/* Frecuencia por tipo de transacción */}
         <div className="report-card">
           <h2>🔄 Frecuencia por tipo de transacción</h2>
           <div className="report-table-container">
@@ -350,7 +340,7 @@ const AdminReports = () => {
           </div>
         </div>
       </div>
-      {/* Top transacciones por monto — PriorityQueue ordenada descendente */}
+
       <div className="report-card report-card-full">
         <h2>💰 Top transacciones por monto</h2>
         <p className="report-card-desc">Obtenidas con una PriorityQueue ordenada descendente por monto</p>

@@ -1,5 +1,3 @@
-// analytics.js - Servicio de analítica
-
 const BASE_URL = 'http://localhost:8080/api';
 
 const getAuthToken = () => localStorage.getItem('auth_token');
@@ -8,14 +6,14 @@ const getHeaders = (requiresAuth = true) => {
   const headers = {
     'Content-Type': 'application/json',
   };
-  
+
   if (requiresAuth) {
     const token = getAuthToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
   }
-  
+
   return headers;
 };
 
@@ -23,27 +21,23 @@ const handleResponse = async (response) => {
   const textResponse = await response.text();
   console.log('📡 Response status:', response.status);
   console.log('📡 Response body:', textResponse);
-  
+
   let data;
   try {
     data = JSON.parse(textResponse);
   } catch (e) {
     data = { message: textResponse || 'Error en la respuesta' };
   }
-  
+
   if (!response.ok) {
     throw {
       status: response.status,
       message: data.message || data.error || `Error ${response.status}`
     };
   }
-  
+
   return data;
 };
-
-// ============================================
-// TRANSACCIONES DEL USUARIO
-// ============================================
 
 export const getUserTransactions = async (userId) => {
   try {
@@ -51,15 +45,15 @@ export const getUserTransactions = async (userId) => {
       console.error('❌ No userId provided');
       return { success: false, message: 'No userId provided', data: [] };
     }
-    
+
     const url = `${BASE_URL}/transactions/user/${userId}`;
     console.log('📤 GET Transactions URL:', url);
-    
+
     const response = await fetch(url, { 
       method: 'GET',
       headers: getHeaders(true)
     });
-    
+
     const result = await handleResponse(response);
     console.log('✅ Transactions loaded:', result.length || 0);
     return { success: true, data: result };
@@ -68,10 +62,6 @@ export const getUserTransactions = async (userId) => {
     return { success: false, message: error.message, data: [] };
   }
 };
-
-// ============================================
-// REPORTES
-// ============================================
 
 export const getMostUsedWallets = async (top = 5) => {
   try {

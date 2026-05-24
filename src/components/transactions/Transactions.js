@@ -1,5 +1,3 @@
-// Transactions.js - Página de gestión de transacciones
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserTransactions } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
@@ -15,26 +13,26 @@ const Transactions = ({ user }) => {
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showReversalModal, setShowReversalModal] = useState(false);
-  
+
   const [transactions, setTransactions] = useState([]);
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const userId = user?.id || getCurrentUser()?.id;
-  
+
   const loadTransactions = useCallback(async () => {
     if (!userId) return;
-    
+
     const result = await getUserTransactions(userId);
-    
+
     if (result.success && result.data) {
-      // Ordenar por fecha descendente (más recientes primero)
+
       const sorted = [...result.data].sort((a, b) => {
         const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
         const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
@@ -44,16 +42,16 @@ const Transactions = ({ user }) => {
       console.log('📋 Transacciones cargadas:', sorted);
     }
   }, [userId]);
-  
+
   const loadWallets = useCallback(async () => {
     if (!userId) return;
-    
+
     const result = await getUserWallets(userId);
     if (result.success && result.data) {
       setWallets(result.data);
     }
   }, [userId]);
-  
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -61,10 +59,10 @@ const Transactions = ({ user }) => {
       await loadWallets();
       setLoading(false);
     };
-    
+
     loadData();
   }, [loadTransactions, loadWallets]);
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
@@ -72,25 +70,25 @@ const Transactions = ({ user }) => {
       maximumFractionDigits: 0
     }).format(value || 0);
   };
-  
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return '-';
-      
+
       const day = date.getDate().toString().padStart(2, '0');
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const year = date.getFullYear();
       const hours = date.getHours().toString().padStart(2, '0');
       const minutes = date.getMinutes().toString().padStart(2, '0');
-      
+
       return `${day}/${month}/${year}, ${hours}:${minutes}`;
     } catch (error) {
       return '-';
     }
   };
-  
+
   const getTypeIcon = (type) => {
     switch(type) {
       case 'RECHARGE': return '📥';
@@ -99,7 +97,7 @@ const Transactions = ({ user }) => {
       default: return '💰';
     }
   };
-  
+
   const getTypeLabel = (type) => {
     switch(type) {
       case 'RECHARGE': return 'Recarga';
@@ -108,14 +106,14 @@ const Transactions = ({ user }) => {
       default: return type;
     }
   };
-  
+
   const getStatusClass = (status) => {
     if (status === 'COMPLETED') return 'status-completed';
     if (status === 'FAILED') return 'status-failed';
     if (status === 'REVERSED') return 'status-reversed';
     return 'status-pending';
   };
-  
+
   const getStatusLabel = (status) => {
     switch(status) {
       case 'COMPLETED': return 'Completada';
@@ -124,23 +122,21 @@ const Transactions = ({ user }) => {
       default: return status;
     }
   };
-  
+
   const getWalletName = (walletId) => {
     if (!walletId) return '-';
     const found = wallets.find(w => w.id === walletId);
     return found ? found.name : null;
   };
 
-  // 🔧 CORREGIDO: Determinar si el usuario es el remitente o receptor
   const isUserSender = (transaction) => {
     return transaction.userId === userId;
   };
-  
+
   const isUserReceiver = (transaction) => {
     return transaction.receiverUserId === userId;
   };
-  
-  // 🔧 CORREGIDO: Obtener la descripción según el rol del usuario
+
   const getTransactionDescription = (transaction) => {
     if (transaction.type === 'RECHARGE') {
       const dest = getWalletName(transaction.targetWallet) || 'billetera';
@@ -159,8 +155,7 @@ const Transactions = ({ user }) => {
     }
     return 'Transacción';
   };
-  
-  // 🔧 CORREGIDO: Obtener el monto a mostrar según el rol del usuario
+
   const getDisplayAmount = (transaction) => {
     if (transaction.type === 'RECHARGE') {
       return transaction.amount;
@@ -168,28 +163,26 @@ const Transactions = ({ user }) => {
       return transaction.amount;
     } else if (transaction.type === 'TRANSFER') {
       if (isUserSender(transaction)) {
-        // El remitente ve el monto original que envió
+
         return transaction.originalAmount || transaction.amount;
       } else if (isUserReceiver(transaction)) {
-        // El receptor ve el monto real que recibió (con comisión descontada)
+
         return transaction.amount;
       }
     }
     return transaction.amount;
   };
-  
-  // 🔧 CORREGIDO: Determinar si la transacción es positiva o negativa para el usuario
+
   const isPositiveTransaction = (transaction) => {
     if (transaction.type === 'RECHARGE') return true;
     if (transaction.type === 'WITHDRAWAL') return false;
     if (transaction.type === 'TRANSFER') {
-      if (isUserSender(transaction)) return false;  // Envía → negativo
-      if (isUserReceiver(transaction)) return true; // Recibe → positivo
+      if (isUserSender(transaction)) return false;  
+      if (isUserReceiver(transaction)) return true; 
     }
     return false;
   };
-  
-  // 🔧 CORREGIDO: Obtener el origen (quién envía)
+
   const getOriginDisplay = (transaction) => {
     if (transaction.type === 'RECHARGE') {
       return 'Cuenta externa';
@@ -201,7 +194,6 @@ const Transactions = ({ user }) => {
     return '-';
   };
 
-  // 🔧 CORREGIDO: Obtener el destino
   const getDestinationDisplay = (transaction) => {
     if (transaction.type === 'RECHARGE') {
       return getWalletName(transaction.targetWallet) || 'Mi billetera';
@@ -216,42 +208,42 @@ const Transactions = ({ user }) => {
     }
     return '-';
   };
-  
+
   const canReverse = (transaction) => {
-    // Solo el remitente puede revertir transferencias completadas y no reversadas
+
     return transaction.type === 'TRANSFER' && 
            transaction.userId === userId &&
            transaction.status === 'COMPLETED' && 
            !transaction.reversed;
   };
-  
+
   const filteredTransactions = transactions.filter(t => {
     if (filterType !== 'ALL' && t.type !== filterType) return false;
     if (searchTerm && !t.id?.toLowerCase().includes(searchTerm.toLowerCase())) return false;
     return true;
   });
-  
+
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + itemsPerPage);
-  
+
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
-  
+
   const handleTransactionSuccess = async () => {
     await loadTransactions();
     await loadWallets();
     setCurrentPage(1);
   };
-  
+
   const openReversalModal = (transaction) => {
     setSelectedTransaction(transaction);
     setShowReversalModal(true);
   };
-  
+
   if (loading) {
     return (
       <div className="transactions-page">
@@ -262,14 +254,14 @@ const Transactions = ({ user }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="transactions-page">
       <div className="transactions-header">
         <h1>Transacciones</h1>
         <p>Gestiona tus movimientos de dinero</p>
       </div>
-      
+
       <div className="action-buttons-grid">
         <button className="action-card" onClick={() => setShowRechargeModal(true)}>
           <span className="action-icon">📥</span>
@@ -288,7 +280,7 @@ const Transactions = ({ user }) => {
           <span className="action-label">Reversión</span>
         </button>
       </div>
-      
+
       <div className="history-section">
         <div className="section-header">
           <h2>Historial de Transacciones</h2>
@@ -296,7 +288,7 @@ const Transactions = ({ user }) => {
             📎 Exportar
           </button>
         </div>
-        
+
         <div className="filters-bar">
           <div className="filter-group">
             <label>Tipo:</label>
@@ -307,7 +299,7 @@ const Transactions = ({ user }) => {
               <option value="TRANSFER">Transferencias</option>
             </select>
           </div>
-          
+
           <div className="filter-group">
             <label>Buscar por ID:</label>
             <input
@@ -317,7 +309,7 @@ const Transactions = ({ user }) => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           {(filterType !== 'ALL' || searchTerm) && (
             <button className="btn-clear-filters" onClick={() => {
               setFilterType('ALL');
@@ -328,7 +320,7 @@ const Transactions = ({ user }) => {
             </button>
           )}
         </div>
-        
+
         <div className="transactions-table-container">
           <table className="transactions-table">
             <thead>
@@ -352,7 +344,7 @@ const Transactions = ({ user }) => {
                   const description = getTransactionDescription(t);
                   const origin = getOriginDisplay(t);
                   const destination = getDestinationDisplay(t);
-                  
+
                   return (
                     <tr key={t.id}>
                       <td className="date-cell">{formatDate(t.createdAt)}</td>
@@ -399,7 +391,7 @@ const Transactions = ({ user }) => {
             </tbody>
           </table>
         </div>
-        
+
         {totalPages > 1 && (
           <div className="pagination">
             <button 
@@ -409,7 +401,7 @@ const Transactions = ({ user }) => {
             >
               ‹
             </button>
-            
+
             <div className="pagination-pages">
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                 let pageNum;
@@ -422,7 +414,7 @@ const Transactions = ({ user }) => {
                 } else {
                   pageNum = currentPage - 2 + i;
                 }
-                
+
                 return (
                   <button
                     key={pageNum}
@@ -433,7 +425,7 @@ const Transactions = ({ user }) => {
                   </button>
                 );
               })}
-              
+
               {totalPages > 5 && currentPage < totalPages - 2 && (
                 <>
                   <span className="pagination-dots">...</span>
@@ -446,7 +438,7 @@ const Transactions = ({ user }) => {
                 </>
               )}
             </div>
-            
+
             <button 
               className="pagination-arrow"
               onClick={() => goToPage(currentPage + 1)}
@@ -457,10 +449,9 @@ const Transactions = ({ user }) => {
           </div>
         )}
       </div>
-      
-      {/* ── Pila de reversiones ── */}
+
       {(() => {
-        // Solo transferencias que YO envié y revertí, sin duplicados
+
         const seen = new Set();
         const reversed = transactions
           .filter(t => {
@@ -469,7 +460,7 @@ const Transactions = ({ user }) => {
             seen.add(t.id);
             return true;
           })
-          // Ordenar por cuándo fue revertida (ASC: base=más antigua → tope=más reciente)
+
           .sort((a, b) => {
             const da = new Date(a.reversedAt || a.createdAt);
             const db = new Date(b.reversedAt || b.createdAt);
@@ -517,21 +508,21 @@ const Transactions = ({ user }) => {
         wallets={wallets}
         onSuccess={handleTransactionSuccess}
       />
-      
+
       <WithdrawModal
         isOpen={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
         wallets={wallets}
         onSuccess={handleTransactionSuccess}
       />
-      
+
       <TransferModal
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
         wallets={wallets}
         onSuccess={handleTransactionSuccess}
       />
-      
+
       <ReversalModal
         isOpen={showReversalModal}
         onClose={() => {

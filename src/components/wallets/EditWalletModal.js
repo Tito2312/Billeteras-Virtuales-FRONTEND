@@ -1,5 +1,3 @@
-// EditWalletModal.js - Modal para editar billetera (SIN balance, SIN descripción)
-
 import React, { useState, useEffect } from 'react';
 import './Modals.css';
 
@@ -9,9 +7,9 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
     type: '',
     customType: ''
   });
-  
+
   const [errors, setErrors] = useState({});
-  
+
   useEffect(() => {
     if (wallet) {
       const isPredefined = walletTypes.some(t => t.value === wallet.type);
@@ -22,15 +20,15 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
       });
     }
   }, [wallet, walletTypes]);
-  
+
   if (!isOpen || !wallet) return null;
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
-  
+
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = 'El nombre es obligatorio';
@@ -40,7 +38,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
     }
     return newErrors;
   };
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = validate();
@@ -48,15 +46,15 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
       setErrors(newErrors);
       return;
     }
-    
+
     const finalType = formData.type === 'Otro' ? formData.customType : formData.type;
-    
+
     onEdit({
       name: formData.name,
       type: finalType
     });
   };
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -64,7 +62,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
           <h2>Editar Billetera</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Nombre de la billetera *</label>
@@ -77,7 +75,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
             />
             {errors.name && <span className="error-text">{errors.name}</span>}
           </div>
-          
+
           <div className="form-group">
             <label>Tipo de billetera *</label>
             <select name="type" value={formData.type} onChange={handleChange}>
@@ -89,7 +87,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
               <option value="Otro">✨ Otro (especificar)</option>
             </select>
           </div>
-          
+
           {formData.type === 'Otro' && (
             <div className="form-group custom-type-group">
               <label>Especificar tipo *</label>
@@ -104,7 +102,7 @@ const EditWalletModal = ({ isOpen, onClose, onEdit, wallet, walletTypes }) => {
               {errors.customType && <span className="error-text">{errors.customType}</span>}
             </div>
           )}
-          
+
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose}>
               Cancelar

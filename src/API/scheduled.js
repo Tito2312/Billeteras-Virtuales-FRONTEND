@@ -1,5 +1,3 @@
-// API/scheduled.js - Servicio de operaciones programadas
-
 const BASE_URL = 'http://localhost:8080/api';
 
 const getHeaders = (requiresAuth = true, userId = null) => {
@@ -8,7 +6,7 @@ const getHeaders = (requiresAuth = true, userId = null) => {
     const token = localStorage.getItem('auth_token');
     if (token) headers['Authorization'] = `Bearer ${token}`;
   }
-  // Si se proporciona userId, se añade al header (necesario para PUT/DELETE)
+
   if (userId) {
     headers['userId'] = userId;
   }
@@ -39,7 +37,6 @@ const handleResponse = async (response) => {
   return data;
 };
 
-// Convertir fecha a LocalDateTime format (sin Z ni offset)
 const toLocalDateTime = (isoString) => {
   if (!isoString) return null;
   let dateStr = isoString;
@@ -49,9 +46,6 @@ const toLocalDateTime = (isoString) => {
   return dateStr.split('.')[0];
 };
 
-// ========== OPERACIONES PROGRAMADAS ==========
-
-// POST /api/scheduledOperation
 export const createScheduledOperation = async (operationData) => {
   try {
     const body = {
@@ -77,7 +71,6 @@ export const createScheduledOperation = async (operationData) => {
   }
 };
 
-// GET /api/scheduledOperation/{userId}
 export const getUserScheduledOperations = async (userId) => {
   try {
     const response = await fetch(`${BASE_URL}/scheduledOperation/${userId}`, {
@@ -91,7 +84,6 @@ export const getUserScheduledOperations = async (userId) => {
   }
 };
 
-// GET /api/scheduledOperation
 export const getAllScheduledOperations = async () => {
   try {
     const response = await fetch(`${BASE_URL}/scheduledOperation`, {
@@ -105,7 +97,6 @@ export const getAllScheduledOperations = async () => {
   }
 };
 
-// DELETE /api/scheduledOperation/{id}
 export const deleteScheduledOperation = async (operationId, userId) => {
   try {
     const response = await fetch(`${BASE_URL}/scheduledOperation/${operationId}`, {
@@ -121,7 +112,6 @@ export const deleteScheduledOperation = async (operationId, userId) => {
   }
 };
 
-// PUT /api/scheduledOperation/{id}
 export const updateScheduledOperation = async (id, operationData, userId) => {
   try {
     const body = {

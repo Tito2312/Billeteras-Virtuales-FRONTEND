@@ -1,6 +1,3 @@
-// Wallets.js - Página de gestión de billeteras (CONECTADO A API)
-// Sin emojis, ahora con transferKey (clave) sin ID visible
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserWallets, createWallet, updateWallet, deleteWallet } from '../../API/wallets';
 import { getCurrentUser } from '../../API/auth';
@@ -15,7 +12,7 @@ import './Wallets.css';
 const Wallets = ({ user }) => {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -25,9 +22,9 @@ const Wallets = ({ user }) => {
   const [selectedWallet, setSelectedWallet] = useState(null);
   const [actionWallet, setActionWallet] = useState(null);
   const [menuOpenId, setMenuOpenId] = useState(null);
-  
+
   const userId = user?.id || getCurrentUser()?.id;
-  
+
   const walletTypes = [
     { value: 'Gastos diarios', label: 'Gastos diarios', icon: '☕' },
     { value: 'Ahorro', label: 'Ahorro', icon: '🏦' },
@@ -35,7 +32,7 @@ const Wallets = ({ user }) => {
     { value: 'Transporte', label: 'Transporte', icon: '🚗' },
     { value: 'Compras', label: 'Compras', icon: '🛍️' }
   ];
-  
+
   const loadWallets = useCallback(async () => {
     setLoading(true);
     const result = await getUserWallets(userId);
@@ -44,11 +41,11 @@ const Wallets = ({ user }) => {
     }
     setLoading(false);
   }, [userId]);
-  
+
   useEffect(() => {
     if (userId) loadWallets();
   }, [userId, loadWallets]);
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
@@ -56,7 +53,7 @@ const Wallets = ({ user }) => {
       maximumFractionDigits: 0
     }).format(value || 0);
   };
-  
+
   const getInitials = (name) => {
     if (!name) return '??';
     if (name === 'Principal') return 'PP';
@@ -66,19 +63,19 @@ const Wallets = ({ user }) => {
     if (name === 'Emergencias') return 'EM';
     return name.substring(0, 2).toUpperCase();
   };
-  
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     alert('✅ Clave copiada al portapapeles');
   };
-  
+
   const handleCreateWallet = async (walletData) => {
     const result = await createWallet({
       name: walletData.name,
       type: walletData.type,
       userId: userId
     });
-    
+
     if (result.success) {
       await loadWallets();
       alert(`✅ Billetera "${walletData.name}" creada exitosamente`);
@@ -87,13 +84,13 @@ const Wallets = ({ user }) => {
     }
     setShowCreateModal(false);
   };
-  
+
   const handleEditWallet = async (updatedData) => {
     const result = await updateWallet(selectedWallet.id, userId, {
       name: updatedData.name,
       type: updatedData.type
     });
-    
+
     if (result.success) {
       await loadWallets();
       alert(`✅ Billetera actualizada exitosamente`);
@@ -103,7 +100,7 @@ const Wallets = ({ user }) => {
     setShowEditModal(false);
     setSelectedWallet(null);
   };
-  
+
   const handleDeleteWallet = async () => {
     if (!selectedWallet) return;
 
@@ -122,29 +119,29 @@ const Wallets = ({ user }) => {
     setShowDeleteModal(false);
     setSelectedWallet(null);
   };
-  
+
   const toggleMenu = (walletId) => {
     setMenuOpenId(menuOpenId === walletId ? null : walletId);
   };
-  
+
   const openEditModal = (wallet) => {
     setSelectedWallet(wallet);
     setShowEditModal(true);
     setMenuOpenId(null);
   };
-  
+
   const openDeleteModal = (wallet) => {
     setSelectedWallet(wallet);
     setShowDeleteModal(true);
     setMenuOpenId(null);
   };
-  
+
   useEffect(() => {
     const handleClickOutside = () => setMenuOpenId(null);
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
-  
+
   if (loading) {
     return (
       <div className="wallets-page">
@@ -155,7 +152,7 @@ const Wallets = ({ user }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="wallets-page">
       <div className="wallets-header">
@@ -167,7 +164,7 @@ const Wallets = ({ user }) => {
           + Crear Nueva Billetera
         </button>
       </div>
-      
+
       <div className="wallets-stats">
         <div className="stat-badge">
           <span className="stat-label">Total Billeteras</span>
@@ -178,7 +175,7 @@ const Wallets = ({ user }) => {
           <span className="stat-number">{formatCurrency(wallets.reduce((sum, w) => sum + (w.balance || 0), 0))}</span>
         </div>
       </div>
-      
+
       <div className="wallets-grid-full">
         {wallets.map(wallet => (
           <div key={wallet.id} className="wallet-card-full">
@@ -212,8 +209,7 @@ const Wallets = ({ user }) => {
                 )}
               </div>
             </div>
-            
-            {/* CLAVE DE LA BILLETERA (transferKey) - MEJORADA */}
+
             {wallet.transferKey && wallet.transferKey !== 'null' && (
               <div className="wallet-transfer-key-full">
                 <div className="key-header-full">
@@ -231,12 +227,12 @@ const Wallets = ({ user }) => {
                 </div>
               </div>
             )}
-            
+
             <div className="wallet-balance-full">
               <span className="balance-label-full">BALANCE DISPONIBLE</span>
               <span className="balance-value-full">{formatCurrency(wallet.balance)}</span>
             </div>
-            
+
             <div className="wallet-actions-full">
               <button className="wallet-btn recargar" onClick={() => { setActionWallet(wallet); setShowRechargeModal(true); }}>
                 Recargar
@@ -248,7 +244,7 @@ const Wallets = ({ user }) => {
                 Retirar
               </button>
             </div>
-            
+
             <p className="wallet-status">
               Estado: <span className={wallet.active ? 'status-active' : 'status-inactive'}>
                 {wallet.active ? 'Activa' : 'Inactiva'}
@@ -257,14 +253,14 @@ const Wallets = ({ user }) => {
           </div>
         ))}
       </div>
-      
+
       <CreateWalletModal 
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateWallet}
         walletTypes={walletTypes}
       />
-      
+
       <EditWalletModal 
         isOpen={showEditModal}
         onClose={() => {
@@ -275,7 +271,7 @@ const Wallets = ({ user }) => {
         wallet={selectedWallet}
         walletTypes={walletTypes}
       />
-      
+
       <DeleteWalletModal
         isOpen={showDeleteModal}
         onClose={() => {

@@ -1,5 +1,3 @@
-// Dashboard.js - Pantalla principal (con modales de transacciones)
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import WalletCarousel from './walletCarousel/WalletCarousel';
@@ -21,23 +19,20 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
   const [totalBalance, setTotalBalance] = useState(0);
   const [chartData, setChartData] = useState([]);
   const [currentUser, setCurrentUser] = useState(user);
-  
-  // Usar useRef para evitar recargas infinitas
+
   const isInitialLoad = useRef(true);
   const isUpdating = useRef(false);
-  
-  // Estados para modales
+
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState(null);
-  
+
   const userId = currentUser?.id || user?.id || getCurrentUser()?.id;
-  
-  // Función para actualizar los datos del usuario desde el backend
+
   const refreshUserData = useCallback(async () => {
     if (!userId || isUpdating.current) return;
-    
+
     isUpdating.current = true;
     const result = await getUserById(userId);
     if (result.success && result.data) {
@@ -51,24 +46,21 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         documento: result.data.documentNumber,
         role: result.data.role
       };
-      
+
       setCurrentUser(updatedUser);
-      
-      // Actualizar localStorage
+
       const storedUser = getCurrentUser();
       if (storedUser) {
         const mergedUser = { ...storedUser, ...updatedUser };
         localStorage.setItem('user', JSON.stringify(mergedUser));
       }
-      
-      // Disparar evento solo si hay cambios significativos
+
       const event = new CustomEvent('userUpdate', { detail: updatedUser });
       window.dispatchEvent(event);
     }
     isUpdating.current = false;
   }, [userId]);
-  
-  // Función para obtener la descripción de la transacción
+
   const getTransactionDescription = (t) => {
     if (t.type === 'RECHARGE') {
       return `Recarga a billetera`;
@@ -83,8 +75,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
     }
     return 'Transacción';
   };
-  
-  // Calcular la evolución del balance por día
+
   const calculateBalanceEvolution = useCallback((transactionsList, walletsList) => {
     const last7Days = getLast7Days();
     const currentBalance = walletsList.reduce((sum, w) => sum + (w.balance || 0), 0);
@@ -98,7 +89,6 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       new Date(a.createdAt) - new Date(b.createdAt)
     );
 
-    // Para cada día calcula el balance acumulado desde cero (sin reutilizar runningBalance entre días)
     const evolution = last7Days.map(day => {
       const dayEnd = new Date(day.date + 'T23:59:59');
       let balance = 0;
@@ -131,12 +121,12 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
 
     setChartData(evolution);
   }, [userId]);
-  
+
   const getLast7Days = () => {
     const days = [];
     const today = new Date();
     const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    
+
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
@@ -145,20 +135,19 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       const label = `${date.getDate()} ${months[date.getMonth()]}`;
       days.push({ date: dateStr, label, fullDate: date });
     }
-    
+
     return days;
   };
-  
-  // Cargar billeteras y transacciones - SOLO UNA VEZ al montar
+
   useEffect(() => {
     const loadData = async () => {
       if (!userId) {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
-      
+
       try {
         const walletsResult = await getUserWallets(userId);
         let wallets = [];
@@ -168,31 +157,30 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           const total = wallets.reduce((sum, w) => sum + (w.balance || 0), 0);
           setTotalBalance(total);
         }
-        
+
         const transResult = await getUserTransactions(userId);
         let trans = [];
         if (transResult.success && transResult.data) {
           trans = transResult.data;
           setTransactions(trans);
         }
-        
+
         calculateBalanceEvolution(trans, wallets);
-        
+
       } catch (error) {
         console.error('Error cargando datos:', error);
       }
-      
+
       setLoading(false);
     };
-    
+
     if (isInitialLoad.current) {
       loadData();
       refreshUserData();
       isInitialLoad.current = false;
     }
-  }, [userId, calculateBalanceEvolution, refreshUserData]); // Dependencias correctas
-  
-  // Transacciones recientes (calculado en cada render pero sin recargar)
+  }, [userId, calculateBalanceEvolution, refreshUserData]); 
+
   const recentTransactions = transactions
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
@@ -205,31 +193,27 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       status: t.status === 'COMPLETED' ? 'Completada' : t.status === 'FAILED' ? 'Fallida' : t.status === 'REVERSED' ? 'Reversada' : 'Pendiente',
       isPositive: t.type === 'RECHARGE' || (t.type === 'TRANSFER' && t.receiverUserId === userId)
     }));
-  
-  // Handlers para abrir modales
+
   const handleRecharge = (wallet) => {
     setSelectedWallet(wallet);
     setShowRechargeModal(true);
   };
-  
+
   const handleTransfer = (wallet) => {
     setSelectedWallet(wallet);
     setShowTransferModal(true);
   };
-  
+
   const handleWithdraw = (wallet) => {
     setSelectedWallet(wallet);
     setShowWithdrawModal(true);
   };
-  
-  // Actualizar todos los datos después de una transacción exitosa
+
   const handleTransactionSuccess = async () => {
     console.log('🔄 Actualizando datos después de transacción...');
-    
-    // Actualizar datos del usuario (puntos y nivel)
+
     await refreshUserData();
-    
-    // Recargar billeteras
+
     const walletsResult = await getUserWallets(userId);
     if (walletsResult.success && walletsResult.data) {
       setUserWallets(walletsResult.data);
@@ -237,31 +221,30 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       setTotalBalance(total);
       calculateBalanceEvolution(transactions, walletsResult.data);
     }
-    
-    // Recargar transacciones
+
     const transResult = await getUserTransactions(userId);
     if (transResult.success && transResult.data) {
       setTransactions(transResult.data);
     }
   };
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
       minimumFractionDigits: 0, maximumFractionDigits: 0
     }).format(value || 0);
   };
-  
+
   const formatNumber = (value) => {
     return new Intl.NumberFormat('es-CO').format(value || 0);
   };
-  
+
   const handleNavigateToProfile = () => onTabChange('profile');
   const handleViewAllNotifications = () => onTabChange('notifications');
   const handleLogout = () => onLogout();
-  
+
   if (activeTab !== 'dashboard') return null;
-  
+
   if (loading) {
     return (
       <div className="dashboard-main-content">
@@ -272,10 +255,9 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
       </div>
     );
   }
-  
-  // Calcular valor máximo para el gráfico
+
   const maxChartValue = Math.max(...chartData.map(d => d.value), 1000);
-  
+
   return (
     <div className="dashboard-main-content">
       <header className="dashboard-header">
@@ -392,8 +374,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
           )}
         </div>
       </div>
-      
-      {/* Modales de transacciones */}
+
       <RechargeModal
         isOpen={showRechargeModal}
         onClose={() => {
@@ -404,7 +385,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         selectedWallet={selectedWallet}
         onSuccess={handleTransactionSuccess}
       />
-      
+
       <WithdrawModal
         isOpen={showWithdrawModal}
         onClose={() => {
@@ -415,7 +396,7 @@ const Dashboard = ({ user, onLogout, activeTab, onTabChange }) => {
         selectedWallet={selectedWallet}
         onSuccess={handleTransactionSuccess}
       />
-      
+
       <TransferModal
         isOpen={showTransferModal}
         onClose={() => {

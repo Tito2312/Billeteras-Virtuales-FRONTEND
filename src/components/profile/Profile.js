@@ -1,6 +1,3 @@
-// Profile.js - Perfil de usuario (ver y editar datos)
-// El correo electrónico NO se puede modificar
-
 import React, { useState, useEffect } from 'react';
 import { getCurrentUser } from '../../API/auth';
 import { getUserById, updateUser, changePasswordLogged } from '../../API/auth';
@@ -11,7 +8,7 @@ const Profile = ({ user, onUpdateUser }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   const [userData, setUserData] = useState({
     id: '',
     nombre: '',
@@ -23,18 +20,16 @@ const Profile = ({ user, onUpdateUser }) => {
     fechaRegistro: '',
     ultimoAcceso: ''
   });
-  
+
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
-  
-  // Estados para el cambio de contraseña
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordMessage, setPasswordMessage] = useState({ text: '', type: '' });
   const [changingPassword, setChangingPassword] = useState(false);
-  
-  // Función para convertir nivel de inglés a español para mostrar
+
   const translateLevel = (level) => {
     const levelMap = {
       'Bronze': 'Bronce',
@@ -44,19 +39,17 @@ const Profile = ({ user, onUpdateUser }) => {
     };
     return levelMap[level] || level || 'Bronce';
   };
-  
-  // Obtener beneficios según el nivel del usuario
+
   const benefits = useLevelBenefits(userData.nivel);
-  
+
   const formatNumber = (value) => {
     return new Intl.NumberFormat('es-CO').format(value || 0);
   };
-  
+
   const formatDate = (dateString) => {
     if (!dateString) return 'No disponible';
     try {
-      // Date-only strings (YYYY-MM-DD) are parsed as UTC by JS → shift day in COT
-      // Appending T12:00:00 makes it local noon so the day stays correct
+
       const normalized = dateString.includes('T') ? dateString : dateString + 'T12:00:00';
       const date = new Date(normalized);
       return date.toLocaleDateString('es-ES', {
@@ -66,11 +59,11 @@ const Profile = ({ user, onUpdateUser }) => {
       return dateString;
     }
   };
-  
+
   const loadUserData = async (userId) => {
     setIsLoading(true);
     const result = await getUserById(userId);
-    
+
     if (result.success && result.data) {
       const apiUser = result.data;
       const newUserData = {
@@ -94,7 +87,7 @@ const Profile = ({ user, onUpdateUser }) => {
         telefono: apiUser.phoneNumber || '',
         documento: apiUser.documentNumber || ''
       });
-      
+
       const currentStoredUser = getCurrentUser();
       if (currentStoredUser) {
         const updatedStoredUser = {
@@ -112,7 +105,7 @@ const Profile = ({ user, onUpdateUser }) => {
     }
     setIsLoading(false);
   };
-  
+
   useEffect(() => {
     const userId = user?.id || getCurrentUser()?.id;
     if (userId) {
@@ -120,24 +113,24 @@ const Profile = ({ user, onUpdateUser }) => {
     } else {
       setIsLoading(false);
     }
-    // Limpiar estados de contraseña al montar
+
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
     setPasswordMessage({ text: '', type: '' });
   }, [user?.id]);
-  
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.nombre?.trim()) newErrors.nombre = 'El nombre es obligatorio';
     if (!formData.telefono?.trim()) newErrors.telefono = 'El teléfono es obligatorio';
     return newErrors;
   };
-  
+
   const handleEdit = () => {
     setIsEditing(true);
   };
-  
+
   const handleCancel = () => {
     setFormData({
       nombre: userData.nombre,
@@ -148,23 +141,23 @@ const Profile = ({ user, onUpdateUser }) => {
     setIsEditing(false);
     setErrors({});
   };
-  
+
   const handleSave = async () => {
     const newErrors = validateForm();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setIsSaving(true);
     const userId = user?.id || getCurrentUser()?.id;
-    
+
     const result = await updateUser(userId, {
       name: formData.nombre,
       email: userData.email,
       phoneNumber: formData.telefono
     });
-    
+
     if (result.success) {
       await loadUserData(userId);
       setIsEditing(false);
@@ -174,13 +167,13 @@ const Profile = ({ user, onUpdateUser }) => {
     }
     setIsSaving(false);
   };
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
-  
+
   const getLevelColor = () => {
     switch(translateLevel(userData.nivel)) {
       case 'Platino': return '#e5e4e2';
@@ -189,8 +182,7 @@ const Profile = ({ user, onUpdateUser }) => {
       default: return '#cd7f32';
     }
   };
-  
-  // ========== CAMBIO DE CONTRASEÑA ==========
+
   const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       setPasswordMessage({ text: '❌ Todos los campos son obligatorios', type: 'error' });
@@ -204,13 +196,13 @@ const Profile = ({ user, onUpdateUser }) => {
       setPasswordMessage({ text: '❌ Las contraseñas nuevas no coinciden', type: 'error' });
       return;
     }
-    
+
     setChangingPassword(true);
     try {
       const result = await changePasswordLogged(currentPassword, newPassword, confirmPassword);
       if (result.success) {
         setPasswordMessage({ text: '✅ Contraseña cambiada exitosamente', type: 'success' });
-        // Limpiar campos
+
         setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
@@ -223,7 +215,7 @@ const Profile = ({ user, onUpdateUser }) => {
       setChangingPassword(false);
     }
   };
-  
+
   if (isLoading) {
     return (
       <div className="profile-page">
@@ -234,14 +226,14 @@ const Profile = ({ user, onUpdateUser }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="profile-page">
       <div className="profile-header">
         <h1>Mi Perfil</h1>
         <p>Gestiona tu información personal</p>
       </div>
-      
+
       <div className="profile-container">
         <div className="profile-sidebar">
           <div className="profile-avatar">
@@ -256,8 +248,7 @@ const Profile = ({ user, onUpdateUser }) => {
               <span className="points-value">{formatNumber(userData.puntos)} puntos</span>
             </div>
           </div>
-          
-          {/* SECCIÓN: BENEFICIOS ACTIVOS */}
+
           <div className="profile-benefits">
             <h3>Beneficios de {translateLevel(userData.nivel)}</h3>
             <div className="benefits-list-profile">
@@ -285,7 +276,7 @@ const Profile = ({ user, onUpdateUser }) => {
               </div>
             </div>
           </div>
-          
+
           <div className="profile-stats">
             <div className="stat-item">
               <span className="stat-label">Miembro desde</span>
@@ -297,7 +288,7 @@ const Profile = ({ user, onUpdateUser }) => {
             </div>
           </div>
         </div>
-        
+
         <div className="profile-form-container">
           <div className="form-header">
             <h2>Información Personal</h2>
@@ -307,7 +298,7 @@ const Profile = ({ user, onUpdateUser }) => {
               </button>
             )}
           </div>
-          
+
           <div className="profile-form">
             <div className="form-group">
               <label>Nombre completo *</label>
@@ -326,7 +317,7 @@ const Profile = ({ user, onUpdateUser }) => {
                 <div className="field-value">{userData.nombre || 'No registrado'}</div>
               )}
             </div>
-            
+
             <div className="form-group">
               <label>Correo electrónico</label>
               <div className="field-value email-field">
@@ -334,7 +325,7 @@ const Profile = ({ user, onUpdateUser }) => {
               </div>
               <small className="field-hint">El correo electrónico no puede ser modificado</small>
             </div>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label>Teléfono *</label>
@@ -353,14 +344,14 @@ const Profile = ({ user, onUpdateUser }) => {
                   <div className="field-value">{userData.telefono || 'No registrado'}</div>
                 )}
               </div>
-              
+
               <div className="form-group">
                 <label>Documento</label>
                 <div className="field-value disabled-field">{userData.documento || 'No registrado'}</div>
                 <small className="field-hint">El documento no puede ser modificado</small>
               </div>
             </div>
-            
+
             <div className="form-row">
               <div className="form-group">
                 <label>Nivel</label>
@@ -368,13 +359,13 @@ const Profile = ({ user, onUpdateUser }) => {
                   {translateLevel(userData.nivel)}
                 </div>
               </div>
-              
+
               <div className="form-group">
                 <label>Puntos</label>
                 <div className="field-value">{formatNumber(userData.puntos)} pts</div>
               </div>
             </div>
-            
+
             {isEditing && (
               <div className="form-buttons">
                 <button className="btn-cancel" onClick={handleCancel} disabled={isSaving}>
@@ -386,8 +377,7 @@ const Profile = ({ user, onUpdateUser }) => {
               </div>
             )}
           </div>
-          
-          {/* ========== SECCIÓN CAMBIAR CONTRASEÑA ========== */}
+
           <div className="profile-change-password-section">
             <h3>🔒 Cambiar Contraseña</h3>
             <div className="change-password-form">

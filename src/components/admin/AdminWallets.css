@@ -1,5 +1,3 @@
-/* AdminWallets.css - Estilos para gestión de billeteras */
-
 .admin-wallets-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -184,11 +182,11 @@
   .admin-wallets-filters {
     flex-direction: column;
   }
-  
+
   .search-box {
     width: 100%;
   }
-  
+
   .filter-box select {
     width: 100%;
   }

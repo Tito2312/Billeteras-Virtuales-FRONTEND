@@ -1,12 +1,9 @@
-/* Wallets.css - Estilos para la página de gestión de billeteras */
-
 .wallets-page {
   padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header */
 .wallets-header {
   display: flex;
   justify-content: space-between;
@@ -44,7 +41,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Estadísticas */
 .wallets-stats {
   display: flex;
   gap: 20px;
@@ -72,14 +68,12 @@
   color: #7c3aed;
 }
 
-/* Grid de billeteras */
 .wallets-grid-full {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 24px;
 }
 
-/* Tarjeta de billetera */
 .wallet-card-full {
   background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
   border-radius: 20px;
@@ -132,7 +126,6 @@
   opacity: 0.75;
 }
 
-/* Menú de 3 puntitos */
 .wallet-menu {
   position: relative;
 }
@@ -195,7 +188,6 @@
   background: #fee2e2;
 }
 
-/* Balance */
 .wallet-balance-full {
   margin-bottom: 16px;
   padding-top: 16px;
@@ -215,10 +207,6 @@
   font-size: 28px;
   font-weight: 700;
 }
-
-/* ============================================ */
-/* CLAVE DE LA BILLETERA - ESTILOS MEJORADOS */
-/* ============================================ */
 
 .wallet-transfer-key-full {
   background: rgba(0, 0, 0, 0.3);
@@ -281,7 +269,6 @@
   transform: scale(1.02);
 }
 
-/* Estado de billetera */
 .wallet-status {
   font-size: 12px;
   margin-top: 12px;
@@ -299,7 +286,6 @@
   font-weight: 600;
 }
 
-/* Botones de acción */
 .wallet-actions-full {
   display: flex;
   gap: 10px;
@@ -351,7 +337,6 @@
   background: rgba(245, 158, 11, 0.35);
 }
 
-/* Loading */
 .loading-container-wallets {
   display: flex;
   flex-direction: column;
@@ -376,7 +361,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Ajustes para el menú y tarjetas */
 .wallet-card-wrapper {
   position: relative;
 }
@@ -388,38 +372,37 @@
   z-index: 10;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .wallets-page {
     padding: 20px;
   }
-  
+
   .wallets-header {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .wallets-header h1 {
     font-size: 24px;
   }
-  
+
   .wallets-grid-full {
     grid-template-columns: 1fr;
   }
-  
+
   .wallets-stats {
     flex-direction: column;
   }
-  
+
   .stat-badge {
     justify-content: space-between;
   }
-  
+
   .key-content-full {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .btn-copy-key-full {
     justify-content: center;
   }

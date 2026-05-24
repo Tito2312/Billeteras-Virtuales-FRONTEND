@@ -1,6 +1,3 @@
-// rewards.js - Servicio de recompensas y niveles
-// Según documento del proyecto
-
 const BASE_URL = 'http://localhost:8080/api';
 
 const getAuthToken = () => localStorage.getItem('auth_token');
@@ -21,7 +18,6 @@ const handleResponse = async (response) => {
   return data;
 };
 
-// Obtener puntos y nivel del usuario
 export const getUserPoints = async (userId) => {
   try {
     const response = await fetch(`${BASE_URL}/users/${userId}`, { headers: getHeaders(true) });
@@ -32,13 +28,11 @@ export const getUserPoints = async (userId) => {
   }
 };
 
-// Obtener información completa de niveles según documento
 export const getUserLevelInfo = async (userId) => {
   try {
     const response = await fetch(`${BASE_URL}/users/${userId}`, { headers: getHeaders(true) });
     const user = await handleResponse(response);
-    
-    // Niveles según documento (4.5)
+
     const levels = [
       { 
         name: 'Bronce', 
@@ -89,11 +83,11 @@ export const getUserLevelInfo = async (userId) => {
         ]
       }
     ];
-    
+
     const currentLevel = levels.find(l => user.points >= l.minPoints && user.points <= l.maxPoints) || levels[0];
     const currentLevelIndex = levels.findIndex(l => l.name === currentLevel.name);
     const nextLevel = levels[currentLevelIndex + 1];
-    
+
     return {
       success: true,
       data: {
@@ -110,7 +104,6 @@ export const getUserLevelInfo = async (userId) => {
   }
 };
 
-// Reglas de puntos según documento (4.4)
 export const getPointsRules = () => {
   return [
     { type: 'Recarga', points: '1 punto por cada $100', icon: '📥', multiplier: 0.01 },
@@ -119,7 +112,6 @@ export const getPointsRules = () => {
     { type: 'Pago programado', points: 'Bono adicional', icon: '⏰', multiplier: 'bono' }
   ];
 };
-// ── Beneficios reales del backend ──────────────────────
 
 export const getAvailableBenefits = async () => {
   try {

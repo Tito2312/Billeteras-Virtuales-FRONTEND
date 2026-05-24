@@ -17,7 +17,7 @@ const AdminBenefits = () => {
   const [benefits, setBenefits] = useState([]);
   const [redeemed, setRedeemed] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState('list'); // 'list' | 'redeemed'
+  const [tab, setTab] = useState('list'); 
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
@@ -78,7 +78,6 @@ const AdminBenefits = () => {
       <h1 style={{ color: '#1e1b4b', marginBottom: 4 }}>Gestión de Beneficios</h1>
       <p style={{ color: '#6b7280', marginBottom: 24 }}>Crea, activa/desactiva beneficios y consulta canjes.</p>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         {[['list', '🎁 Beneficios'], ['create', '➕ Nuevo beneficio'], ['redeemed', '📋 Canjes']].map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)} style={{

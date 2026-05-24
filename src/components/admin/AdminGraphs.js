@@ -1,11 +1,9 @@
-// components/admin/AdminGraphs.js
 import React, { useState, useEffect } from 'react';
 import { hasCycles, getMostActiveUser, getFrequentTransfers } from '../../API/graph';
 import { getAllUsers } from '../../API/admin';
 import { getAllTransactions } from '../../API/admin';
 import './AdminGraphs.css';
 
-// Función auxiliar para convertir cualquier formato de ID a string
 const safeUserId = (id) => {
     if (!id) return null;
     if (typeof id === 'string') return id;
@@ -30,13 +28,12 @@ const AdminGraphs = () => {
     const loadGraphData = async () => {
         setLoading(true);
         setError(null);
-        
+
         try {
-            // 1. Ciclos
+
             const cyclesResult = await hasCycles();
             if (cyclesResult.success) setCycles(cyclesResult.hasCycle);
-            
-            // 2. Usuarios
+
             const usersResult = await getAllUsers();
             let users = [];
             if (usersResult.success && usersResult.data) {
@@ -46,8 +43,7 @@ const AdminGraphs = () => {
                 }));
                 setAllUsers(users);
             }
-            
-            // 3. Transacciones
+
             const transactionsResult = await getAllTransactions();
             let transactions = [];
             if (transactionsResult.success && transactionsResult.data) {
@@ -56,8 +52,7 @@ const AdminGraphs = () => {
                     userId: safeUserId(tx.userId),
                     receiverUserId: safeUserId(tx.receiverUserId)
                 }));
-                
-                // Calcular usuario más activo localmente (por cantidad de transferencias enviadas)
+
                 const transferCount = new Map();
                 transactions.forEach(tx => {
                     if (tx.type === 'TRANSFER' && tx.userId) {
@@ -73,11 +68,11 @@ const AdminGraphs = () => {
                         maxUserId = userId;
                     }
                 }
-                // Si encontramos localmente, usarlo (prioridad sobre el backend)
+
                 if (maxUserId) {
                     setMostActiveUser(maxUserId);
                 } else {
-                    // Fallback: intentar obtener del backend
+
                     const activeUserResult = await getMostActiveUser();
                     if (activeUserResult.success && activeUserResult.userId) {
                         setMostActiveUser(safeUserId(activeUserResult.userId));
@@ -85,8 +80,7 @@ const AdminGraphs = () => {
                         setMostActiveUser(null);
                     }
                 }
-                
-                // 4. Conexiones recurrentes
+
                 const frequent = await getFrequentTransfers(transactions);
                 const normalizedFrequent = frequent.map(conn => ({
                     ...conn,
@@ -95,7 +89,7 @@ const AdminGraphs = () => {
                 }));
                 setFrequentTransfers(normalizedFrequent);
             } else {
-                // No hay transacciones, usar backend para usuario activo si existe
+
                 const activeUserResult = await getMostActiveUser();
                 if (activeUserResult.success && activeUserResult.userId) {
                     setMostActiveUser(safeUserId(activeUserResult.userId));
@@ -107,7 +101,7 @@ const AdminGraphs = () => {
             console.error('Error cargando datos del grafo:', err);
             setError('No se pudieron cargar los datos del grafo. Verifica que el backend esté corriendo.');
         }
-        
+
         setLoading(false);
     };
 
@@ -157,7 +151,7 @@ const AdminGraphs = () => {
                         </p>
                     </div>
                 </div>
-                
+
                 <div className="stat-card-graphs">
                     <div className="stat-icon">⭐</div>
                     <div className="stat-info">
@@ -172,7 +166,7 @@ const AdminGraphs = () => {
                         )}
                     </div>
                 </div>
-                
+
                 <div className="stat-card-graphs">
                     <div className="stat-icon">🔗</div>
                     <div className="stat-info">

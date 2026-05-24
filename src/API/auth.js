@@ -1,11 +1,4 @@
-// API/auth.js - Servicio de autenticación
-// Incluye login, registro, verificación de email, recuperación y cambio de contraseña
-
 const BASE_URL = 'http://localhost:8080/api';
-
-// ============================================
-// UTILIDADES LOCALES
-// ============================================
 
 const getHeaders = (requiresAuth = false) => {
   const headers = { 'Content-Type': 'application/json' };
@@ -18,45 +11,38 @@ const getHeaders = (requiresAuth = false) => {
 
 const handleResponse = async (response) => {
   const textResponse = await response.text();
-  
-  // Si es una respuesta exitosa y no hay contenido (204 No Content)
+
   if (response.status === 204) {
     return { success: true, message: 'Operación exitosa' };
   }
-  
-  // Si la respuesta está vacía
+
   if (!textResponse || textResponse.trim() === '') {
     if (response.ok) return { success: true };
     throw { status: response.status, message: 'El servidor no respondió correctamente' };
   }
-  
-  // Intentar parsear como JSON
+
   let data;
   try {
     data = JSON.parse(textResponse);
   } catch (e) {
-    // No es JSON, es texto plano → asumir que es un mensaje de éxito o error
+
     if (response.ok) {
-      // Éxito: devolver el texto como mensaje
+
       return { success: true, message: textResponse };
     } else {
       throw { status: response.status, message: textResponse };
     }
   }
-  
+
   if (!response.ok) {
     throw {
       status: response.status,
       message: data.message || data.error || 'Error en la petición'
     };
   }
-  
+
   return data;
 };
-
-// ============================================
-// AUTENTICACIÓN
-// ============================================
 
 export const register = async (userData) => {
   try {
@@ -152,10 +138,6 @@ export const getCurrentUser = () => {
 export const isAuthenticated = () => !!localStorage.getItem('auth_token');
 export const getToken = () => localStorage.getItem('auth_token');
 
-// ============================================
-// VERIFICACIÓN DE EMAIL
-// ============================================
-
 export const verifyEmail = async (token) => {
   try {
     const url = `${BASE_URL}/auth/verify-email?token=${token}`;
@@ -170,10 +152,6 @@ export const verifyEmail = async (token) => {
     return { success: false, message: error.message || 'El enlace puede haber expirado' };
   }
 };
-
-// ============================================
-// RECUPERACIÓN Y CAMBIO DE CONTRASEÑA
-// ============================================
 
 export const resetPassword = async (email) => {
   try {
@@ -223,10 +201,6 @@ export const changePasswordLogged = async (currentPassword, newPassword, confirm
   }
 };
 
-// ============================================
-// USUARIOS
-// ============================================
-
 export const getUserById = async (id) => {
   try {
     const url = `${BASE_URL}/users/${id}`;
@@ -269,10 +243,6 @@ export const updateUser = async (id, userData) => {
   }
 };
 
-// ============================================
-// BILLETERAS
-// ============================================
-
 export const getUserWallets = async (userId) => {
   try {
     const url = `${BASE_URL}/wallets/user/${userId}`;
@@ -288,10 +258,6 @@ export const getUserWallets = async (userId) => {
     return { success: false, message: error.message, data: [] };
   }
 };
-
-// ============================================
-// ADMIN
-// ============================================
 
 export const isAdmin = () => {
   const user = getCurrentUser();

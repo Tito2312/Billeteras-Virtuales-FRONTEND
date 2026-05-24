@@ -1,6 +1,3 @@
-// TransferModal.js - Modal para transferir dinero
-// Opción B: La comisión la paga el destinatario (se descuenta de lo que recibe)
-
 import React, { useState } from 'react';
 import { transferToUser, getWalletByKey } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';

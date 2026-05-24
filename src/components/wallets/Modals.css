@@ -1,5 +1,3 @@
-/* Modals.css - Estilos comunes para todos los modales de transacciones */
-
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -121,10 +119,6 @@
   margin-top: 6px;
 }
 
-/* ============================================ */
-/* BOTONES - ESTILOS MORADOS PARA TODOS LOS MODALES */
-/* ============================================ */
-
 .modal-buttons {
   display: flex;
   gap: 12px;
@@ -148,7 +142,6 @@
   transform: translateY(-1px);
 }
 
-/* Botón confirmar principal - MORADO */
 .btn-confirm {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -165,7 +158,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Botón de reversión */
 .btn-reverse-modal {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -188,7 +180,6 @@
   transform: none;
 }
 
-/* Botón editar (morado) */
 .btn-edit-modal {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -205,7 +196,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Botón crear (morado) */
 .btn-create-modal {
   padding: 10px 24px;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
@@ -222,7 +212,6 @@
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
-/* Botón eliminar (rojo) */
 .btn-delete {
   padding: 10px 24px;
   background: #ef4444;
@@ -239,10 +228,6 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
-
-/* ============================================ */
-/* ESTILOS ESPECÍFICOS PARA EL MODAL DE REVERSIÓN */
-/* ============================================ */
 
 .modal-reversal {
   max-width: 600px;
@@ -378,10 +363,6 @@
   border-top: 1px solid #e9d5ff;
 }
 
-/* ============================================ */
-/* MODAL ELIMINAR BILLETERA */
-/* ============================================ */
-
 .modal-danger {
   max-width: 460px;
 }
@@ -437,7 +418,6 @@
   gap: 16px;
 }
 
-/* Tarjeta de advertencia */
 .delete-warning-card {
   background: #fff5f5;
   border: 1px solid #fecaca;
@@ -463,7 +443,6 @@
   margin: 0;
 }
 
-/* Tarjeta de info de la billetera */
 .delete-info-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
@@ -504,7 +483,6 @@
   font-size: 15px;
 }
 
-/* Consecuencias */
 .delete-consequences {
   background: linear-gradient(135deg, #fef2f2 0%, #fff5f5 100%);
   border: 1px solid #fecaca;
@@ -533,7 +511,6 @@
   line-height: 1.4;
 }
 
-/* Botones del modal danger */
 .modal-danger-buttons {
   padding: 16px 24px 24px;
   background: #fafafa;
@@ -566,10 +543,6 @@
   box-shadow: 0 4px 14px rgba(185, 28, 28, 0.5);
   transform: translateY(-2px);
 }
-
-/* ============================================ */
-/* ESTILOS PARA TARJETAS DE SELECCIÓN (TransferModal) */
-/* ============================================ */
 
 .section-label {
   display: block;
@@ -660,10 +633,6 @@
   font-size: 12px;
 }
 
-/* ============================================ */
-/* INPUTS CON ICONOS */
-/* ============================================ */
-
 .input-with-icon {
   position: relative;
   display: flex;
@@ -706,10 +675,6 @@
   color: #92400e;
 }
 
-/* ============================================ */
-/* EMPTY STATE */
-/* ============================================ */
-
 .empty-reversible-modal {
   text-align: center;
   padding: 32px;
@@ -725,42 +690,38 @@
   color: #5b21b6;
 }
 
-/* ============================================ */
-/* RESPONSIVE */
-/* ============================================ */
-
 @media (max-width: 640px) {
   .modal-content {
     width: 95%;
   }
-  
+
   .modal-buttons {
     flex-direction: column;
   }
-  
+
   .modal-buttons button {
     width: 100%;
   }
-  
+
   .destination-cards {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
+
   .reversible-item-modal {
     flex-direction: column;
     text-align: center;
     gap: 10px;
   }
-  
+
   .reversible-info-modal {
     flex-direction: column;
   }
-  
+
   .reversible-amount-modal {
     text-align: center;
   }
-  
+
   .details-row {
     flex-direction: column;
     gap: 4px;

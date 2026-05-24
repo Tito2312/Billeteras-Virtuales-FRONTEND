@@ -1,14 +1,10 @@
-// Security.js - Detección de comportamiento inusual
-// Según documento: múltiples transferencias, retiros altos, horarios no habituales
-
 import React, { useState } from 'react';
 import './Security.css';
 
 const Security = ({ user }) => {
-  // Estado de seguridad
+
   const [securityStatus, setSecurityStatus] = useState('protected');
-  
-  // Alertas activas (ejemplo - después vendrán del backend)
+
   const [activeAlerts, setActiveAlerts] = useState([
     {
       id: 1,
@@ -25,8 +21,7 @@ const Security = ({ user }) => {
       date: '6 de abril, 22:15'
     }
   ]);
-  
-  // Alertas resueltas
+
   const [resolvedAlerts, setResolvedAlerts] = useState([
     {
       id: 3,
@@ -37,8 +32,7 @@ const Security = ({ user }) => {
       resolvedDate: '2 de abril'
     }
   ]);
-  
-  // Medidas de seguridad activas
+
   const securityMeasures = [
     { name: 'Autenticación 2FA', active: true, icon: '🔐' },
     { name: 'Notificaciones de inicio de sesión', active: true, icon: '📧' },
@@ -46,7 +40,7 @@ const Security = ({ user }) => {
     { name: 'Límites de transacción', active: true, icon: '💰' },
     { name: 'Monitoreo 24/7', active: true, icon: '🕒' }
   ];
-  
+
   const getRiskClass = (risk) => {
     switch(risk) {
       case 'alto': return 'risk-high';
@@ -55,7 +49,7 @@ const Security = ({ user }) => {
       default: return '';
     }
   };
-  
+
   const getRiskText = (risk) => {
     switch(risk) {
       case 'alto': return 'Riesgo Alto';
@@ -64,7 +58,7 @@ const Security = ({ user }) => {
       default: return '';
     }
   };
-  
+
   const handleResolveAlert = (alertId) => {
     const alert = activeAlerts.find(a => a.id === alertId);
     if (alert) {
@@ -72,16 +66,15 @@ const Security = ({ user }) => {
       setResolvedAlerts([{ ...alert, resolvedDate: new Date().toLocaleDateString('es-ES') }, ...resolvedAlerts]);
     }
   };
-  
+
   return (
     <div className="security-page">
-      {/* Header */}
+
       <div className="security-header">
         <h1>Detección de Seguridad</h1>
         <p>Monitoreo de comportamiento inusual</p>
       </div>
-      
-      {/* Tarjetas de estado */}
+
       <div className="security-stats">
         <div className="security-stat-card">
           <div className="stat-icon">🛡️</div>
@@ -93,7 +86,7 @@ const Security = ({ user }) => {
             <span>Todos los sistemas activos</span>
           </div>
         </div>
-        
+
         <div className="security-stat-card">
           <div className="stat-icon">⚠️</div>
           <div className="stat-info">
@@ -102,7 +95,7 @@ const Security = ({ user }) => {
             <span>Requieren atención</span>
           </div>
         </div>
-        
+
         <div className="security-stat-card">
           <div className="stat-icon">✅</div>
           <div className="stat-info">
@@ -112,8 +105,7 @@ const Security = ({ user }) => {
           </div>
         </div>
       </div>
-      
-      {/* Alertas Activas */}
+
       <div className="alerts-section">
         <h2>Alertas Activas</h2>
         {activeAlerts.length > 0 ? (
@@ -148,8 +140,7 @@ const Security = ({ user }) => {
           </div>
         )}
       </div>
-      
-      {/* Medidas de Seguridad Activas */}
+
       <div className="measures-section">
         <h2>Medidas de Seguridad Activas</h2>
         <div className="measures-grid">
@@ -164,8 +155,7 @@ const Security = ({ user }) => {
           ))}
         </div>
       </div>
-      
-      {/* Alertas Resueltas */}
+
       {resolvedAlerts.length > 0 && (
         <div className="resolved-section">
           <h2>Alertas Resueltas</h2>

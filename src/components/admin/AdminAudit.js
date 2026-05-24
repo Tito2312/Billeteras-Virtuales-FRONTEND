@@ -1,5 +1,3 @@
-// AdminAudit.js - Auditoría del sistema
-
 import React, { useState, useEffect } from 'react';
 import { getAllAudits, getAllUsers } from '../../API/admin';
 import './AdminAudit.css';

@@ -1,5 +1,3 @@
-// AdminTransactions.js - Gestión de transacciones para administradores
-
 import React, { useState, useEffect } from 'react';
 import { getAllTransactions, getAllUsers, reverseTransaction, reverseTransactionPila } from '../../API/admin';
 import './AdminTransactions.css';
@@ -12,7 +10,6 @@ const AdminTransactions = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
 
-  // Pila de reversiones
   const [users, setUsers] = useState([]);
   const [pilaUserId, setPilaUserId] = useState('');
   const [pilaStack, setPilaStack] = useState([]);
@@ -41,7 +38,7 @@ const AdminTransactions = () => {
     setPilaUserId(userId);
     setPilaResult(null);
     if (!userId) { setPilaStack([]); return; }
-    // Construir la pila localmente: transacciones del usuario ordenadas ASC (bottom→top)
+
     const userTx = transactions
       .filter(t => t.userId === userId && t.status !== 'REVERSED' && t.status !== 'FAILED')
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -56,7 +53,7 @@ const AdminTransactions = () => {
     if (result.success) {
       setPilaResult({ ok: true, tx: result.data });
       await loadData();
-      // Reconstruir pila tras revertir
+
       const userTx = transactions
         .filter(t => t.userId === pilaUserId && t.status !== 'REVERSED' && t.status !== 'FAILED' && t.id !== result.data?.id)
         .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -71,9 +68,9 @@ const AdminTransactions = () => {
     if (!window.confirm(`¿Estás seguro de que deseas revertir esta transacción?\n\nID: ${transaction.id}\nMonto: ${formatCurrency(transaction.amount)}\n\nEsta acción no se puede deshacer.`)) {
       return;
     }
-    
+
     const result = await reverseTransaction(transaction.userId, transaction.id);
-    
+
     if (result.success) {
       alert(`✅ Transacción revertida exitosamente`);
       loadData();
@@ -146,7 +143,7 @@ const AdminTransactions = () => {
                           t.targetWallet?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || t.type === filterType;
     const matchesStatus = filterStatus === 'all' || t.status === filterStatus;
-    
+
     let matchesDate = true;
     if (dateRange.start && dateRange.end) {
       const transDate = new Date(t.createdAt);
@@ -155,7 +152,7 @@ const AdminTransactions = () => {
       endDate.setHours(23, 59, 59);
       matchesDate = transDate >= startDate && transDate <= endDate;
     }
-    
+
     return matchesSearch && matchesType && matchesStatus && matchesDate;
   });
 
@@ -298,7 +295,6 @@ const AdminTransactions = () => {
         )}
       </div>
 
-      {/* ── Panel Pila de Reversiones ── */}
       <div className="pila-panel">
         <div className="pila-panel-header">
           <div className="pila-panel-title">

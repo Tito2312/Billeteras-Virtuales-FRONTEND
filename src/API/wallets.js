@@ -1,24 +1,17 @@
-// wallets.js - Servicio de billeteras
-// CRUD de billeteras
-
 const BASE_URL = 'http://localhost:8080/api';
-
-// ============================================
-// UTILIDADES LOCALES
-// ============================================
 
 const getHeaders = (requiresAuth = true) => {
   const headers = {
     'Content-Type': 'application/json',
   };
-  
+
   if (requiresAuth) {
     const token = localStorage.getItem('auth_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
   }
-  
+
   return headers;
 };
 
@@ -29,30 +22,22 @@ const handleResponse = async (response) => {
   } catch (e) {
     data = {};
   }
-  
+
   if (!response.ok) {
     throw {
       status: response.status,
       message: data.message || data.error || 'Error en la petición',
     };
   }
-  
+
   return data;
 };
 
-// ============================================
-// BILLETERAS
-// ============================================
-
-/**
- * Crear una nueva billetera
- * POST /api/wallets
- */
 export const createWallet = async (walletData) => {
   try {
     const url = `${BASE_URL}/wallets`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'POST',
       headers: {
@@ -65,7 +50,7 @@ export const createWallet = async (walletData) => {
         userId: walletData.userId
       })
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -75,22 +60,18 @@ export const createWallet = async (walletData) => {
   }
 };
 
-/**
- * Obtener todas las billeteras de un usuario
- * GET /api/wallets/user/{userId}
- */
 export const getUserWallets = async (userId) => {
   try {
     const url = `${BASE_URL}/wallets/user/${userId}`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -100,22 +81,18 @@ export const getUserWallets = async (userId) => {
   }
 };
 
-/**
- * Obtener billetera por ID
- * GET /api/wallets/{id}?userId={userId}
- */
 export const getWalletById = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -125,15 +102,11 @@ export const getWalletById = async (id, userId) => {
   }
 };
 
-/**
- * Actualizar billetera
- * PUT /api/wallets/{id}?userId={userId}
- */
 export const updateWallet = async (id, userId, walletData) => {
   try {
     const url = `${BASE_URL}/wallets/${id}?userId=${userId}`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'PUT',
       headers: {
@@ -146,7 +119,7 @@ export const updateWallet = async (id, userId, walletData) => {
         userId: userId
       })
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -156,22 +129,18 @@ export const updateWallet = async (id, userId, walletData) => {
   }
 };
 
-/**
- * Activar billetera
- * PATCH /api/wallets/{id}/activate?userId={userId}
- */
 export const activateWallet = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}/activate?userId=${userId}`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -181,22 +150,18 @@ export const activateWallet = async (id, userId) => {
   }
 };
 
-/**
- * Desactivar billetera
- * PATCH /api/wallets/{id}/deactivate?userId={userId}
- */
 export const deactivateWallet = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}/deactivate?userId=${userId}`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, data: result };
@@ -206,10 +171,6 @@ export const deactivateWallet = async (id, userId) => {
   }
 };
 
-/**
- * Eliminar billetera
- * GET /api/wallets/deleteWallet?walletId={walletId}&userId={userId}
- */
 export const deleteWallet = async (walletId, userId) => {
   try {
     const url = `${BASE_URL}/wallets/deleteWallet?walletId=${walletId}&userId=${userId}`;
@@ -232,22 +193,18 @@ export const deleteWallet = async (walletId, userId) => {
   }
 };
 
-/**
- * Obtener balance de billetera
- * POST /api/wallets/{id}/balance?userId={userId}
- */
 export const getWalletBalance = async (id, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${id}/balance?userId=${userId}`;
     const token = localStorage.getItem('auth_token');
-    
+
     const params = {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     };
-    
+
     const response = await fetch(url, params);
     const result = await handleResponse(response);
     return { success: true, balance: result };

@@ -1,5 +1,3 @@
-/* AdminAudit.css - Estilos para auditoría */
-
 .admin-audit-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -129,15 +127,15 @@
   .admin-audit-filters {
     flex-direction: column;
   }
-  
+
   .search-box {
     width: 100%;
   }
-  
+
   .filter-box select {
     width: 100%;
   }
-  
+
   .description-cell {
     max-width: 200px;
   }

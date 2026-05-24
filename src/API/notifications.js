@@ -1,4 +1,3 @@
-// API/notifications.js
 const BASE_URL = 'http://localhost:8080/api';
 
 const getAuthToken = () => localStorage.getItem('auth_token');

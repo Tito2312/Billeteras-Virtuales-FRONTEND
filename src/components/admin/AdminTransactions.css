@@ -1,5 +1,3 @@
-/* AdminTransactions.css - Estilos para gestión de transacciones */
-
 .admin-transactions-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -236,15 +234,15 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-box {
     width: 100%;
   }
-  
+
   .filter-box select {
     width: 100%;
   }
-  
+
   .date-range-filter {
     justify-content: space-between;
   }
@@ -254,15 +252,13 @@
   .date-range-filter {
     flex-direction: column;
   }
-  
+
   .date-range-filter input,
   .date-range-filter button {
     width: 100%;
   }
 }
-/* ══════════════════════════════════════
-   Panel Pila de Reversiones
-══════════════════════════════════════ */
+
 .pila-panel {
   margin-top: 32px;
   background: #fff;
@@ -316,7 +312,6 @@
 
 .pila-user-select:focus { border-color: #7c3aed; }
 
-/* ── Contenido ── */
 .pila-content {
   display: flex;
   gap: 32px;
@@ -325,7 +320,6 @@
   align-items: flex-start;
 }
 
-/* ── Visual stack ── */
 .pila-visual {
   display: flex;
   flex-direction: column;
@@ -429,7 +423,6 @@
   letter-spacing: 0.04em;
 }
 
-/* ── Acción ── */
 .pila-action {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,3 @@
-
-// API/graph.js
 const BASE_URL = 'http://localhost:8080/api';
 
 const getHeaders = () => {
@@ -28,7 +26,6 @@ const handleResponse = async (response) => {
     return data;
 };
 
-// Detectar ciclos financieros
 export const hasCycles = async () => {
     try {
         const response = await fetch(`${BASE_URL}/graph/cycles`, {
@@ -43,7 +40,6 @@ export const hasCycles = async () => {
     }
 };
 
-// Usuario más activo (más transferencias enviadas)
 export const getMostActiveUser = async () => {
     try {
         const response = await fetch(`${BASE_URL}/graph/most-active`, {
@@ -51,20 +47,19 @@ export const getMostActiveUser = async () => {
             headers: getHeaders()
         });
         const result = await handleResponse(response);
-        
-        // Si la respuesta es un objeto con propiedad 'message', significa que no hay datos
+
         if (result && typeof result === 'object' && result.message) {
             return { success: false, userId: null, message: result.message };
         }
-        // Si es un string, es el userId
+
         if (typeof result === 'string') {
             return { success: true, userId: result };
         }
-        // Si es un objeto con $oid (MongoDB)
+
         if (result && result.$oid) {
             return { success: true, userId: result.$oid };
         }
-        // Fallback
+
         return { success: false, userId: null, message: 'No se pudo obtener el usuario más activo' };
     } catch (error) {
         console.error('Error al obtener usuario más activo:', error);
@@ -72,7 +67,6 @@ export const getMostActiveUser = async () => {
     }
 };
 
-// Transferencias desde un usuario específico
 export const getTransfersFromUser = async (userId) => {
     try {
         const response = await fetch(`${BASE_URL}/graph/transfers/${userId}`, {
@@ -87,7 +81,6 @@ export const getTransfersFromUser = async (userId) => {
     }
 };
 
-// Encontrar ruta entre dos usuarios
 export const findPath = async (sourceUserId, targetUserId) => {
     try {
         const response = await fetch(`${BASE_URL}/graph/path?sourceUserId=${sourceUserId}&targetUserId=${targetUserId}`, {
@@ -102,10 +95,9 @@ export const findPath = async (sourceUserId, targetUserId) => {
     }
 };
 
-// Analizar transferencias frecuentes (conexiones recurrentes)
 export const getFrequentTransfers = async (transactions) => {
     const connections = new Map();
-    
+
     transactions.forEach(t => {
         if (t.type === 'TRANSFER' && t.receiverUserId) {
             const key = `${t.userId}->${t.receiverUserId}`;
@@ -117,12 +109,10 @@ export const getFrequentTransfers = async (transactions) => {
             conn.totalAmount += t.amount;
         }
     });
-    
+
     const frequentTransfers = Array.from(connections.values())
         .filter(c => c.count >= 2)
         .sort((a, b) => b.count - a.count);
-    
+
     return frequentTransfers;
 };
-
-

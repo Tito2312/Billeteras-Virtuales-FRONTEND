@@ -1,5 +1,3 @@
-// WithdrawModal.js - Modal para retirar dinero
-
 import React, { useState } from 'react';
 import { withdrawMoney } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
@@ -10,21 +8,21 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     walletId: wallets[0]?.id || '',
     amount: '',
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  
+
   if (!isOpen) return null;
-  
+
   const selectedWallet = wallets.find(w => w.id === formData.walletId);
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value);
   };
-  
+
   const validate = () => {
     const newErrors = {};
     if (!formData.walletId) newErrors.walletId = 'Selecciona una billetera';
@@ -32,7 +30,7 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     if (formData.amount > selectedWallet?.balance) newErrors.amount = 'Monto excede el balance disponible';
     return newErrors;
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
@@ -40,16 +38,16 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
       setErrors(newErrors);
       return;
     }
-    
+
     setLoading(true);
     const userId = getCurrentUser()?.id;
-    
+
     const result = await withdrawMoney(
       userId,
       formData.walletId,
       parseFloat(formData.amount)
     );
-    
+
     if (result.success) {
       alert(`✅ Retiro exitoso: ${formatCurrency(formData.amount)}`);
       if (onSuccess) onSuccess();
@@ -60,7 +58,7 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     }
     setLoading(false);
   };
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -68,7 +66,7 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
           <h2>Retirar Dinero</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Desde billetera</label>
@@ -84,7 +82,7 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
             </select>
             {errors.walletId && <span className="error-text">{errors.walletId}</span>}
           </div>
-          
+
           <div className="form-group">
             <label>Monto a retirar</label>
             <input
@@ -96,7 +94,7 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
             />
             {errors.amount && <span className="error-text">{errors.amount}</span>}
           </div>
-          
+
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={onClose}>
               Cancelar
