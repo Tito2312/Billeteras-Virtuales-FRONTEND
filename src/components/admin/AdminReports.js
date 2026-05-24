@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import {
   getMostUsedWallets,
   getUsersWithMostTransfers,
@@ -117,7 +118,7 @@ const AdminReports = () => {
 
   const handleDateRangeSearch = async () => {
     if (!dateRange.start || !dateRange.end) {
-      alert('Selecciona ambas fechas');
+      toast.info('Selecciona ambas fechas');
       return;
     }
 
@@ -131,7 +132,7 @@ const AdminReports = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al obtener datos');
+      toast.error('Error al obtener datos');
     }
     setLoading(false);
   };

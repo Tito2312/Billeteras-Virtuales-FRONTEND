@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../../utils/toast';
 import { rechargeWallet } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
@@ -48,12 +49,12 @@ const RechargeModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     );
 
     if (result.success) {
-      alert(`✅ Recarga exitosa: ${formatCurrency(formData.amount)}`);
+      toast.success(`Recarga exitosa: ${formatCurrency(formData.amount)}`);
       if (onSuccess) onSuccess();
       onClose();
       setFormData({ walletId: wallets[0]?.id || '', amount: '' });
     } else {
-      alert(`❌ Error al recargar: ${result.message}`);
+      toast.error(`Error al recargar: ${result.message}`);
     }
     setLoading(false);
   };

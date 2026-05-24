@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { getToken } from '../../API/auth';
+import { API_URL } from '../../API/config';
 
-const BASE_URL = 'http://localhost:8080/api/benefits';
+const BASE_URL = `${API_URL}/benefits`;
 
 const headers = () => ({
   'Content-Type': 'application/json',

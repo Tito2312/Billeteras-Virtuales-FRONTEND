@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../../utils/toast';
 import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
 
@@ -196,7 +197,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
 
     } catch (error) {
       console.error('❌ Error en creación:', error);
-      alert('Error al programar la operación: ' + (error.message || 'Error desconocido'));
+      toast.error('Error al programar la operación: ' + (error.message || 'Error desconocido'));
     } finally {
       setLoading(false);
     }

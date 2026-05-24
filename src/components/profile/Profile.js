@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { getCurrentUser } from '../../API/auth';
 import { getUserById, updateUser, changePasswordLogged } from '../../API/auth';
 import { useLevelBenefits } from '../../hooks/useLevelBenefits';
@@ -161,9 +162,9 @@ const Profile = ({ user, onUpdateUser }) => {
     if (result.success) {
       await loadUserData(userId);
       setIsEditing(false);
-      alert('✅ Perfil actualizado exitosamente');
+      toast.success('Perfil actualizado exitosamente');
     } else {
-      alert('❌ Error al actualizar: ' + result.message);
+      toast.error('Error al actualizar: ' + result.message);
     }
     setIsSaving(false);
   };

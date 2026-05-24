@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/api';
+import { API_URL as BASE_URL } from './config';
 
 const getHeaders = (requiresAuth = true, userId = null) => {
   const headers = { 'Content-Type': 'application/json' };

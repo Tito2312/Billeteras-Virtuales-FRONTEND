@@ -18,6 +18,8 @@ import VerifyEmail from './components/auth/VerifyEmail';
 import AdminDashboard from './components/admin/AdminDashboard';
 import TransferNetwork from './components/transferGraph/TransferNetwork';
 import AssistantBot from './components/assistant/AssistantBot';
+import Toast from './components/common/Toast';
+import ConfirmModal from './components/common/ConfirmModal';
 import './App.css';
 
 const AppContent = () => {
@@ -300,6 +302,8 @@ function App() {
   return (
     <Router>
       <AppContent />
+      <Toast />
+      <ConfirmModal />
     </Router>
   );
 }

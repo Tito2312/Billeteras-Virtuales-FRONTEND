@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../utils/toast';
 import { getUserTransactions } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import { getUserWallets } from '../../API/wallets';
@@ -284,7 +285,7 @@ const Transactions = ({ user }) => {
       <div className="history-section">
         <div className="section-header">
           <h2>Historial de Transacciones</h2>
-          <button className="btn-export" onClick={() => alert('Exportar - Próximamente')}>
+          <button className="btn-export" onClick={() => toast.info('Exportar - Próximamente')}>
             📎 Exportar
           </button>
         </div>

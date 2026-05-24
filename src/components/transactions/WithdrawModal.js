@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../../utils/toast';
 import { withdrawMoney } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
@@ -49,12 +50,12 @@ const WithdrawModal = ({ isOpen, onClose, wallets, onSuccess }) => {
     );
 
     if (result.success) {
-      alert(`✅ Retiro exitoso: ${formatCurrency(formData.amount)}`);
+      toast.success(`Retiro exitoso: ${formatCurrency(formData.amount)}`);
       if (onSuccess) onSuccess();
       onClose();
       setFormData({ walletId: wallets[0]?.id || '', amount: '' });
     } else {
-      alert(`❌ Error al retirar: ${result.message}`);
+      toast.error(`Error al retirar: ${result.message}`);
     }
     setLoading(false);
   };

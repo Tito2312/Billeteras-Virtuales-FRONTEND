@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '../../utils/toast';
 import { transferToUser, getWalletByKey } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';
 import { useLevelBenefits } from '../../hooks/useLevelBenefits';
@@ -117,7 +118,7 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
       if (formData.destinationType === 'own') {
         const targetWallet = wallets.find(w => w.id === formData.targetWalletId);
         if (!targetWallet?.transferKey) {
-          alert('❌ La billetera destino no tiene clave de transferencia configurada');
+          toast.error('La billetera destino no tiene clave de transferencia configurada');
           setLoading(false);
           return;
         }
@@ -134,7 +135,7 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
       );
 
       if (result.success) {
-        alert(`✅ Transferencia exitosa: ${formatCurrency(amount)}\n\n💰 Comisión aplicada: ${formatCurrency(commissionAmount)} (${benefits.formatCommissionRate()})\n📦 El destinatario recibe: ${formatCurrency(receiverAmount)}\n💳 Total debitado de tu cuenta: ${formatCurrency(totalDebit)}`);
+        toast.success(`Transferencia exitosa: ${formatCurrency(amount)}\n💰 Comisión: ${formatCurrency(commissionAmount)} (${benefits.formatCommissionRate()})\n📦 Destinatario recibe: ${formatCurrency(receiverAmount)}`);
         if (onSuccess) await onSuccess();
         onClose();
         setFormData({
@@ -147,11 +148,11 @@ const TransferModal = ({ isOpen, onClose, wallets, selectedWallet, onSuccess }) 
         });
         setDestinationInfo(null);
       } else {
-        alert(`❌ Error al transferir: ${result.message}`);
+        toast.error(`Error al transferir: ${result.message}`);
       }
     } catch (error) {
       console.error('Error en transferencia:', error);
-      alert(`❌ Error al transferir: ${error.message || 'Error desconocido'}`);
+      toast.error(`Error al transferir: ${error.message || 'Error desconocido'}`);
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from '../../utils/toast';
 import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
 
@@ -119,7 +120,7 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
       await onEdit(operation.id, operationData);
       onClose();
     } catch (error) {
-      alert('Error al editar: ' + error.message);
+      toast.error('Error al editar: ' + error.message);
     } finally {
       setLoading(false);
     }
