@@ -3,13 +3,11 @@ import { getAllUsers } from '../../API/admin';
 import { getOrderedUsers, getUsersByRange, getTopUser, getUsersByLevel } from '../../API/admin';
 import './AdminUserTree.css';
 
-// ── Constantes de layout ──────────────────────────────
 const NODE_R   = 22;
-const H_GAP    = 58;   // espacio horizontal entre nodos
-const V_GAP    = 88;   // espacio vertical entre niveles
+const H_GAP    = 58;   
+const V_GAP    = 88;   
 const PAD      = 50;
 
-// ── BST helpers ───────────────────────────────────────
 const bstInsert = (root, user) => {
     if (!root) return { user, points: user.points, left: null, right: null };
     if (user.points <= root.points) return { ...root, left: bstInsert(root.left, user) };
@@ -18,7 +16,6 @@ const bstInsert = (root, user) => {
 
 const buildBST = (users) => users.reduce((root, u) => bstInsert(root, u), null);
 
-// Asigna índice x via inorder (izquierda → nodo → derecha)
 const assignXIndex = (node, counter = { v: 0 }) => {
     if (!node) return;
     assignXIndex(node.left, counter);
@@ -33,7 +30,6 @@ const assignDepth = (node, d = 0) => {
     assignDepth(node.right, d + 1);
 };
 
-// Recorre el árbol y recolecta { node, x, y, px, py }
 const collectLayout = (node, parentPos, result) => {
     if (!node) return;
     const x = node.xIdx * H_GAP + PAD;
@@ -43,7 +39,6 @@ const collectLayout = (node, parentPos, result) => {
     collectLayout(node.right, { x, y }, result);
 };
 
-// ── Colores por nivel ─────────────────────────────────
 const getLevelStyle = (points) => {
     if (points > 5000) return { fill: '#7c3aed', text: '#fff', label: 'Platino' };
     if (points > 1000) return { fill: '#d97706', text: '#fff', label: 'Oro' };
@@ -68,11 +63,10 @@ const LEVEL_RANGES = {
 
 const fmt = (p) => new Intl.NumberFormat('es-CO').format(p || 0);
 
-// ── Componente principal ──────────────────────────────
 const AdminUserTree = () => {
-    const [rawUsers, setRawUsers]       = useState([]); // orden MongoDB (para construir BST)
+    const [rawUsers, setRawUsers]       = useState([]); 
     const [topUser, setTopUser]         = useState(null);
-    const [displayUsers, setDisplayUsers] = useState([]); // lista ranking
+    const [displayUsers, setDisplayUsers] = useState([]); 
     const [loading, setLoading]         = useState(true);
     const [activeLevel, setActiveLevel] = useState('ALL');
     const [rangeMin, setRangeMin]       = useState('');
@@ -96,7 +90,6 @@ const AdminUserTree = () => {
         setLoading(false);
     };
 
-    // ── Construir y calcular layout del árbol ──────────
     const buildLayout = () => {
         if (!rawUsers.length) return { nodes: [], svgW: 0, svgH: 0 };
         const root = buildBST(rawUsers);
@@ -115,7 +108,6 @@ const AdminUserTree = () => {
 
     const { nodes, svgW, svgH } = buildLayout();
 
-    // ── Filtros ────────────────────────────────────────
     const handleLevelFilter = async (key) => {
         setActiveLevel(key);
         setSearchMode('level');
@@ -145,13 +137,12 @@ const AdminUserTree = () => {
 
     return (
         <div className="tree-container">
-            {/* Header */}
+
             <div className="tree-header">
                 <h1>Ranking de Usuarios</h1>
                 <p>Usuarios clasificados por puntos acumulados mediante un Árbol Binario de Búsqueda (BST).</p>
             </div>
 
-            {/* ── SECCIÓN 1: ORGANIZAR POR PUNTOS ── */}
             <div className="tree-section-label">
                 <span className="tree-section-num">1</span>
                 <span>Organizar usuarios según puntos acumulados</span>
@@ -170,7 +161,7 @@ const AdminUserTree = () => {
                             height={svgH}
                             className="tree-svg"
                         >
-                            {/* Aristas primero (debajo de los nodos) */}
+
                             {nodes.map((n, i) =>
                                 n.px !== null ? (
                                     <line
@@ -183,7 +174,6 @@ const AdminUserTree = () => {
                                 ) : null
                             )}
 
-                            {/* Nodos */}
                             {nodes.map((n, i) => {
                                 const style = getLevelStyle(n.node.points);
                                 const initials = n.node.user?.name?.substring(0, 2).toUpperCase() || '??';
@@ -195,11 +185,11 @@ const AdminUserTree = () => {
                                         onMouseEnter={(e) => setTooltip({ x: e.clientX, y: e.clientY, user: n.node.user })}
                                         onMouseLeave={() => setTooltip(null)}
                                     >
-                                        {/* Sombra */}
+
                                         <circle cx={n.x} cy={n.y} r={NODE_R + 2} fill="rgba(0,0,0,0.08)" />
-                                        {/* Nodo */}
+
                                         <circle cx={n.x} cy={n.y} r={NODE_R} fill={style.fill} />
-                                        {/* Iniciales */}
+
                                         <text
                                             x={n.x} y={n.y + 1}
                                             textAnchor="middle"
@@ -210,7 +200,7 @@ const AdminUserTree = () => {
                                         >
                                             {initials}
                                         </text>
-                                        {/* Puntos sobre el nodo */}
+
                                         <text
                                             x={n.x} y={n.y - NODE_R - 6}
                                             textAnchor="middle"
@@ -220,7 +210,7 @@ const AdminUserTree = () => {
                                         >
                                             {fmt(n.node.points)} pts
                                         </text>
-                                        {/* Nombre debajo */}
+
                                         <text
                                             x={n.x} y={n.y + NODE_R + 13}
                                             textAnchor="middle"
@@ -237,7 +227,6 @@ const AdminUserTree = () => {
                     </div>
                 )}
 
-                {/* Leyenda */}
                 <div className="tree-legend">
                     {[
                         { label: 'Bronce',  color: '#b45309', range: '0 – 500 pts' },
@@ -254,13 +243,11 @@ const AdminUserTree = () => {
                 </div>
             </div>
 
-            {/* ── SECCIÓN 2: CLASIFICAR NIVELES ── */}
             <div className="tree-section-label">
                 <span className="tree-section-num">2</span>
                 <span>Clasificar niveles de fidelización</span>
             </div>
 
-            {/* ── TOP USER ── */}
             {topUser && (
                 <div className="tree-top-card">
                     <div className="tree-top-crown">👑</div>
@@ -279,7 +266,6 @@ const AdminUserTree = () => {
                 </div>
             )}
 
-            {/* ── STATS POR NIVEL ── */}
             <div className="tree-level-stats">
                 {LEVELS.filter(l => l.key !== 'ALL').map(l => {
                     const [min, max] = LEVEL_RANGES[l.key];
@@ -294,13 +280,11 @@ const AdminUserTree = () => {
                 })}
             </div>
 
-            {/* ── SECCIÓN 3: BÚSQUEDA POR RANGO ── */}
             <div className="tree-section-label">
                 <span className="tree-section-num">3</span>
                 <span>Búsquedas eficientes por rango de puntos</span>
             </div>
 
-            {/* ── FILTROS ── */}
             <div className="tree-filters">
                 <div className="tree-level-tabs">
                     {LEVELS.map(l => (
@@ -327,13 +311,11 @@ const AdminUserTree = () => {
                 </div>
             </div>
 
-            {/* ── SECCIÓN 4: REPORTE ORDENADO ── */}
             <div className="tree-section-label">
                 <span className="tree-section-num">4</span>
                 <span>Reporte ordenado — recorrido inorder del BST</span>
             </div>
 
-            {/* ── TABLA RANKING ── */}
             <div className="tree-table-wrapper">
                 <div className="tree-table-header-row">
                     <span className="tree-col-rank">Pos.</span>
@@ -392,7 +374,6 @@ const AdminUserTree = () => {
                 El nodo máximo siempre está en el extremo derecho del árbol.
             </div>
 
-            {/* Tooltip */}
             {tooltip && (
                 <div className="tree-tooltip" style={{ left: tooltip.x + 14, top: tooltip.y - 12 }}>
                     <div className="tt-name">{tooltip.user?.name}</div>

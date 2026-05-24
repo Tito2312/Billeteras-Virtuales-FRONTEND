@@ -1,5 +1,3 @@
-/* NotificationBell.css - Estilos para campanita y mini ventana */
-
 .notification-bell {
   position: relative;
 }
@@ -41,7 +39,6 @@
   text-align: center;
 }
 
-/* Dropdown */
 .notification-dropdown {
   position: absolute;
   top: 50px;

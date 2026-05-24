@@ -1,4 +1,3 @@
-// Notifications.js
 import React, { useState, useEffect } from 'react';
 import { getUserNotifications } from '../../API/notifications';
 import { getCurrentUser } from '../../API/auth';
@@ -38,7 +37,6 @@ const Notifications = ({ user }) => {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
 
-
     const storageKey = userId ? `readNotifications_${userId}` : 'readNotifications';
 
     const getReadIds = () => {
@@ -70,7 +68,7 @@ const Notifications = ({ user }) => {
             setLoading(false);
         };
         load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [userId]);
 
     const unreadCount = notifications.filter(n => !n.read).length;

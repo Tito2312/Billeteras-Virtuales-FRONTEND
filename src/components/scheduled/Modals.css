@@ -1,7 +1,3 @@
-/* ============================================ */
-/* ESTILOS PARA SELECCIÓN DE DESTINO (TARJETAS) */
-/* ============================================ */
-
 .destination-section {
   margin-bottom: 24px;
 }
@@ -98,7 +94,6 @@
   font-size: 12px;
 }
 
-/* Campo de destino */
 .destination-field {
   margin-top: 16px;
   padding-top: 16px;
@@ -113,7 +108,6 @@
   margin-bottom: 8px;
 }
 
-/* Inputs con icono */
 .input-with-icon {
   position: relative;
   display: flex;
@@ -145,7 +139,6 @@
   box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
 }
 
-/* Métodos de pago */
 .payment-methods {
   display: flex;
   flex-direction: column;
@@ -178,32 +171,30 @@
   font-size: 20px;
 }
 
-/* Modal más ancho para mejor visualización */
 .modal-scheduled {
   max-width: 650px;
 }
 
-/* Responsive */
 @media (max-width: 640px) {
   .destination-cards {
     grid-template-columns: 1fr;
     gap: 12px;
   }
-  
+
   .modal-scheduled {
     max-width: 95%;
   }
-  
+
   .destination-card {
     padding: 12px;
   }
-  
+
   .destination-icon {
     width: 40px;
     height: 40px;
     font-size: 20px;
   }
-  
+
   .destination-info h4 {
     font-size: 14px;
   }

@@ -1,11 +1,9 @@
-// DeleteWalletModal.js - Modal de confirmación (SOLO VISUAL)
-
 import React from 'react';
 import './Modals.css';
 
 const DeleteWalletModal = ({ isOpen, onClose, onDelete, wallet }) => {
   if (!isOpen || !wallet) return null;
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
@@ -14,7 +12,7 @@ const DeleteWalletModal = ({ isOpen, onClose, onDelete, wallet }) => {
       maximumFractionDigits: 0
     }).format(value);
   };
-  
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content modal-danger" onClick={(e) => e.stopPropagation()}>
@@ -25,7 +23,7 @@ const DeleteWalletModal = ({ isOpen, onClose, onDelete, wallet }) => {
           <h2>Eliminar Billetera</h2>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="modal-body">
           <div className="delete-warning-card">
             <div className="warning-badge">
@@ -38,7 +36,7 @@ const DeleteWalletModal = ({ isOpen, onClose, onDelete, wallet }) => {
               <strong>Esta acción no se puede deshacer.</strong>
             </p>
           </div>
-          
+
           <div className="delete-info-card">
             <div className="delete-info-row">
               <span className="info-label">Nombre:</span>
@@ -53,7 +51,7 @@ const DeleteWalletModal = ({ isOpen, onClose, onDelete, wallet }) => {
               <span className="info-value highlight">{formatCurrency(wallet.balance)}</span>
             </div>
           </div>
-          
+
           <div className="delete-consequences">
             <p className="consequences-title">Se eliminará permanentemente:</p>
             <ul className="consequences-list">
@@ -64,7 +62,7 @@ const DeleteWalletModal = ({ isOpen, onClose, onDelete, wallet }) => {
             </ul>
           </div>
         </div>
-        
+
         <div className="modal-buttons modal-danger-buttons">
           <button type="button" className="btn-cancel" onClick={onClose}>
             Cancelar

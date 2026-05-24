@@ -1,4 +1,3 @@
-// CancelScheduledModal.js - Modal para cancelar operación programada
 import React from 'react';
 import './Modals.css';
 

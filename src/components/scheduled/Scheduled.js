@@ -1,5 +1,3 @@
-// components/scheduled/Scheduled.js
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { getUserScheduledOperations, createScheduledOperation, updateScheduledOperation, deleteScheduledOperation } from '../../API/scheduled';
 import { getUserWallets } from '../../API/wallets';
@@ -17,21 +15,19 @@ const Scheduled = ({ user }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [error, setError] = useState('');
-  
-  // Estados para los modales de edición y cancelación
+
   const [editingOperation, setEditingOperation] = useState(null);
   const [cancelingOperation, setCancelingOperation] = useState(null);
-  
+
   const userId = user?.id || getCurrentUser()?.id;
-  
-  // Cargar operaciones programadas con orden correcto
+
   const loadOperations = useCallback(async () => {
     if (!userId) return;
-    
+
     try {
       const result = await getUserScheduledOperations(userId);
       if (result.success && result.data) {
-        // Ordenar: Pendientes primero (por fecha más cercana), luego ejecutadas (por fecha más reciente)
+
         const sorted = [...result.data].sort((a, b) => {
           if (a.status === 'PENDING' && b.status !== 'PENDING') return -1;
           if (a.status !== 'PENDING' && b.status === 'PENDING') return 1;
@@ -40,10 +36,10 @@ const Scheduled = ({ user }) => {
           }
           return new Date(b.scheduledDate + 'Z') - new Date(a.scheduledDate + 'Z');
         });
-        
+
         setOperations(sorted);
         setError('');
-        
+
         console.log('📋 Operaciones cargadas y ordenadas:', sorted.map(op => ({
           id: op.id,
           type: op.type,
@@ -58,11 +54,10 @@ const Scheduled = ({ user }) => {
       setError('Error al cargar las operaciones');
     }
   }, [userId]);
-  
-  // Cargar billeteras
+
   const loadWallets = useCallback(async () => {
     if (!userId) return;
-    
+
     try {
       const result = await getUserWallets(userId);
       if (result.success && result.data) {
@@ -72,38 +67,36 @@ const Scheduled = ({ user }) => {
       console.error('Error cargando billeteras:', err);
     }
   }, [userId]);
-  
-  // Recargar datos manualmente
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await Promise.all([loadOperations(), loadWallets()]);
     setRefreshing(false);
   };
-  
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
       await Promise.all([loadOperations(), loadWallets()]);
       setLoading(false);
     };
-    
+
     loadData();
-    
+
     const interval = setInterval(() => {
       loadOperations();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, [loadOperations, loadWallets]);
-  
-  // ========== FUNCIONES PARA EDITAR Y ELIMINAR (con userId) ==========
+
   const handleEdit = (operation) => {
     setEditingOperation(operation);
   };
-  
+
   const handleUpdate = async (id, operationData) => {
     try {
-      // Pasamos el userId como tercer argumento (para el header)
+
       const result = await updateScheduledOperation(id, operationData, userId);
       if (result.success) {
         await loadOperations();
@@ -118,10 +111,10 @@ const Scheduled = ({ user }) => {
       setEditingOperation(null);
     }
   };
-  
+
   const handleDelete = async (id) => {
     try {
-      // Pasamos el userId como segundo argumento (para el header)
+
       const result = await deleteScheduledOperation(id, userId);
       if (result.success) {
         await loadOperations();
@@ -136,8 +129,7 @@ const Scheduled = ({ user }) => {
       setCancelingOperation(null);
     }
   };
-  
-  // ========== FORMATOS Y UTILIDADES ==========
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
@@ -145,7 +137,7 @@ const Scheduled = ({ user }) => {
       maximumFractionDigits: 0
     }).format(value || 0);
   };
-  
+
   const parseAsUTC = (dateString) => {
     if (!dateString) return null;
     const utc = dateString.endsWith('Z') ? dateString : dateString + 'Z';
@@ -167,7 +159,7 @@ const Scheduled = ({ user }) => {
       return '-';
     }
   };
-  
+
   const getTypeIcon = (type) => {
     switch(type) {
       case 'RECHARGE': return '📥';
@@ -176,7 +168,7 @@ const Scheduled = ({ user }) => {
       default: return '💰';
     }
   };
-  
+
   const getTypeLabel = (type) => {
     switch(type) {
       case 'RECHARGE': return 'Recarga';
@@ -185,7 +177,7 @@ const Scheduled = ({ user }) => {
       default: return type;
     }
   };
-  
+
   const getStatusClass = (status) => {
     switch(status) {
       case 'EXECUTED': return 'status-executed';
@@ -193,7 +185,7 @@ const Scheduled = ({ user }) => {
       default: return 'status-pending';
     }
   };
-  
+
   const getStatusLabel = (status) => {
     switch(status) {
       case 'EXECUTED': return 'Ejecutada';
@@ -201,12 +193,12 @@ const Scheduled = ({ user }) => {
       default: return 'Pendiente';
     }
   };
-  
+
   const getPriority = (scheduledDate, status) => {
     const now = new Date();
     const date = parseAsUTC(scheduledDate);
     const diffHours = (date - now) / (1000 * 60 * 60);
-    
+
     if (status === 'EXECUTED') return { label: 'Ejecutada', class: 'priority-executed' };
     if (status === 'FAILED') return { label: 'Fallida', class: 'priority-failed' };
     if (diffHours < 0) return { label: 'Atrasada', class: 'priority-overdue' };
@@ -215,7 +207,7 @@ const Scheduled = ({ user }) => {
     if (diffHours < 72) return { label: 'Media', class: 'priority-medium' };
     return { label: 'Baja', class: 'priority-low' };
   };
-  
+
   const filteredOperations = operations.filter(op => {
     if (filterStatus === 'all') return true;
     if (filterStatus === 'pending') return op.status === 'PENDING';
@@ -223,15 +215,15 @@ const Scheduled = ({ user }) => {
     if (filterStatus === 'failed') return op.status === 'FAILED';
     return true;
   });
-  
+
   const pendingCount = operations.filter(o => o.status === 'PENDING').length;
   const executedCount = operations.filter(o => o.status === 'EXECUTED').length;
   const failedCount = operations.filter(o => o.status === 'FAILED').length;
-  
+
   const handleCreateOperation = async (operationData) => {
     console.log('🔍 userId actual:', userId);
     console.log('🔍 operationData recibido:', operationData);
-    
+
     try {
       const result = await createScheduledOperation({
         userId: userId,
@@ -242,9 +234,9 @@ const Scheduled = ({ user }) => {
         amount: operationData.amount,
         scheduledDate: operationData.scheduledDate
       });
-      
+
       console.log('🔍 Resultado del backend:', result);
-      
+
       if (result.success) {
         await loadOperations();
         alert('✅ Operación programada exitosamente');
@@ -257,7 +249,7 @@ const Scheduled = ({ user }) => {
       alert('❌ Error al programar la operación');
     }
   };
-  
+
   if (loading) {
     return (
       <div className="scheduled-page">
@@ -268,7 +260,7 @@ const Scheduled = ({ user }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="scheduled-page">
       <div className="scheduled-header">
@@ -285,7 +277,7 @@ const Scheduled = ({ user }) => {
           </button>
         </div>
       </div>
-      
+
       <div className="scheduled-stats">
         <div className="stat-card-scheduled pending">
           <span className="stat-value">{pendingCount}</span>
@@ -300,7 +292,7 @@ const Scheduled = ({ user }) => {
           <span className="stat-label">Fallidas</span>
         </div>
       </div>
-      
+
       <div className="filters-scheduled">
         <button className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => setFilterStatus('all')}>
           Todas ({operations.length})
@@ -315,13 +307,13 @@ const Scheduled = ({ user }) => {
           Fallidas ({failedCount})
         </button>
       </div>
-      
+
       <div className="operations-list">
         {filteredOperations.length > 0 ? (
           filteredOperations.map(op => {
             const priority = getPriority(op.scheduledDate, op.status);
             const isOverdue = op.status === 'PENDING' && parseAsUTC(op.scheduledDate) < new Date();
-            
+
             return (
               <div key={op.id} className={`operation-card ${priority.class} ${isOverdue ? 'overdue' : ''}`}>
                 <div className="operation-priority-badge">
@@ -376,15 +368,14 @@ const Scheduled = ({ user }) => {
           </div>
         )}
       </div>
-      
-      {/* Modales */}
+
       <CreateScheduledModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onCreate={handleCreateOperation}
         wallets={wallets}
       />
-      
+
       <EditScheduledModal
         isOpen={!!editingOperation}
         onClose={() => setEditingOperation(null)}
@@ -392,7 +383,7 @@ const Scheduled = ({ user }) => {
         operation={editingOperation}
         wallets={wallets}
       />
-      
+
       <CancelScheduledModal
         isOpen={!!cancelingOperation}
         onClose={() => setCancelingOperation(null)}

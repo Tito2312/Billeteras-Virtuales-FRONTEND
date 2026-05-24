@@ -1,12 +1,9 @@
-/* Transactions.css - Estilos para la página de transacciones */
-
 .transactions-page {
   padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header */
 .transactions-header {
   margin-bottom: 32px;
 }
@@ -22,7 +19,6 @@
   font-size: 14px;
 }
 
-/* Botones de acción */
 .action-buttons-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -60,7 +56,6 @@
   font-weight: 600;
 }
 
-/* Historial */
 .history-section {
   background: white;
   border-radius: 24px;
@@ -99,7 +94,6 @@
   border-color: #7c3aed;
 }
 
-/* Filtros */
 .filters-bar {
   display: flex;
   gap: 16px;
@@ -148,7 +142,6 @@
   background: #e2e8f0;
 }
 
-/* Tabla */
 .transactions-table-container {
   overflow-x: auto;
 }
@@ -256,7 +249,6 @@
   color: #6b7280;
 }
 
-/* Loading */
 .loading-container-transactions {
   display: flex;
   flex-direction: column;
@@ -280,10 +272,6 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-/* ============================================ */
-/* PAGINACIÓN MEJORADA */
-/* ============================================ */
 
 .pagination {
   display: flex;
@@ -366,12 +354,11 @@
   padding: 0 4px;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .transactions-page {
     padding: 24px;
   }
-  
+
   .action-buttons-grid {
     gap: 16px;
   }
@@ -381,43 +368,43 @@
   .transactions-page {
     padding: 16px;
   }
-  
+
   .action-buttons-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .filters-bar {
     flex-direction: column;
   }
-  
+
   .filter-group {
     width: 100%;
   }
-  
+
   .filter-group select,
   .filter-group input {
     width: 100%;
   }
-  
+
   .section-header {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .pagination {
     flex-wrap: wrap;
   }
-  
+
   .pagination-pages {
     order: 3;
     width: 100%;
     justify-content: center;
   }
-  
+
   .pagination-arrow:first-child {
     order: 1;
   }
-  
+
   .pagination-arrow:last-child {
     order: 2;
   }
@@ -429,13 +416,13 @@
     height: 36px;
     font-size: 18px;
   }
-  
+
   .pagination-page {
     min-width: 36px;
     height: 36px;
     font-size: 13px;
   }
-  
+
   .action-buttons-grid {
     grid-template-columns: 1fr;
   }
@@ -446,7 +433,7 @@
     display: none;
   }
 }
-/* ── Pila de Reversiones ── */
+
 .reversed-stack-section {
   margin-top: 32px;
   background: #fff;

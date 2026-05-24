@@ -1,5 +1,3 @@
-// App.js - Componente principal de la aplicación
-
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Login from './components/auth/Login';
@@ -25,18 +23,17 @@ import './App.css';
 const AppContent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // Escuchar cambios de usuario desde el Dashboard (para actualizar puntos y nivel en tiempo real)
   useEffect(() => {
     const handleUserUpdate = (event) => {
       if (event.detail) {
         console.log('🔄 Actualizando usuario desde evento:', event.detail);
         setUser(event.detail);
-        // Actualizar localStorage
+
         const storedUser = getCurrentUser();
         if (storedUser) {
           const mergedUser = { ...storedUser, ...event.detail };
@@ -44,7 +41,7 @@ const AppContent = () => {
         }
       }
     };
-    
+
     window.addEventListener('userUpdate', handleUserUpdate);
     return () => window.removeEventListener('userUpdate', handleUserUpdate);
   }, []);

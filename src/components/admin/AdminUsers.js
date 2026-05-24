@@ -1,5 +1,3 @@
-// AdminUsers.js - Gestión de usuarios para administradores
-
 import React, { useState, useEffect } from 'react';
 import { getAllUsers, activateUser, deactivateUser } from '../../API/admin';
 import './AdminUsers.css';
@@ -26,7 +24,7 @@ const AdminUsers = () => {
 
   const handleActivateUser = async (userId, isActive) => {
     const result = isActive ? await activateUser(userId) : await deactivateUser(userId);
-    
+
     if (result.success) {
       alert(`✅ Usuario ${isActive ? 'activado' : 'desactivado'} exitosamente`);
       loadUsers();

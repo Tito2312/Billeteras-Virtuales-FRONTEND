@@ -1,4 +1,3 @@
-// EditScheduledModal.js - Modal para editar operación programada
 import React, { useState, useEffect } from 'react';
 import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
@@ -27,7 +26,7 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
       const day = String(date.getDate()).padStart(2, '0');
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
-      
+
       setFormData({
         type: operation.type || 'RECHARGE',
         sourceWalletId: operation.sourceWalletId || '',
@@ -101,14 +100,14 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
       const currentUser = getCurrentUser();
       const userId = currentUser?.id;
       if (!userId) throw new Error('Usuario no encontrado');
-      
+
       const [year, month, day] = formData.scheduledDate.split('-');
       const [hour, minute] = formData.scheduledTime.split(':');
       const scheduledDateTime = new Date(year, month - 1, day, hour, minute);
       const amountNum = parseFloat(formData.amount);
-      
+
       let operationData = { userId, type: formData.type, amount: amountNum, scheduledDate: scheduledDateTime.toISOString() };
-      
+
       if (formData.type === 'RECHARGE') operationData.targetWalletId = formData.targetWalletId;
       else if (formData.type === 'WITHDRAWAL') operationData.sourceWalletId = formData.sourceWalletId;
       else if (formData.type === 'TRANSFER') {
@@ -116,7 +115,7 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
         if (formData.destinationType === 'misWallets') operationData.targetWalletId = formData.targetWalletId;
         else operationData.transferKey = formData.transferKey;
       }
-      
+
       await onEdit(operation.id, operationData);
       onClose();
     } catch (error) {
@@ -138,7 +137,7 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
-          {/* Tipo de operación */}
+
           <div className="form-group">
             <label>Tipo de operación *</label>
             <select value={formData.type} onChange={(e) => setFormData({...formData, type: e.target.value})}>
@@ -146,7 +145,6 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
             </select>
           </div>
 
-          {/* TRANSFERENCIA */}
           {formData.type === 'TRANSFER' && (
             <>
               <div className="form-group">
@@ -190,7 +188,6 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
             </>
           )}
 
-          {/* WITHDRAWAL */}
           {formData.type === 'WITHDRAWAL' && (
             <div className="form-group">
               <label>Billetera origen *</label>
@@ -201,7 +198,6 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
             </div>
           )}
 
-          {/* RECHARGE */}
           {formData.type === 'RECHARGE' && (
             <div className="form-group">
               <label>Billetera destino *</label>
@@ -212,7 +208,6 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
             </div>
           )}
 
-          {/* Fecha y hora */}
           <div className="form-row">
             <div className="form-group">
               <label>Fecha *</label>
@@ -225,7 +220,6 @@ const EditScheduledModal = ({ isOpen, onClose, onEdit, operation, wallets }) => 
             </div>
           </div>
 
-          {/* Monto */}
           <div className="form-group">
             <label>Monto *</label>
             <input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({...formData, amount: e.target.value})} />

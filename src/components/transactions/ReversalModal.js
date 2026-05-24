@@ -1,5 +1,3 @@
-// ReversalModal.js - Modal para revertir transferencias
-
 import React, { useState, useEffect } from 'react';
 import { reverseTransaction, getUserTransactions } from '../../API/transactions';
 import { getCurrentUser } from '../../API/auth';

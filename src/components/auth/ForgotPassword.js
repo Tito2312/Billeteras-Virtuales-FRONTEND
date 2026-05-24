@@ -1,4 +1,3 @@
-// components/auth/ForgotPassword.js
 import React, { useState } from 'react';
 import { resetPassword } from '../../API/auth';
 import './Auth.css';

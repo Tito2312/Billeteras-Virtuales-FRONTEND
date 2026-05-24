@@ -1,5 +1,3 @@
-/* AdminSidebar.css - Estilos originales */
-
 .admin-sidebar {
     width: 280px;
     height: 100vh;
@@ -174,12 +172,11 @@
     font-weight: 500;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .admin-sidebar {
         width: 80px;
     }
-    
+
     .logo-text,
     .role-text,
     .nav-label,
@@ -187,26 +184,26 @@
     .logout-text {
         display: none;
     }
-    
+
     .admin-nav-item {
         justify-content: center;
         padding: 12px;
     }
-    
+
     .nav-icon {
         width: auto;
         font-size: 24px;
     }
-    
+
     .admin-user-info {
         justify-content: center;
         padding: 8px;
     }
-    
+
     .user-avatar {
         margin: 0;
     }
-    
+
     .admin-logout-btn {
         justify-content: center;
         padding: 10px;

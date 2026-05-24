@@ -1,5 +1,3 @@
-// components/scheduled/CreateScheduledModal.js
-
 import React, { useState } from 'react';
 import { getCurrentUser } from '../../API/auth';
 import './Modals.css';
@@ -15,27 +13,26 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
     scheduledDate: '',
     scheduledTime: '12:00'
   });
-  
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [destinationInfo, setDestinationInfo] = useState(null);
-  
+
   if (!isOpen) return null;
-  
+
   const transactionTypes = [
     { value: 'RECHARGE', label: 'Recarga automática', icon: '📥', requiresSource: false, requiresTarget: true },
     { value: 'WITHDRAWAL', label: 'Retiro programado', icon: '📤', requiresSource: true, requiresTarget: false },
     { value: 'TRANSFER', label: 'Transferencia programada', icon: '🔄', requiresSource: true, requiresTarget: false, requiresKey: true }
   ];
-  
+
   const selectedType = transactionTypes.find(t => t.value === formData.type);
-  
-  // Verificar transferKey
+
   const handleTransferKeyChange = async (key) => {
     setFormData({...formData, transferKey: key});
     setDestinationInfo(null);
-    
+
     if (key.length > 5) {
       setVerifying(true);
       try {
@@ -60,14 +57,14 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
       setVerifying(false);
     }
   };
-  
+
   const validate = () => {
     const newErrors = {};
     if (!formData.type) newErrors.type = 'Selecciona un tipo de operación';
-    
+
     if (formData.type === 'TRANSFER') {
       if (!formData.sourceWalletId) newErrors.sourceWalletId = 'Selecciona billetera origen';
-      
+
       if (formData.destinationType === 'misWallets') {
         if (!formData.targetWalletId) newErrors.targetWalletId = 'Selecciona billetera destino';
         if (formData.sourceWalletId === formData.targetWalletId) {
@@ -78,19 +75,19 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
         if (!destinationInfo?.exists) newErrors.transferKey = 'Clave de billetera no válida';
       }
     }
-    
+
     if (formData.type === 'WITHDRAWAL') {
       if (!formData.sourceWalletId) newErrors.sourceWalletId = 'Selecciona billetera origen';
     }
-    
+
     if (formData.type === 'RECHARGE') {
       if (!formData.targetWalletId) newErrors.targetWalletId = 'Selecciona billetera destino';
     }
-    
+
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
       newErrors.amount = 'Ingresa un monto válido mayor a 0';
     }
-    
+
     if (!formData.scheduledDate) {
       newErrors.scheduledDate = 'Selecciona una fecha';
     } else {
@@ -100,10 +97,10 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
         newErrors.scheduledDate = 'No puedes programar operaciones en fechas pasadas';
       }
     }
-    
+
     return newErrors;
   };
-  
+
   const resetForm = () => {
     setFormData({
       type: 'RECHARGE',
@@ -118,32 +115,32 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
     setErrors({});
     setDestinationInfo(null);
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       const currentUser = getCurrentUser();
       const userId = currentUser?.id;
-      
+
       if (!userId) throw new Error('No se encontró el usuario');
-      
+
       const [year, month, day] = formData.scheduledDate.split('-');
       const [hour, minute] = formData.scheduledTime.split(':');
       const scheduledDateTime = new Date(year, month - 1, day, hour, minute);
-      
+
       const amountNum = parseFloat(formData.amount);
-      
+
       let operationData = {};
-      
+
       switch (formData.type) {
         case 'RECHARGE':
           operationData = {
@@ -154,7 +151,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             scheduledDate: scheduledDateTime.toISOString()
           };
           break;
-          
+
         case 'WITHDRAWAL':
           operationData = {
             userId: userId,
@@ -164,7 +161,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             scheduledDate: scheduledDateTime.toISOString()
           };
           break;
-          
+
         case 'TRANSFER':
           if (formData.destinationType === 'misWallets') {
             operationData = {
@@ -186,17 +183,17 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             };
           }
           break;
-          
+
         default:
           throw new Error('Tipo de operación no válido');
       }
-      
+
       console.log('📤 Enviando operación programada:', operationData);
       await onCreate(operationData);
-      
+
       resetForm();
       onClose();
-      
+
     } catch (error) {
       console.error('❌ Error en creación:', error);
       alert('Error al programar la operación: ' + (error.message || 'Error desconocido'));
@@ -204,31 +201,31 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
       setLoading(false);
     }
   };
-  
+
   const handleClose = () => {
     if (!loading) {
       resetForm();
       onClose();
     }
   };
-  
+
   const getMinDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   };
-  
+
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('es-CO', {
       style: 'currency', currency: 'COP',
       minimumFractionDigits: 0
     }).format(value || 0);
   };
-  
+
   const getDestinationWallets = () => {
     if (!formData.sourceWalletId) return wallets;
     return wallets.filter(w => w.id !== formData.sourceWalletId);
   };
-  
+
   return (
     <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-content modal-scheduled" onClick={(e) => e.stopPropagation()}>
@@ -236,7 +233,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
           <h2>Programar Operación</h2>
           <button className="modal-close" onClick={handleClose} disabled={loading}>×</button>
         </div>
-        
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Tipo de operación *</label>
@@ -257,7 +254,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             </select>
             {errors.type && <span className="error-text">{errors.type}</span>}
           </div>
-          
+
           {formData.type === 'TRANSFER' && (
             <>
               <div className="form-group">
@@ -276,7 +273,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                 </select>
                 {errors.sourceWalletId && <span className="error-text">{errors.sourceWalletId}</span>}
               </div>
-              
+
               <div className="form-group">
                 <label className="section-label">Tipo de destino</label>
                 <div className="destination-cards">
@@ -299,7 +296,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div 
                     className={`destination-card ${formData.destinationType === 'otroUsuario' ? 'selected' : ''}`}
                     onClick={() => setFormData({
@@ -321,7 +318,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                   </div>
                 </div>
               </div>
-              
+
               {formData.destinationType === 'misWallets' && (
                 <div className="form-group">
                   <label>Billetera destino *</label>
@@ -340,7 +337,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
                   {errors.targetWalletId && <span className="error-text">{errors.targetWalletId}</span>}
                 </div>
               )}
-              
+
               {formData.destinationType === 'otroUsuario' && (
                 <div className="form-group">
                   <label>Clave de la billetera destino *</label>
@@ -372,7 +369,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
               )}
             </>
           )}
-          
+
           {formData.type === 'WITHDRAWAL' && (
             <div className="form-group">
               <label>Billetera origen *</label>
@@ -392,7 +389,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
               <small className="field-hint">El dinero se retirará a tu cuenta bancaria asociada</small>
             </div>
           )}
-          
+
           {formData.type === 'RECHARGE' && (
             <div className="form-group">
               <label>Billetera destino *</label>
@@ -412,7 +409,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
               <small className="field-hint">La recarga proviene de una tarjeta o cuenta bancaria externa</small>
             </div>
           )}
-          
+
           <div className="form-row">
             <div className="form-group">
               <label>Fecha de ejecución *</label>
@@ -435,7 +432,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
               />
             </div>
           </div>
-          
+
           <div className="form-group">
             <label>Monto *</label>
             <input
@@ -449,7 +446,7 @@ const CreateScheduledModal = ({ isOpen, onClose, onCreate, wallets }) => {
             />
             {errors.amount && <span className="error-text">{errors.amount}</span>}
           </div>
-          
+
           <div className="modal-buttons">
             <button type="button" className="btn-cancel" onClick={handleClose} disabled={loading}>
               Cancelar

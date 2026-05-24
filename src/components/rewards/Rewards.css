@@ -1,12 +1,9 @@
-/* Rewards.css - Estilos para el sistema de recompensas */
-
 .rewards-page {
   padding: 32px;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-/* Header */
 .rewards-header {
   margin-bottom: 32px;
 }
@@ -22,7 +19,6 @@
   font-size: 14px;
 }
 
-/* Tarjeta de nivel actual */
 .level-card {
   background: white;
   border-radius: 24px;
@@ -91,7 +87,7 @@
   height: 100%;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
   border-radius: 12px;
-  transition: width 0.5s ease; /* Animación suave */
+  transition: width 0.5s ease; 
 }
 
 .max-level-badge {
@@ -103,14 +99,12 @@
   color: #7c3aed;
 }
 
-/* Grid principal */
 .rewards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
-/* Secciones */
 .section-card {
   background: white;
   border-radius: 20px;
@@ -127,7 +121,6 @@
   border-bottom: 2px solid #f3e8ff;
 }
 
-/* Reglas de puntos */
 .rules-list {
   display: flex;
   flex-direction: column;
@@ -188,7 +181,6 @@
   text-align: center;
 }
 
-/* Tabla de niveles */
 .levels-table-container {
   overflow-x: auto;
 }
@@ -259,7 +251,6 @@
   color: #7c3aed;
 }
 
-/* Beneficios destacados */
 .benefits-showcase {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -319,7 +310,6 @@
   margin-top: 3px;
 }
 
-/* Botón de canjear puntos (mejorado) */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -359,7 +349,6 @@
   transform: translateY(0);
 }
 
-/* Historial de canjes */
 .redeemed-section {
   margin-top: 28px;
   background: #fff;
@@ -427,7 +416,6 @@
 .redeemed-status-used    { background: #e0e7ff; color: #3730a3; }
 .redeemed-status-expired { background: #fee2e2; color: #991b1b; }
 
-/* Loading */
 .loading-container-rewards {
   display: flex;
   flex-direction: column;
@@ -452,7 +440,6 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .rewards-page {
     padding: 24px;

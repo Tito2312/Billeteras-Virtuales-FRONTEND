@@ -1,6 +1,3 @@
-// Rewards.js - Sistema de Recompensas y Niveles
-// Según documento del proyecto - SIN historial de puntos recientes
-
 import React, { useState, useEffect } from 'react';
 import RewardsModal from './rewardsModal/RewardsModal';
 import { getUserLevelInfo, getPointsRules, getAvailableBenefits, getRedeemedBenefits } from '../../API/rewards';
@@ -10,7 +7,7 @@ import './Rewards.css';
 const Rewards = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
-  
+
   const [userPoints, setUserPoints] = useState(0);
   const [userLevel, setUserLevel] = useState('Bronce');
   const [nextLevel, setNextLevel] = useState(null);
@@ -19,19 +16,19 @@ const Rewards = ({ user }) => {
   const [availableBenefits, setAvailableBenefits] = useState([]);
   const [redeemedBenefits, setRedeemedBenefits] = useState([]);
   const [allLevels, setAllLevels] = useState([]);
-  
+
   const userId = user?.id || getCurrentUser()?.id;
   const pointsRules = getPointsRules();
-  
+
   useEffect(() => {
     const loadRewardsData = async () => {
       if (!userId) {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
-      
+
       const [levelResult, benefitsResult, redeemedResult] = await Promise.all([
         getUserLevelInfo(userId),
         getAvailableBenefits(),
@@ -56,20 +53,20 @@ const Rewards = ({ user }) => {
 
       setLoading(false);
     };
-    
+
     loadRewardsData();
   }, [userId]);
-  
+
   const formatNumber = (value) => {
     return new Intl.NumberFormat('es-CO').format(value || 0);
   };
-  
+
   const currentLevelInfo = allLevels.find(l => l.name === userLevel);
   const nextLevelInfo = allLevels.find(l => l.name === nextLevel);
   const progressPercentage = nextLevelInfo && currentLevelInfo
     ? ((userPoints - currentLevelInfo.minPoints) / (nextLevelInfo.minPoints - currentLevelInfo.minPoints)) * 100
     : 100;
-  
+
   const handleRedeem = async () => {
     const [levelResult, redeemedResult] = await Promise.all([
       getUserLevelInfo(userId),
@@ -84,7 +81,7 @@ const Rewards = ({ user }) => {
     if (redeemedResult.success) setRedeemedBenefits(redeemedResult.data);
     setShowRedeemModal(false);
   };
-  
+
   if (loading) {
     return (
       <div className="rewards-page">
@@ -95,15 +92,14 @@ const Rewards = ({ user }) => {
       </div>
     );
   }
-  
+
   return (
     <div className="rewards-page">
       <div className="rewards-header">
         <h1>Sistema de Recompensas</h1>
         <p>Gana puntos y desbloquea beneficios</p>
       </div>
-      
-      {/* Tarjeta de nivel actual */}
+
       <div className="level-card">
         <div className="level-info">
           <span className="level-label">Nivel Actual</span>
@@ -113,7 +109,7 @@ const Rewards = ({ user }) => {
             <span className="points-label">puntos</span>
           </div>
         </div>
-        
+
         {nextLevel && (
           <div className="level-progress">
             <div className="progress-header">
@@ -125,17 +121,16 @@ const Rewards = ({ user }) => {
             </div>
           </div>
         )}
-        
+
         {!nextLevel && (
           <div className="max-level-badge">
             🏆 ¡Has alcanzado el nivel máximo! 🏆
           </div>
         )}
       </div>
-      
-      {/* Grid de dos columnas */}
+
       <div className="rewards-grid">
-        {/* Columna izquierda: Reglas de puntos y niveles */}
+
         <div className="rules-section">
           <div className="section-card">
             <h2>¿Cómo ganar puntos?</h2>
@@ -154,8 +149,7 @@ const Rewards = ({ user }) => {
               <small>✨ Los puntos se acreditan automáticamente al completar cada transacción</small>
             </div>
           </div>
-          
-          {/* Tabla de niveles */}
+
           <div className="section-card">
             <h2>Niveles y Beneficios</h2>
             <div className="levels-table-container">
@@ -200,8 +194,7 @@ const Rewards = ({ user }) => {
             </div>
           </div>
         </div>
-        
-        {/* Columna derecha: Beneficios destacados y canje */}
+
         <div className="activity-section">
           <div className="section-card">
             <div className="section-header">
@@ -235,7 +228,6 @@ const Rewards = ({ user }) => {
         </div>
       </div>
 
-      {/* Historial de canjes */}
       {redeemedBenefits.length > 0 && (
         <div className="redeemed-section">
           <h2>🎁 Mis Beneficios Canjeados</h2>
@@ -263,7 +255,6 @@ const Rewards = ({ user }) => {
         </div>
       )}
 
-      {/* Modal de canje de beneficios */}
       <RewardsModal
         isOpen={showRedeemModal}
         onClose={() => setShowRedeemModal(false)}

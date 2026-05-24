@@ -1,5 +1,3 @@
-// RewardsModal.js - Canje de beneficios de dinero con backend real
-
 import React, { useState, useEffect } from 'react';
 import { getAvailableBenefits, redeemBenefit } from '../../../API/rewards';
 import { getCurrentUser } from '../../../API/auth';
@@ -78,14 +76,13 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
         </div>
 
         <div className="modal-body">
-          {/* Puntos disponibles */}
+
           <div className="points-available-card">
             <span className="points-label">Tus puntos disponibles</span>
             <span className="points-value">{formatNumber(userPoints)}</span>
             <span className="points-level">Nivel {userLevel}</span>
           </div>
 
-          {/* Éxito */}
           {success && (
             <div className="benefit-success-card">
               <div className="benefit-success-icon">✅</div>
@@ -96,7 +93,6 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
             </div>
           )}
 
-          {/* Lista de beneficios */}
           {!success && (
             <div className="benefits-list-modal">
               <h3>Beneficios disponibles</h3>
@@ -138,7 +134,6 @@ const RewardsModal = ({ isOpen, onClose, onRedeem, userPoints, userLevel }) => {
             </div>
           )}
 
-          {/* Resumen */}
           {selectedBenefit && !success && (
             <div className="redemption-summary">
               <h4>Resumen del canje</h4>

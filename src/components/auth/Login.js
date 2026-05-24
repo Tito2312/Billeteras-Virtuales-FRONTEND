@@ -1,5 +1,3 @@
-// Login.js - Formulario de inicio de sesión
-
 import React, { useState } from 'react';
 import { login } from '../../API/auth';
 import './Auth.css';
@@ -22,7 +20,7 @@ const Login = ({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword })
     }
 
     const result = await login(email, password);
-    
+
     if (result.success) {
       onLoginSuccess(result.user);
     } else {

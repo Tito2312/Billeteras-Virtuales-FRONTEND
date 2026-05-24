@@ -1,5 +1,3 @@
-// AdminWallets.js - Gestión de billeteras para administradores
-
 import React, { useState, useEffect } from 'react';
 import { getAllWallets, activateWallet, deactivateWallet } from '../../API/admin';
 import './AdminWallets.css';
@@ -19,7 +17,7 @@ const AdminWallets = () => {
     setLoading(true);
     const result = await getAllWallets();
     console.log('📊 Billeteras obtenidas:', result);
-    
+
     if (result.success && result.data) {
       setWallets(result.data);
     }
@@ -28,7 +26,7 @@ const AdminWallets = () => {
 
   const handleToggleStatus = async (walletId, userId, isActive) => {
     const result = isActive ? await deactivateWallet(walletId, userId) : await activateWallet(walletId, userId);
-    
+
     if (result.success) {
       alert(`✅ Billetera ${isActive ? 'desactivada' : 'activada'} exitosamente`);
       loadData();

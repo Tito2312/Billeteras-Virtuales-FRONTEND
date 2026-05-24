@@ -1,5 +1,3 @@
-// Register.js - Formulario de registro
-
 import React, { useState } from 'react';
 import { register } from '../../API/auth';
 import './Auth.css';
@@ -80,7 +78,7 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
     };
 
     const result = await register(userData);
-    
+
     if (result.success) {
       setSuccess(result.message);
       setFormData({
@@ -91,14 +89,14 @@ const Register = ({ onRegisterSuccess, onSwitchToLogin }) => {
         telefono: '',
         documento: ''
       });
-      // No redirigimos automáticamente, mostramos mensaje de éxito
+
       setTimeout(() => {
         setSuccess('');
       }, 8000);
     } else {
       setError(result.message);
     }
-    
+
     setLoading(false);
   };
 

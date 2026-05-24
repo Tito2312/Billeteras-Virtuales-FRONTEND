@@ -1,5 +1,3 @@
-// admin.js - Servicio de administración (solo para admin)
-
 const BASE_URL = 'http://localhost:8080/api';
 
 const getAuthToken = () => localStorage.getItem('auth_token');
@@ -8,45 +6,41 @@ const getHeaders = (requiresAuth = true) => {
   const headers = {
     'Content-Type': 'application/json',
   };
-  
+
   if (requiresAuth) {
     const token = getAuthToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
   }
-  
+
   return headers;
 };
 
 const handleResponse = async (response) => {
   const textResponse = await response.text();
-  
+
   if (!textResponse || textResponse.trim() === '') {
     if (!response.ok) throw { status: response.status, message: 'Error en la petición' };
     return {};
   }
-  
+
   let data;
   try {
     data = JSON.parse(textResponse);
   } catch (e) {
     throw { status: response.status, message: 'Error en la respuesta del servidor' };
   }
-  
+
   if (!response.ok) {
     throw {
       status: response.status,
       message: data.message || data.error || `Error ${response.status}`
     };
   }
-  
+
   return data;
 };
-
-// ============================================
-// USUARIOS
-// ============================================
 
 export const getAllUsers = async () => {
   try {
@@ -83,10 +77,6 @@ export const deactivateUser = async (userId) => {
     return { success: false, message: error.message };
   }
 };
-
-// ============================================
-// AUDITORÍA
-// ============================================
 
 export const getAllAudits = async () => {
   try {
@@ -147,10 +137,6 @@ export const getAuditsByRiskLevel = async (riskLevel) => {
     return { success: false, message: error.message, data: [] };
   }
 };
-
-// ============================================
-// REPORTES
-// ============================================
 
 export const getMostUsedWallets = async (top = 5) => {
   try {
@@ -226,16 +212,12 @@ export const getTopTransactionsByAmount = async (top = 10) => {
   }
 };
 
-// ============================================
-// ESTADÍSTICAS
-// ============================================
-
 export const getAdminStats = async () => {
   try {
     const usersResult = await getAllUsers();
     const auditsResult = await getAllAudits();
     const todayAuditsResult = await getAuditsToday();
-    
+
     return {
       success: true,
       data: {
@@ -253,33 +235,23 @@ export const getAdminStats = async () => {
   }
 };
 
-// ============================================
-// BILLETERAS (ADMIN) - Usando el API/wallets existente
-// ============================================
-
-/**
- * Obtener todas las billeteras del sistema (admin)
- * Usa el endpoint existente GET /api/wallets/user/{userId} para cada usuario
- * O si el backend tiene GET /api/wallets, usarlo
- */
 export const getAllWallets = async () => {
   try {
-    // Primero obtenemos todos los usuarios
+
     const usersResult = await getAllUsers();
-    
+
     if (!usersResult.success || !usersResult.data) {
       return { success: false, message: 'No se pudieron obtener usuarios', data: [] };
     }
-    
+
     const allWallets = [];
-    
-    // Para cada usuario, obtenemos sus billeteras
+
     for (const user of usersResult.data) {
       try {
         const url = `${BASE_URL}/wallets/user/${user.id}`;
         const response = await fetch(url, { method: 'GET', headers: getHeaders(true) });
         const result = await handleResponse(response);
-        
+
         if (Array.isArray(result)) {
           result.forEach(wallet => {
             allWallets.push({
@@ -293,7 +265,7 @@ export const getAllWallets = async () => {
         console.error(`Error obteniendo billeteras de usuario ${user.id}:`, err);
       }
     }
-    
+
     return { success: true, data: allWallets };
   } catch (error) {
     console.error('Error al obtener todas las billeteras:', error);
@@ -301,15 +273,6 @@ export const getAllWallets = async () => {
   }
 };
 
-
-// ============================================
-// TRANSACCIONES (ADMIN)
-// ============================================
-
-/**
- * Obtener todas las transacciones del sistema (solo admin)
- * GET /api/transactions
- */
 export const getAllTransactions = async () => {
   try {
     const url = `${BASE_URL}/transactions`;
@@ -325,10 +288,6 @@ export const getAllTransactions = async () => {
   }
 };
 
-/**
- * Revertir transacción (admin)
- * PUT /api/transactions/reverseTransaction?userId={userId}&transactionId={transactionId}
- */
 export const reverseTransaction = async (userId, transactionId) => {
   try {
     const url = `${BASE_URL}/transactions/reverseTransaction?userId=${userId}&transactionId=${transactionId}`;
@@ -343,10 +302,7 @@ export const reverseTransaction = async (userId, transactionId) => {
     return { success: false, message: error.message };
   }
 };
-/**
- * Revertir última transacción de un usuario usando la Pila (Stack)
- * PUT /api/transactions/reverse-pila?userId={userId}
- */
+
 export const reverseTransactionPila = async (userId) => {
   try {
     const url = `${BASE_URL}/transactions/reverse-pila?userId=${userId}`;
@@ -359,10 +315,6 @@ export const reverseTransactionPila = async (userId) => {
   }
 };
 
-/**
- * Obtener billetera por ID (admin)
- * GET /api/wallets/{id}
- */
 export const getWalletById = async (walletId, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${walletId}?userId=${userId}`;
@@ -375,10 +327,6 @@ export const getWalletById = async (walletId, userId) => {
   }
 };
 
-/**
- * Activar billetera (admin)
- * PATCH /api/wallets/{id}/activate
- */
 export const activateWallet = async (walletId, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${walletId}/activate?userId=${userId}`;
@@ -391,10 +339,6 @@ export const activateWallet = async (walletId, userId) => {
   }
 };
 
-/**
- * Desactivar billetera (admin)
- * PATCH /api/wallets/{id}/deactivate
- */
 export const deactivateWallet = async (walletId, userId) => {
   try {
     const url = `${BASE_URL}/wallets/${walletId}/deactivate?userId=${userId}`;
@@ -406,9 +350,6 @@ export const deactivateWallet = async (walletId, userId) => {
     return { success: false, message: error.message };
   }
 };
-// ============================================
-// ÁRBOL BINARIO DE USUARIOS
-// ============================================
 
 export const getOrderedUsers = async () => {
   try {

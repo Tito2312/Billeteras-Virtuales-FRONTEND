@@ -7,7 +7,6 @@ import './TransferNetwork.css';
 const fmt = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v || 0);
 const fmtNum = (v) => new Intl.NumberFormat('es-CO').format(v || 0);
 
-// ── SVG helpers ──────────────────────────────────────
 const NODE_R = 26;
 const CX = 300;
 const CY = 220;
@@ -29,19 +28,17 @@ const curvedPath = (from, to) => {
     return `M ${sx} ${sy} Q ${mx} ${my} ${ex} ${ey}`;
 };
 
-// ── Component ────────────────────────────────────────
 const TransferNetwork = ({ user }) => {
     const currentUser = user || getCurrentUser();
     const userId = currentUser?.id;
 
-    const [outEdges, setOutEdges]       = useState([]);  // aristas salientes del usuario
-    const [inEdges, setInEdges]         = useState([]);  // aristas entrantes
-    const [userMap, setUserMap]         = useState({});  // id → {name, email}
+    const [outEdges, setOutEdges]       = useState([]);  
+    const [inEdges, setInEdges]         = useState([]);  
+    const [userMap, setUserMap]         = useState({});  
     const [cycleExists, setCycleExists] = useState(null);
     const [loading, setLoading]         = useState(true);
     const [tooltip, setTooltip]         = useState(null);
 
-    // Búsqueda de ruta
     const [targetId, setTargetId]       = useState('');
     const [pathResult, setPathResult]   = useState(null);
     const [pathLoading, setPathLoading] = useState(false);
@@ -61,7 +58,6 @@ const TransferNetwork = ({ user }) => {
 
         const txList = txRes.success ? (Array.isArray(txRes.data) ? txRes.data : txRes.data?.content || []) : [];
 
-        // Aristas salientes: transferencias que YO envié
         const outgoingTx = txList.filter(t =>
             t.type === 'TRANSFER' && t.userId === userId && t.receiverUserId && t.userId !== t.receiverUserId
         );
@@ -72,7 +68,6 @@ const TransferNetwork = ({ user }) => {
             transactionId: t.id,
         }));
 
-        // Aristas entrantes: transferencias que RECIBÍ de otros
         const incomingTx = txList.filter(t =>
             t.type === 'TRANSFER' && t.receiverUserId === userId && t.userId !== userId
         );
@@ -86,7 +81,6 @@ const TransferNetwork = ({ user }) => {
         setOutEdges(out);
         setInEdges(inc);
 
-        // Recolectar IDs únicos y buscar nombres
         const ids = new Set([...out.map(e => e.targetUserId), ...inc.map(e => e.sourceUserId)]);
         ids.delete(userId);
         const map = { [userId]: { name: currentUser?.name || 'Tú', email: currentUser?.email } };
@@ -101,7 +95,6 @@ const TransferNetwork = ({ user }) => {
         setLoading(false);
     };
 
-    // ── Rutas frecuentes: agrupar aristas salientes por destino ──
     const frequentRoutes = () => {
         const agg = {};
         outEdges.forEach(e => {
@@ -114,7 +107,6 @@ const TransferNetwork = ({ user }) => {
             .map(([id, data]) => ({ id, ...data, name: userMap[id]?.name || id }));
     };
 
-    // ── Buscar ruta ──────────────────────────────────
     const handleFindPath = async () => {
         if (!targetId) return;
         setPathLoading(true);
@@ -129,7 +121,6 @@ const TransferNetwork = ({ user }) => {
         setPathLoading(false);
     };
 
-    // ── Nodos únicos para el SVG ─────────────────────
     const peerIds = [...new Set([
         ...outEdges.map(e => e.targetUserId),
         ...inEdges.map(e => e.sourceUserId),
@@ -158,7 +149,6 @@ const TransferNetwork = ({ user }) => {
                 <p>Grafo de conexiones financieras: transferencias enviadas y recibidas</p>
             </div>
 
-            {/* ── Indicadores rápidos ── */}
             <div className="tn-stats">
                 <div className="tn-stat">
                     <span className="tn-stat-num">{peerIds.length}</span>
@@ -178,7 +168,6 @@ const TransferNetwork = ({ user }) => {
                 </div>
             </div>
 
-            {/* ── Grafo SVG ── */}
             <div className="tn-card">
                 <div className="tn-card-title">Visualización del grafo</div>
                 <div className="tn-svg-wrap">
@@ -195,7 +184,6 @@ const TransferNetwork = ({ user }) => {
                                 </marker>
                             </defs>
 
-                            {/* Aristas */}
                             {allEdges.map((edge, i) => {
                                 const isOut = edge.dir === 'out';
                                 const fromNode = isOut ? centerNode : peers.find(p => p.id === edge.sourceUserId);
@@ -224,7 +212,6 @@ const TransferNetwork = ({ user }) => {
                                 );
                             })}
 
-                            {/* Nodos peers */}
                             {peers.map(p => {
                                 const name = userMap[p.id]?.name || p.id;
                                 const initials = name.substring(0, 2).toUpperCase();
@@ -247,7 +234,6 @@ const TransferNetwork = ({ user }) => {
                                 );
                             })}
 
-                            {/* Nodo central (yo) */}
                             <circle cx={CX} cy={CY} r={NODE_R + 6} fill="#4c1d95" />
                             <circle cx={CX} cy={CY} r={NODE_R + 3} fill="#7c3aed" />
                             <text x={CX} y={CY + 1} textAnchor="middle" dominantBaseline="middle"
@@ -260,14 +246,12 @@ const TransferNetwork = ({ user }) => {
                     )}
                 </div>
 
-                {/* Leyenda */}
                 <div className="tn-legend">
                     <div className="tn-leg-item"><span className="tn-leg-dot" style={{ background: '#7c3aed' }} /><span>Transferencias enviadas (línea sólida)</span></div>
                     <div className="tn-leg-item"><span className="tn-leg-dot" style={{ background: '#059669' }} /><span>Transferencias recibidas (línea punteada)</span></div>
                 </div>
             </div>
 
-            {/* ── Ciclos ── */}
             <div className={`tn-cycle-card ${cycleExists ? 'cycle-alert' : 'cycle-ok'}`}>
                 <div className="tn-cycle-icon">{cycleExists ? '⚠️' : '✅'}</div>
                 <div className="tn-cycle-info">
@@ -282,7 +266,6 @@ const TransferNetwork = ({ user }) => {
                 </div>
             </div>
 
-            {/* ── Rutas frecuentes ── */}
             {frequentRoutes().length > 0 && (
                 <div className="tn-card">
                     <div className="tn-card-title">Rutas frecuentes — a quién más transferiste</div>
@@ -309,7 +292,6 @@ const TransferNetwork = ({ user }) => {
                 </div>
             )}
 
-            {/* ── Buscar ruta ── */}
             <div className="tn-card">
                 <div className="tn-card-title">Buscar ruta hasta otro usuario</div>
                 <p className="tn-card-desc">Encuentra si existe un camino de transferencias entre tú y otro usuario de la plataforma.</p>

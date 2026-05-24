@@ -1,4 +1,3 @@
-// NotificationBell.js - Campanita con mini ventana de notificaciones
 import React, { useState, useRef, useEffect } from 'react';
 import { getUserNotifications } from '../../../API/notifications';
 import { getCurrentUser } from '../../../API/auth';
@@ -57,13 +56,12 @@ const NotificationBell = ({ onViewAll }) => {
 
     useEffect(() => {
         loadNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [userId]);
 
-    // Recargar desde la API cada vez que se abre el dropdown
     useEffect(() => {
         if (isOpen) loadNotifications();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [isOpen]);
 
     const unreadCount = notifications.filter(n => !n.read).length;

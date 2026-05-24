@@ -1,4 +1,3 @@
-/* AdminGraphs.css */
 .admin-graphs-container {
     padding: 24px;
     background: #f8fafc;
@@ -158,11 +157,11 @@
     .stats-grid-graphs {
         grid-template-columns: 1fr;
     }
-    
+
     .frequent-table {
         font-size: 12px;
     }
-    
+
     .frequent-table th,
     .frequent-table td {
         padding: 8px;

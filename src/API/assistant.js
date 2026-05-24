@@ -1,4 +1,3 @@
-// API/assistant.js
 const BASE_URL = 'http://localhost:8080';
 
 const getAuthToken = () => localStorage.getItem('auth_token');

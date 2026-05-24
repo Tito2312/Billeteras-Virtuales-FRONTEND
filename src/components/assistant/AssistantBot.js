@@ -1,4 +1,3 @@
-// components/assistant/AssistantBot.js
 import React, { useState, useEffect, useRef } from 'react';
 import { sendMessageToAssistant } from '../../API/assistant';
 import './AssistantBot.css';

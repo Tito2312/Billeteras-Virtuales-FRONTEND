@@ -1,4 +1,3 @@
-// AdminDashboard.js - Panel de administración (versión completa sin conflictos)
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AdminSidebar from './AdminSidebar';
@@ -16,8 +15,7 @@ import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
   const location = useLocation();
-  
-  // Determinar la pestaña activa desde la URL
+
   const getTabFromPath = () => {
     const path = location.pathname;
     if (path === '/admin/users') return 'users';
@@ -31,7 +29,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     if (path === '/admin/benefits') return 'benefits';
     return 'dashboard';
   };
-  
+
   const [activeTab, setActiveTab] = useState(getTabFromPath());
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -111,7 +109,7 @@ const AdminDashboard = ({ user, onLogout }) => {
               <h2>Bienvenido al Panel de Administración</h2>
               <p>Aquí podrás gestionar todos los aspectos de la plataforma FinWallet</p>
             </div>
-            
+
             <div className="stats-grid-admin">
               <div className="stat-card-admin">
                 <div className="stat-icon-admin">👥</div>
