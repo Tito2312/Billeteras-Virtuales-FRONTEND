@@ -1,0 +1,241 @@
+.admin-reports-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-reports-header {
+  margin-bottom: 32px;
+}
+
+.admin-reports-header h1 {
+  font-size: 28px;
+  color: #1e1b4b;
+  margin-bottom: 8px;
+}
+
+.admin-reports-header p {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.date-range-filter {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.date-inputs input {
+  padding: 10px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.date-inputs button {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.date-inputs button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+}
+
+.date-range-result {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.date-range-result p {
+  font-size: 14px;
+  color: #1e1b4b;
+  margin: 0;
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.report-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.report-card h2 {
+  font-size: 18px;
+  color: #1e1b4b;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f3e8ff;
+}
+
+.report-table-container {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.report-table th {
+  text-align: left;
+  padding: 12px 8px;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.report-table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.empty-table {
+  text-align: center;
+  padding: 32px !important;
+  color: #6b7280;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #7c3aed;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 1024px) {
+  .reports-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .date-inputs {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .date-inputs button {
+    width: 100%;
+  }
+
+  .date-range-result {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .report-card {
+    padding: 16px;
+  }
+
+  .report-card h2 {
+    font-size: 16px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 8px 6px;
+    font-size: 12px;
+  }
+}
+
+.period-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.period-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 2px solid #e5e7eb;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.period-tab:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.period-tab.active {
+  background: #7c3aed;
+  border-color: #7c3aed;
+  color: white;
+}
+
+.report-card-full {
+  grid-column: 1 / -1;
+}
+
+.report-card-desc {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: -8px 0 14px;
+}
+
+.top-rank {
+  font-size: 13px;
+  font-weight: 700;
+  color: #7c3aed;
+}
+
+.top-user-cell {
+  font-size: 13px;
+  color: #374151;
+}
+
+.top-status {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.top-status-completed  { background: #d1fae5; color: #065f46; }
+.top-status-failed     { background: #fee2e2; color: #991b1b; }
+.top-status-reversed   { background: #fef3c7; color: #92400e; }
+.top-status-pending    { background: #e0e7ff; color: #3730a3; }
